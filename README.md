@@ -2,14 +2,14 @@
 
 
 ###  Team Members
-- [Mayukhi Panda](./CVs/MayukhiPanda-CV) ('psymp19')
-- [Kasia Sosin](./CVs/KasiaSosin-CV) ('psyks18')
-- [Frazer Mills](./CVs/FrazerMills-CV) ('psyfm5')
-- [Libing Kuang](./CVs/LibingKuang-CV) ('ssylk2')
-- [Brendan Boyce](./CVs/BrendanBoyce-CV) ('efybb5')
-- [Lucas Panjaitan](./CVs/LucasPanjaitan-CV) ('psylp4')
-- [Sai Dilip](./CVs/SaiDilip-CV) ('efysd6')
-- [Will Wright](./CVs/WillWright-CV) ('psysw14')
+- [Mayukhi Panda](./TeamInfo/mayukhipanda.md) ('psymp19')
+- [Kasia Sosin](./TeamInfo/kasiasosin.md) ('psyks18')
+- [Frazer Mills](./TeamInfo/frazermills.md) ('psyfm5')
+- [Libing Kuang](./TeamInfo/libingkuang.md) ('ssylk2')
+- [Brendan Boyce](./TeamInfo/brendanboyce.md) ('efybb5')
+- [Lucas Panjaitan](./TeamInfo/lucaspanjaitan.md) ('psylp4')
+- [Sai Dilip](./TeamInfo/saidilip.md) ('efysd6')
+- [Will Wright](./TeamInfo/willwright.md) ('psysw14')
 
 ### Documentation
 

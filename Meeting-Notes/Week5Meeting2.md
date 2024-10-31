@@ -20,4 +20,5 @@ Missing Sai, Lucas & Brendan
 
 
 ### Next Tasks
-- Go back to Josh/Bruce with any questions we have
+- Read over all the information before monday
+- Go back to Josh/Bruce with any questions we have on thursday

@@ -13,6 +13,9 @@
 - [Sai Dilip](./TeamInfo/saidilip.md) (`efysd6`)
 - [Will Wright](./TeamInfo/willwright.md) (`psysw14`)
 
+### Team Manifesto
+[Click here to see our team manifesto](./Meeting-Notes/teamManifesto.md)
+
 ### Meetings
 [Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo.md)
 

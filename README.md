@@ -4,7 +4,7 @@
 
 
 ###  Team Members
-- [Mayukhi Panda](./TeamInfo/mayukhipanda.md) (`psymp19`)
+- [Mayukhi Panda](./assets/MayukhiPanda-CV.pdf) (`psymp19`)
 - [Kasia Sosin](./TeamInfo/kasiasosin.md) (`psyks18`)
 - [Frazer Mills](./TeamInfo/frazermills.md) (`psyfm5`)
 - [Libing Kuang](./TeamInfo/libingkuang.md) (`ssylk2`)

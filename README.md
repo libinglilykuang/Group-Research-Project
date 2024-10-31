@@ -12,7 +12,7 @@
 - [Will Wright](./TeamInfo/willwright.md) ('psysw14')
 
 ### Meetings
-[Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo)
+[Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo.md)
 
 ### Documentation
 

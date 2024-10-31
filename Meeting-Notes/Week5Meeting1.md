@@ -3,7 +3,7 @@
 ### 1st Meeting: 29/10/24
 
 ### Attendance
-7/8 - Mayukhi, Kasia, Frazer, Brendan, Libing, Will, Lucas.
+7/8 - Mayukhi, Kasia, Frazer, Brendan, Libing, Will, Lucas.<break>
 Missing Sai
 
 ### What happened?

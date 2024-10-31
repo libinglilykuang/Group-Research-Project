@@ -3,7 +3,7 @@
 ### 2nd Meeting: 31/10/24
 
 ### Attendance
-5/8 - Mayukhi, Kasia, Frazer, Libing, Will.
+5/8 - Mayukhi, Kasia, Frazer, Libing, Will.<break>
 Missing Sai, Lucas & Brendan
 
 ### What happened?

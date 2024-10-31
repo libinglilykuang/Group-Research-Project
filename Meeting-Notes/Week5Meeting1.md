@@ -23,8 +23,6 @@ Missing Sai
 - Will be run using the Intelligent Plant Industrial App Store with Microsoft Azure
 - Discussed use of Python vs .NET (C#), as a team we have experience of both although Python is the stronger language across all members
 
-
-
 ##### 3. Discussed meeting dates
 - Decided to meet as a team every monday and thursday
 - Every two weeks (at the end of the sprint) we will have an end of sprint meeting to discuss progress and plan for the next sprint
@@ -35,4 +33,5 @@ Missing Sai
 - We plan to use Jira to track tasks and their development (to do, in progress, done etc.)
 
 ### Next Tasks
-- Create a plan for the next two weeks (first sprint)
+- Read through info from Josh
+- Check everyone can commit to repo on GitLab

@@ -14,7 +14,7 @@
 - [Will Wright](./assets/WillWright-CV.pdf) (`psysw14`)
 
 ### Team Manifesto
-[Click here to see our team manifesto](./teamManifesto.md)
+[Click here to see our team manifesto](./TeamInfo/teamManifesto.md)
 
 ### Meetings
 [Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo.md)

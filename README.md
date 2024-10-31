@@ -11,6 +11,9 @@
 - [Sai Dilip](./TeamInfo/saidilip.md) ('efysd6')
 - [Will Wright](./TeamInfo/willwright.md) ('psysw14')
 
+### Meeting Dates and Times
+[Meetings](./Meeting-Notes/WeeklyMeetingInfo)
+
 ### Documentation
 
 |         #         | Date     | Description            |

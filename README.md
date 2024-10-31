@@ -5,16 +5,16 @@
 
 ###  Team Members
 - [Mayukhi Panda](./assets/MayukhiPanda-CV.pdf) (`psymp19`)
-- [Kasia Sosin](./TeamInfo/kasiasosin.md) (`psyks18`)
-- [Frazer Mills](./TeamInfo/frazermills.md) (`psyfm5`)
-- [Libing Kuang](./TeamInfo/libingkuang.md) (`ssylk2`)
-- [Brendan Boyce](./TeamInfo/brendanboyce.md) (`efybb5`)
-- [Lucas Panjaitan](./TeamInfo/lucaspanjaitan.md) (`psylp4`)
-- [Sai Dilip](./TeamInfo/saidilip.md) (`efysd6`)
-- [Will Wright](./TeamInfo/willwright.md) (`psysw14`)
+- [Kasia Sosin](./assets/KasiaSosin-CV.pdf) (`psyks18`)
+- [Frazer Mills](./assets/FrazerMills-CV.pdf) (`psyfm5`)
+- [Libing Kuang](./assets/LibingKuang-CV.pdf) (`ssylk2`)
+- [Brendan Boyce](./assets/BrendanBoyce-CV.pdf) (`efybb5`)
+- [Lucas Panjaitan](./assets/LucasPanjaitan-CV.pdf) (`psylp4`)
+- [Sai Dilip](./assets/SaiDilip-CV.pdf) (`efysd6`)
+- [Will Wright](./assets/WillWright-CV.pdf) (`psysw14`)
 
 ### Team Manifesto
-[Click here to see our team manifesto](./Meeting-Notes/teamManifesto.md)
+[Click here to see our team manifesto](./teamManifesto.md)
 
 ### Meetings
 [Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo.md)

@@ -1,6 +1,6 @@
 # Team 6 Project: Compression Optimisation for Intelligent Plant!
 
-![Intelligent Plant Logo](./assets/intelligentPlant.png)
+![Intelligent Plant Logo](./assets/intelligentPlanticon.png)
 
 
 ###  Team Members

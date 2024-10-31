@@ -1,6 +1,6 @@
 ## Week 2
 
-### 3rd Meeting: 10/10/24
+### 1st Meeting: 10/10/24
 
 ### What happened?
 1. Analysed the projects we are now bidding for

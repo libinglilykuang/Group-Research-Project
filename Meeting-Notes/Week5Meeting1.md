@@ -1,6 +1,6 @@
 ## Week 3
 
-### 2nd Meeting: 29/10/24
+### 1st Meeting: 29/10/24
 
 ### Attendance
 7/8 - Mayukhi, Kasia, Frazer, Brendan, Libing, Will, Lucas.

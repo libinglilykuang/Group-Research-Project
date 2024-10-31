@@ -1,6 +1,6 @@
 ## Week 2
 
-### 4th Meeting : 12/10/24
+### 2nd Meeting : 12/10/24
 
 ### What happened?
 1. Shared EOIs and fed back about word count, key ideas and things to remove

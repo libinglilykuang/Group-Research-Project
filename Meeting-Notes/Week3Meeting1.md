@@ -1,6 +1,6 @@
 ## Week 3
 
-### 5th Meeting: 16/10/24
+### 1st Meeting: 16/10/24
 
 ### What happened?
 1. Pitch day for projects!

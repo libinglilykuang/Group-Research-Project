@@ -34,3 +34,4 @@
 | [Week 4 : Meeting 1](./Meeting-Notes/Week4Meeting1.md)| 24/10/24 | Project assignment discussion |
 | [Week 5 : Meeting 1](./Meeting-Notes/Week5Meeting1.md)| 29/10/24 | Project Kickoff Meeting|
 | [Week 5 : Meeting 2](./Meeting-Notes/Week5Meeting2.md)| 31/10/24 | Project details read-through |
+| [Week 6 : Meeting 1](./Meeting-Notes/Week6Meeting1.md)| 04/11/24 | Discussion of project details and Git conventions|

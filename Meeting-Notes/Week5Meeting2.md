@@ -22,3 +22,4 @@ Missing Sai, Lucas & Brendan
 ### Next Tasks
 - Read over all the information before monday
 - Think of any questions we have that we might want to ask Josh/Bruce
+- Agree on Git conventions and coding standards

@@ -19,6 +19,9 @@
 ### Meetings
 [Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo.md)
 
+### Links and Resources
+[Click here for key project info from links sent by Intelligent Plant](./Meeting-Notes/JoshInfo.md)
+
 ### Documentation
 
 |         #         | Date     | Description            |

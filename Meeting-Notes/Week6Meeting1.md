@@ -17,7 +17,7 @@ Missing Sai
 - Frazer is going to write out specific details for git hooks and coding standards.
 
 ##### 2. 
-- Need to make a GUI protoype and compressor prototype before 13/12/24.
+- Need to make a GUI protoype and compressor prototype before 13/12/24 (end of term).
 - The plan is to complete user stories and personas then split into two teams, one for each prototype.
 
 ##### 3. 
@@ -30,3 +30,9 @@ Missing Sai
 - Create personas and user stories
 - Set up Jira to make tickets for the user stories
 - Get ready for first sprint meeting on thursday
+
+
+### Additional Resources
+
+[Diagram](./diagram1.jpeg)
+[Diagram](./diagram2.jpeg)

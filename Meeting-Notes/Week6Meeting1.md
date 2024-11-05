@@ -34,5 +34,5 @@ Missing Sai
 
 ### Additional Resources
 
-[Diagram](./diagram1.jpeg)
-[Diagram](./diagram2.jpeg)
+[Timeline Diagram](./diagram1.jpeg) <br>
+[Compressor Diagram](./diagram2.jpeg)

@@ -22,7 +22,6 @@
 ### Links and Resources
 [Click here for key project info from links sent by Intelligent Plant](./Meeting-Notes/JoshInfo.md) <br>
 [Click here for link to the Jira page](https://team6-compression-optimisation.atlassian.net/jira/software/projects/SCRUM/boards/1) <br>
-[Click here for link to the GitLab homepage](https://projects.cs.nott.ac.uk/comp2002/2024-2025/team6_project)
 
 ### Documentation
 

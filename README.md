@@ -21,6 +21,8 @@
 
 ### Links and Resources
 [Click here for key project info from links sent by Intelligent Plant](./Meeting-Notes/JoshInfo.md)
+[Click here for link to the Jira page](https://team6-compression-optimisation.atlassian.net/jira/software/projects/SCRUM/boards/1)
+[Click here for link to the GitLab homepage](https://projects.cs.nott.ac.uk/comp2002/2024-2025/team6_project)
 
 ### Documentation
 
@@ -34,4 +36,5 @@
 | [Week 4 : Meeting 1](./Meeting-Notes/Week4Meeting1.md)| 24/10/24 | Project assignment discussion |
 | [Week 5 : Meeting 1](./Meeting-Notes/Week5Meeting1.md)| 29/10/24 | Project Kickoff Meeting|
 | [Week 5 : Meeting 2](./Meeting-Notes/Week5Meeting2.md)| 31/10/24 | Project details read-through |
-| [Week 6 : Meeting 1](./Meeting-Notes/Week6Meeting1.md)| 04/11/24 | Discussion of project details and Git conventions|
+| [Week 6 : Meeting 1](./Meeting-Notes/Week6Meeting1.md)| 04/11/24 | Discussion of project details and Git conventions |
+| [Week 6 : Meeting 2](./Meeting-Notes/Week6Meeting2.md)| 07/11/24 | Jira setup and task assignment |

@@ -25,6 +25,8 @@
 
 ### Documentation
 
+#### Meetings
+
 |         #         | Date     | Description            |
 | ----------------- | -----    | -----------            |
 | [Week 1 : Meeting 1](./Meeting-Notes/Week1Meeting1.md)| 30/09/24 | Initial team meetup    |
@@ -37,3 +39,14 @@
 | [Week 5 : Meeting 2](./Meeting-Notes/Week5Meeting2.md)| 31/10/24 | Project details read-through |
 | [Week 6 : Meeting 1](./Meeting-Notes/Week6Meeting1.md)| 04/11/24 | Discussion of project details and Git conventions |
 | [Week 6 : Meeting 2](./Meeting-Notes/Week6Meeting2.md)| 07/11/24 | Jira setup and task assignment |
+
+
+#### UML Diagrams
+
+|         #                                             | Date     | Description            |
+| -----------------                                     | -----    | -----------            |
+| [Use Case Diagram](./Diagrams/UseCase.md)             |   #      |           #            |
+| [Activity Diagram](./Diagrams/ActivityDiagram.md)     |   #      |           #            |
+| [Personas](./Diagrams/personas.md)                    |   #      |           #            |
+
+

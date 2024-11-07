@@ -25,7 +25,3 @@ Missing Sai and Lucas
 
 
 
-### Additional Resources
-
-[Timeline Diagram](./diagram1.jpeg) <br>
-[Compressor Diagram](./diagram2.jpeg)

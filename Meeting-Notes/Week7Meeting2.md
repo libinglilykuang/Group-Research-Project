@@ -12,12 +12,17 @@ Missing Mayukhi and Lucas
 3. Confirmed technologies we will be using for the project
 
 
-##### 1. 
+### Who are the Personas being modelled on
+1. Systems Egineer
+2. Controll Engineer
+3. Process Engineer
+4. Operator (of the data collection)
 
-##### 2.
-
-##### 3. 
-
+### Questions to consider
+- How do we calculate which set of parameters are most optimal?
+- How do we measure how much data was lost?
+    - how does music compression do it?
+    - mean squared errors
 
 
 ### Next Tasks

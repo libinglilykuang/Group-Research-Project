@@ -51,6 +51,5 @@
 | -----------------                                     | -----    | -----------            |
 | [Use Case Diagram](./Diagrams/UseCase.md)             |   #      |           #            |
 | [Activity Diagram](./Diagrams/ActivityDiagram.md)     |   #      |           #            |
-| [Personas](./Diagrams/personas.md)                    |   #      |           #            |
 
 

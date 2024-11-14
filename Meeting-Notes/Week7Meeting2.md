@@ -23,7 +23,7 @@ Missing Mayukhi and Lucas
 4. Operator (of the data collection)
 
 ##### 3.
-- We confirmed we will be using React for the frontend, Azure for the backend, python for rewriting the compression algorithm 
+- We confirmed we will be using React for the frontend, Azure for the backend, python for rewriting the compression algorithm, and Terraform.
 
 
 ### Next Tasks

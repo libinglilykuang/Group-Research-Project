@@ -4,14 +4,14 @@
 
 
 ###  Team Members
-- [Mayukhi Panda](./assets/MayukhiPanda-CV.pdf) (`psymp19`)
-- [Kasia Sosin](./assets/KasiaSosin-CV.pdf) (`psyks18`)
-- [Frazer Mills](./assets/FrazerMills-CV.pdf) (`psyfm5`)
-- [Libing Kuang](./assets/LibingKuang-CV.pdf) (`ssylk2`)
-- [Brendan Boyce](./assets/BrendanBoyce-CV.pdf) (`efybb5`)
-- [Lucas Panjaitan](./assets/LucasPanjaitan-CV.pdf) (`psylp4`)
-- [Sai Dilip](./assets/SaiDilip-CV.pdf) (`efysd6`)
-- [Will Wright](./assets/WillWright-CV.pdf) (`psysw14`)
+- [Mayukhi Panda](./assets/CVs/MayukhiPanda-CV.pdf) (`psymp19`)
+- [Kasia Sosin](./assets/CVs/KasiaSosin-CV.pdf) (`psyks18`)
+- [Frazer Mills](./assets/CVs/FrazerMills-CV.pdf) (`psyfm5`)
+- [Libing Kuang](./assets/CVs/LibingKuang-CV.pdf) (`ssylk2`)
+- [Brendan Boyce](./assets/CVs/BrendanBoyce-CV.pdf) (`efybb5`)
+- [Lucas Panjaitan](./assets/CVs/LucasPanjaitan-CV.pdf) (`psylp4`)
+- [Sai Dilip](./assets/CVs/SaiDilip-CV.pdf) (`efysd6`)
+- [Will Wright](./assets/CVs/WillWright-CV.pdf) (`psysw14`)
 
 ### Team Manifesto
 [Click here to see our team manifesto](./TeamInfo/teamManifesto.md)

@@ -34,5 +34,5 @@ Missing Sai
 
 ### Additional Resources
 
-[Timeline Diagram](./diagram1.jpeg) <br>
-[Compressor Diagram](./diagram2.jpeg)
+[Timeline Diagram](../assets/Meeting-Assets/sprint-1.jpeg) <br>
+[Compressor Diagram](../assets/Meeting-Assets/backend-diagram.jpeg)

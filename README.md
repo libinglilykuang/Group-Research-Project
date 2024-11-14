@@ -25,6 +25,8 @@
 
 ### Documentation
 
+#### Meetings
+
 |         #         | Date     | Description            |
 | ----------------- | -----    | -----------            |
 | [Week 1 : Meeting 1](./Meeting-Notes/Week1Meeting1.md)| 30/09/24 | Initial team meetup    |
@@ -36,4 +38,18 @@
 | [Week 5 : Meeting 1](./Meeting-Notes/Week5Meeting1.md)| 29/10/24 | Project Kickoff Meeting|
 | [Week 5 : Meeting 2](./Meeting-Notes/Week5Meeting2.md)| 31/10/24 | Project details read-through |
 | [Week 6 : Meeting 1](./Meeting-Notes/Week6Meeting1.md)| 04/11/24 | Discussion of project details and Git conventions |
-| [Week 6 : Meeting 2](./Meeting-Notes/Week6Meeting2.md)| 07/11/24 | Jira setup and task assignment |
+| [Week 6 : Meeting 2](./Meeting-Notes/Week6Meeting2.md)| 07/11/24 | Start of 1st sprint |
+| [Week 7 : Meeting 1](./Meeting-Notes/Week7Meeting1.md)| 11/11/24 | Catchup before industry meeting |
+| [Week 7 : Meeting 2](./Meeting-Notes/Week7Meeting2.md)| 12/11/24 | Industry Meeting |
+| [Week 7 : Meeting 3](./Meeting-Notes/Week7Meeting3.md)| 14/11/24 | End of 1st sprint |
+
+
+
+#### UML Diagrams
+
+|         #                                             | Date     | Description            |
+| -----------------                                     | -----    | -----------            |
+| [Use Case Diagram](./Diagrams/UseCaseDiagram.png)             |   14/11/24      |           #            |
+| [Activity Diagram](./Diagrams/ActivityDiagram.png)     |   14/11/24      |           #            |
+
+

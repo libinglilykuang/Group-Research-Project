@@ -1,14 +1,18 @@
 ## User Stories
 
 
+### Operator
+
+As Tammie Jycross, the Operator, I want to select the dataset to compress, so that I can select the uncompressed data from the IP App Store.
+
+
 ### Control Systems Engineer
 
-
-As Nuce Bricholson, the Control Systems Engineer, I want to select the dataset to compress, so that I can select the uncompressed data from the IP App Store.
 
 As Nuce Bricholson, the Control Systems Engineer, I want to configure compression parameters in a way that will reduce storage space used, so that we can store more data for cheaper.
 
 As Nuce Bricholson, the Control Systems Engineer, I want to view a data metrics for different compression parameter configurations, so that I can choose the configuration which reduces storage the most.
+
 
 
 ### Systems Engineer

@@ -4,23 +4,27 @@
 
 
 ###  Team Members
-- [Mayukhi Panda](./assets/MayukhiPanda-CV.pdf) (`psymp19`)
-- [Kasia Sosin](./assets/KasiaSosin-CV.pdf) (`psyks18`)
-- [Frazer Mills](./assets/FrazerMills-CV.pdf) (`psyfm5`)
-- [Libing Kuang](./assets/LibingKuang-CV.pdf) (`ssylk2`)
-- [Brendan Boyce](./assets/BrendanBoyce-CV.pdf) (`efybb5`)
-- [Lucas Panjaitan](./assets/LucasPanjaitan-CV.pdf) (`psylp4`)
-- [Sai Dilip](./assets/SaiDilip-CV.pdf) (`efysd6`)
-- [Will Wright](./assets/WillWright-CV.pdf) (`psysw14`)
+- [Mayukhi Panda](./assets/CVs/MayukhiPanda-CV.pdf) (`psymp19`)
+- [Kasia Sosin](./assets/CVs/KasiaSosin-CV.pdf) (`psyks18`)
+- [Frazer Mills](./assets/CVs/FrazerMills-CV.pdf) (`psyfm5`)
+- [Libing Kuang](./assets/CVs/LibingKuang-CV.pdf) (`ssylk2`)
+- [Brendan Boyce](./assets/CVs/BrendanBoyce-CV.pdf) (`efybb5`)
+- [Lucas Panjaitan](./assets/CVs/LucasPanjaitan-CV.pdf) (`psylp4`)
+- [Sai Dilip](./assets/CVs/SaiDilip-CV.pdf) (`efysd6`)
+- [Will Wright](./assets/CVs/WillWright-CV.pdf) (`psysw14`)
 
 ### Team Manifesto
-[Click here to see our team manifesto](./TeamInfo/teamManifesto.md)
+[Click here to see our team manifesto](./documentation/teamManifesto.md)
 
 ### Meetings
-[Click here for key info regarding times and dates of meetings](./Meeting-Notes/WeeklyMeetingInfo.md)
+[Click here for key info regarding times and dates of meetings](./meeting_notes/WeeklyMeetingInfo.md)
 
 ### Links and Resources
+<<<<<<< HEAD
 [Click here for key project info from links sent by Intelligent Plant](./Meeting-Notes/JoshInfo.md) <br>
+=======
+[Click here for key project info from links sent by Intelligent Plant](./meeting_notes/JoshInfo.md) <br>
+>>>>>>> 3a74fe191a9f68b1495bb7c2cbebb7a493ca6555
 [Click here for link to the Jira page](https://team6-compression-optimisation.atlassian.net/jira/software/projects/SCRUM/boards/1) <br>
 
 ### Documentation
@@ -29,6 +33,7 @@
 
 |         #         | Date     | Description            |
 | ----------------- | -----    | -----------            |
+<<<<<<< HEAD
 | [Week 1 : Meeting 1](./Meeting-Notes/Week1Meeting1.md)| 30/09/24 | Initial team meetup    |
 | [Week 1 : Meeting 2](./Meeting-Notes/Week1Meeting2.md)| 02/10/24 | Shortlisting projects  |
 | [Week 2 : Meeting 1](./Meeting-Notes/Week2Meeting1.md)| 10/10/24 | Worked on EOIs         |
@@ -51,5 +56,31 @@
 | -----------------                                     | -----    | -----------            |
 | [Use Case Diagram](./Diagrams/UseCaseDiagram.png)             |   14/11/24      |           #            |
 | [Activity Diagram](./Diagrams/ActivityDiagram.png)     |   14/11/24      |           #            |
+=======
+| [Week 1 : Meeting 1](./meeting_notes/Week1Meeting1.md)| 30/09/24 | Initial team meetup    |
+| [Week 1 : Meeting 2](./meeting_notes/Week1Meeting2.md)| 02/10/24 | Shortlisting projects  |
+| [Week 2 : Meeting 1](./meeting_notes/Week2Meeting1.md)| 10/10/24 | Worked on EOIs         |
+| [Week 2 : Meeting 2](./meeting_notes/Week2Meeting2.md)| 12/10/24 | Peer review EOIs       |
+| [Week 3 : Meeting 1](./meeting_notes/Week3Meeting1.md)| 16/10/24 | Pitch Day preparation  |
+| [Week 4 : Meeting 1](./meeting_notes/Week4Meeting1.md)| 24/10/24 | Project assignment discussion |
+| [Week 5 : Meeting 1](./meeting_notes/Week5Meeting1.md)| 29/10/24 | Project Kickoff Meeting|
+| [Week 5 : Meeting 2](./meeting_notes/Week5Meeting2.md)| 31/10/24 | Project details read-through |
+| [Week 6 : Meeting 1](./meeting_notes/Week6Meeting1.md)| 04/11/24 | Discussion of project details and Git conventions |
+| [Week 6 : Meeting 2](./meeting_notes/Week6Meeting2.md)| 07/11/24 | Start of 1st sprint |
+| [Week 7 : Meeting 1](./meeting_notes/Week7Meeting1.md)| 11/11/24 | Catchup before industry meeting |
+| [Week 7 : Meeting 2](./meeting_notes/Week7Meeting2.md)| 12/11/24 | Industry Meeting |
+| [Week 7 : Meeting 3](./meeting_notes/Week7Meeting3.md)| 14/11/24 | End of 1st sprint |
+
+
+
+#### Documentation
+
+|         #                                                    | Date            | Description            |
+| -----------------                                            | -----           | -----------            |
+| [Personas](./documentation/personas.md)                      |   14/11/24      |           #            |
+| [User Stories](./documentation/user_stories.md)              |   14/11/24      |           #            |
+| [Use Case Diagram](./documentation/use_case_diagram.png)     |   14/11/24      |           #            |
+| [Activity Diagram](./documentation/activity_diagram.png)     |   14/11/24      |           #            |
+>>>>>>> 3a74fe191a9f68b1495bb7c2cbebb7a493ca6555
 
 

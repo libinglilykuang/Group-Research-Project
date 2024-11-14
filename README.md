@@ -49,7 +49,7 @@
 
 |         #                                             | Date     | Description            |
 | -----------------                                     | -----    | -----------            |
-| [Use Case Diagram](./Diagrams/UseCaseDiagram.md)             |   14/11/24      |           #            |
-| [Activity Diagram](./Diagrams/activity_diagram.md)     |   14/11/24      |           #            |
+| [Use Case Diagram](./Diagrams/UseCaseDiagram.png)             |   14/11/24      |           #            |
+| [Activity Diagram](./Diagrams/activity_diagram.png)     |   14/11/24      |           #            |
 
 

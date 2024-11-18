@@ -55,9 +55,6 @@
 | [Activity Diagram](./documentation/activity_diagram.png)     |   14/11/24      |           #            |
 
 
-<<<<<<< HEAD
-=======
 #### Test Plan
 
 [Link to test plan markdown](./documentation/test_plan.md)
->>>>>>> 01e131a26c288477bfe85161bdef98ad2c028772

@@ -35,10 +35,17 @@
 
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
-| 2.1.1        |   Functionality     |  Algorithm compresses data  | When data is passed into the compression algorithm, it successfully compresses it and outputs the compressed data. | Written - 14/11/24 | n/a |
-| 2.1.2        |               |             |              |              |              |
-| 2.1.3        |               |             |              |              |              |
-| 2.1.4        |               |             |              |              |              |
+| 2.1.1        |   Functionality        |  Verify the algorithm compresses data correctly | When data is passed into the compression algorithm, it successfully compresses it and outputs the compressed data. | Written - 14/11/24 | n/a |
+| 2.1.2        |     Accuracy           |   Check that the compression retains critical data within acceptable limits.          |    Written 16/11/24          |  n/a            |              |
+| 2.1.3        |     Error Handling     |             |              |              |              |
+| 2.1.4        |     Configurability    |             |              |              |              |
+| 2.1.5        |     Scalability        |             |              |              |              |
+| 2.1.6        |     Performance        |             |              |              |              |
+| 2.1.7        |     Integration        |             |              |              |              |
+| 2.1.8        |     Output Metrics     |             |              |              |              |
+| 2.1.9        |     Edge Cases         |             |              |              |              |
+
+
 
 ### Infrastructure
 

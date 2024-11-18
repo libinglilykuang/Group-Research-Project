@@ -11,14 +11,20 @@
 | 1.1.3        |               |             |              |              |              |
 | 1.1.4        |               |             |              |              |              |
 
-### Compression History Panel
+### Compression Sidebar Panel
 
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
-| 1.2.1        |   Functionality     | Button to view History sidebar can be pressed  | When the user presses the button to view the Compression History sidebar, the app should maximise the panel to display previous compression configurations. | Written - 14/11/24 | n/a |
-| 1.2.2        |               |             |              |              |              |
-| 1.2.3        |               |             |              |              |              |
-| 1.2.4        |               |             |              |              |              |
+| 1.2.1        | Functionality          | Sidebar renders correctly when the app is opened, displaying the title and search box. | Ensures the basic UI elements load correctly. | Written - 18/11/24 | n/a |
+| 1.2.2        | Functionality          | Clicking the button opens the sidebar when it is closed.            | Ensures the sidebar is displayed after clicking the button.      | Written - 18/11/24 | n/a |
+| 1.2.3        | Functionality          | Clicking the button closes the sidebar when it is open.          | Ensures the sidebar is hidden after clicking the button.            |  Written - 18/11/24 | n/a |
+| 1.2.4        | Functionality          | Clicking the "..." button shows a menu with Load, Edit, Download, and Delete options.        | Validates the menu appears with the correct options.      | Written - 18/11/24| n/a |
+| 1.2.5        | Functionality          | Filters configurations based on the entered keyword (case-insensitive).            |  Keyword matching should work regardless of letter case.            | Written - 18/11/24| n/a |
+| 1.2.6        | Functionality          | Shows "No matching configurations" when no names match the keyword.     |  Ensures user receives clear feedback when no results are found.               | Written - 18/11/24 | n/a |
+| 1.2.7        | Functionality          | Clicking the magnifying glass activates the search input field.         | Ensures the input field is focused and ready for text.              |Written - 18/11/24 | n/a |
+| 1.2.8        | Interaction            | Dynamically updates the list as the user types in the search box.       |  Ensures seamless user experience with real-time filtering.         |  Written - 18/11/24 | n/a |
+| 1.2.9        | Edge Case              | Handles special characters (e.g., "&", "%") and overly long keywords without crashing. | Includes validation for uncommon input scenarios.    |  Written - 18/11/24| n/a |
+| 1.2.10       | Responsiveness         | Sidebar and menus render correctly on both desktop and mobile devices.           | Ensures layout integrity across devices.            |Written - 18/11/24 | n/a |
 
 ### Compression Visualisation Graphs
 
@@ -28,6 +34,18 @@
 | 1.3.2        |               |             |              |              |              |
 | 1.3.3        |               |             |              |              |              |
 | 1.3.4        |               |             |              |              |              |
+
+### Compression Matrix Table
+
+|         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
+| -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
+| 1.4.1        | Functionality     | Displays original data metrics correctly.          | Verifies correct rendering of original dataset metrics. | Written - 14/11/24 | n/a |
+| 1.4.2        | Functionality     | Displays optimal configuration metrics after running the compression algorithm.           | Ensures metrics like compression rate are accurate.  |Written - 18/11/24| n/a |
+| 1.4.3        | Functionality     | Saves optimal configuration when "Save Optimal Configuration" button is clicked.           |  Confirms saved configuration metrics are accurate. | Written - 18/11/24| n/a |
+| 1.4.4        | Functionality     | Updates the table dynamically when parameters are adjusted.            |  Ensures real-time table updates after parameter changes.               |Written - 18/11/24| n/a |
+| 1.4.5        | Edge Case         | Handles empty datasets gracefully with "No data available" message.           |   Ensures proper feedback for empty inputs.                      | Written - 18/11/24| n/a |
+| 1.4.6        | Edge Case         | Displays large datasets (e.g., millions of data points) correctly.          |  Verifies stable rendering for large datasets.                     | Written - 18/11/24 | n/a |
+| 1.4.7        | UI/Interaction    | Scrollbar appears and functions smoothly for large datasets.            | Ensures usability for data-heavy tables.                               |Written - 18/11/24 | n/a |
 
 ## Back End
 

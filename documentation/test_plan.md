@@ -32,10 +32,19 @@
 
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
-| 1.3.1        |   Functionality     |  Graph renders on page  | When the user sends data to be compressed, the app should display the resulting compression graph | Written - 14/11/24 | n/a |
-| 1.3.2        |               |             |              |              |              |
-| 1.3.3        |               |             |              |              |              |
-| 1.3.4        |               |             |              |              |              |
+| 1.3.1        | Functionality |  Graph renders on page  | When the user sends data to be compressed, the app should display the resulting compression graph | Written - 17/11/24 | n/a |
+| 1.3.2        | Functionality | Graph updates with parameter changes | Ensure the graph dynamically updates when a user adjusts compression parameters such as accuracy or file size | Written - 17/11/24 | n/a|
+| 1.3.3        | Functionality | Multiple compression methods can be compared | Verify that users can select multiple compression methods and view them on the same graph for comparison | Written - 17/11/24 | n/a |
+| 1.3.4        | Functionality | Legends and tooltips display correctly |Ensure legends and tooltips are visible and show correct information for data points | Written - 17/11/24 | n/a |
+| 1.3.5        | User Interaction | Input validation for parameters | Test error messages when invalid parameters are input, and ensure graph doesn’t break | Written - 17/11/24 | n/a |
+| 1.3.6        | Performance | Graph renders with large datasets | Measure load time and responsiveness of the graph when handling datasets of varying sizes | Written - 17/11/24 | n/a |
+| 1.3.7        | Functionality | Graph export options | Test exporting the graph as an image and ensure the data reflects the graph view accurately | Written - 17/11/24 | n/a |
+| 1.3.8        | Responsiveness | Graph adjusts to screen size | Ensure the graph scales and remains readable on different devices (desktop, tablet, mobile) | Written - 17/11/24 | n/a |
+| 1.3.9        | Back End | Data integrity for plotted points | Validate the plotted data matches the raw dataset values and compression calculations | Written - 17/11/24 | n/a |
+| 1.3.10       | User Interaction | Interactivity: zoom, pan, and hover-over details | Test features like zoom, pan, and tooltips for usability and clarity of the graph | Written - 17/11/24 | n/a |
+
+[Ideas to Enhance Functionality](../tests/graph_testing_notes/graph_enhancements.md)
+[Test Cases](../tests/graph_testing_notes/graph_test_cases.md)
 
 ### Compression Matrix Table
 

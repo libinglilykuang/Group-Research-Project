@@ -57,6 +57,7 @@
 | 1.5.4        | Functionality | The compression matrix is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
 | 1.5.5        |Functionality | The save optimal parameters button is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
 | 1.5.6        |Functionality | The sidebar toggle is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.7        |Functionality | Compare the visual similarity of the current iteration of the website to our prototype. | Ensures that the layout adheres to our design and does not majorly change between iterations. | Written - 21/11/24|n/a|
 
 ## Back End
 

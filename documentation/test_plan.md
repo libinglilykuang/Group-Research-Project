@@ -7,11 +7,11 @@
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
 | 1.1.1        |   Functionality     |  "optimise" button can be pressed  | When the user presses the "optimise" button, the app should calculate and apply the optimal compression values. | Written - 14/11/24 | n/a |
-| 1.1.2        |  Functionality      |  Clicking data with no no file selected.           | This should result in an error.             |              |              |
-| 1.1.3        |  Functionality      |  Provide input for valid parameter 1           |  Input is savec            |              |              |
-| 1.1.4        |  Functionality      |  Provide valid input for paramter 2           |  Input is saved            |              |              |
-| 1.1.5        |  Functionality      |  Clicking compress without a selected file           |  Should result in an error message            |              |              |
-| 1.1.6        |  Functionality      |  Clicking download icon           |   Should download current metrics and the graphs represented currently           |              |              |
+| 1.1.2        |  Functionality      |  Clicking data with no no file selected.           | This should result in an error.             | Written - 21/11/24            |  n/a            |
+| 1.1.3        |  Functionality      |  Provide input for valid parameter 1           |  Input is saved.            | Written - 21/11/24             | n/a             |
+| 1.1.4        |  Functionality      |  Provide valid input for paramter 2           |  Input is saved.            | Written - 21/11/24             | n/a             |
+| 1.1.5        |  Functionality      |  Clicking compress without a selected file           |  Should result in an error message.            | Written - 21/11/24             |  n/a            |
+| 1.1.6        |  Functionality      |  Clicking download icon           |   Should download current metrics and the graphs represented currently.           | Written - 21/11/24             |  n/a            |
 
 ### Compression Sidebar Panel
 

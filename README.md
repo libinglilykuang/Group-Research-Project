@@ -44,6 +44,7 @@
 | [Week 7 : Meeting 3](./meeting_notes/Week7Meeting3.md)| 14/11/24 | End of 1st sprint |
 | [Week 8 : Meeting 1](./meeting_notes//Week8Meeting1.md) | 18/11/24 | Started work on test plans | 
 | [Week 8 : Meeting 2](./meeting_notes/Week8Meeting2.md) | 21/11/24 | Worked on test plans/tests |
+| [Week 9 : Meeting 1](./meeting_notes/Week9Meeting1.md) | 25/11/24 | Worked on test writing |
 
 
 

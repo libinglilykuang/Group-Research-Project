@@ -58,6 +58,18 @@
 | 1.4.6        | Edge Case         | Displays large datasets (e.g., millions of data points) correctly.          |  Verifies stable rendering for large datasets.                     | Written - 18/11/24 | n/a |
 | 1.4.7        | UI/Interaction    | Scrollbar appears and functions smoothly for large datasets.            | Ensures usability for data-heavy tables.                               |Written - 18/11/24 | n/a |
 
+### UI Layout
+
+|         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
+| -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
+| 1.5.1        |   Functionality     |  The logo is present on the page. | Ensures the component is visible. | Written - 20/11/24 | n/a |
+| 1.5.2        | Functionality | The configuration panel is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.3        | Functionality | The compression visualisation graph is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.4        | Functionality | The compression matrix is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.5        |Functionality | The save optimal parameters button is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.6        |Functionality | The sidebar toggle is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.7        |Functionality | Compare the visual similarity of the current iteration of the website to our prototype. | Ensures that the layout adheres to our design and does not majorly change between iterations. | Written - 21/11/24|n/a|
+
 ## Back End
 
 ### Compression Algorithm

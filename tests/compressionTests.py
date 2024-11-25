@@ -1,9 +1,6 @@
 ## Compression Tests
 ## Write tests here using python and the test plan
 
-### Lucas : tests 1-5
-### Kasia : tests 6-9
-
 import unittest
 import time
 
@@ -60,14 +57,10 @@ class CompressionTests(unittest.TestCase):
         compressed = self.compression_algorithm(largeData, 0.1)
         self.assertEqual(len(compressed), 10_000_000)
     
-    ## check compression algorithm runs without issues/errors?
-    def test_check_compression():
-        data = []
-        # run compression algorithm
-        assert()
-    
-    ## test for performance (time response)
+  
+    ## Test 2.1.6 Performance
     def test_timeT():
+        """Check compression algorithm returns withint 5 seconds"""
         starttime = time.time()
         #  run compression algorithm for 1,000,000 points
         totaltime = round((time.time()) - starttime)

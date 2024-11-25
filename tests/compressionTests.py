@@ -15,7 +15,7 @@ class CompressionTests(unittest.TestCase):
             raise ValueError("Input data cannot be None")
         if not data:
             raise ValueError("Input data cannot be empty")
-        # simulated operation
+        # simulate operation
         compressedData = data[:int(len(data) * (compressionRatio or 0.5))]
         return compressedData
 
@@ -51,7 +51,7 @@ class CompressionTests(unittest.TestCase):
         """Check user-defined parameters are valid"""
         data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         compressed = self.compression_algorithm(data, 0.3)
-        self.assertEqual(len(compressed), 3) ## expect compression parameter applied
+        self.assertEqual(len(compressed), 3) # expect compression parameter applied
             
     # Test 2.1.5 - Scalability
     def test_large_dataset_creation(self):

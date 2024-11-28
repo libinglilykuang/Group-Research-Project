@@ -7,11 +7,11 @@
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
 | 1.1.1        |   Functionality     |  "optimise" button can be pressed  | When the user presses the "optimise" button, the app should calculate and apply the optimal compression values. | Written - 14/11/24 | n/a |
-| 1.1.2        |  Functionality      |  Clicking data with no no file selected.           | This should result in an error.             |              |              |
-| 1.1.3        |  Functionality      |  Provide input for valid parameter 1           |  Input is savec            |              |              |
-| 1.1.4        |  Functionality      |  Provide valid input for paramter 2           |  Input is saved            |              |              |
-| 1.1.5        |  Functionality      |  Clicking compress without a selected file           |  Should result in an error message            |              |              |
-| 1.1.6        |  Functionality      |  Clicking download icon           |   Should download current metrics and the graphs represented currently           |              |              |
+| 1.1.2        |  Functionality      |  Clicking data with no no file selected.           | This should result in an error.             | Written - 21/11/24            |  n/a            |
+| 1.1.3        |  Functionality      |  Provide input for valid parameter 1           |  Input is saved.            | Written - 21/11/24             | n/a             |
+| 1.1.4        |  Functionality      |  Provide valid input for paramter 2           |  Input is saved.            | Written - 21/11/24             | n/a             |
+| 1.1.5        |  Functionality      |  Clicking compress without a selected file           |  Should result in an error message.            | Written - 21/11/24             |  n/a            |
+| 1.1.6        |  Functionality      |  Clicking download icon           |   Should download current metrics and the graphs represented currently.           | Written - 21/11/24             |  n/a            |
 
 ### Compression Sidebar Panel
 
@@ -58,6 +58,18 @@
 | 1.4.6        | Edge Case         | Displays large datasets (e.g., millions of data points) correctly.          |  Verifies stable rendering for large datasets.                     | Written - 18/11/24 | n/a |
 | 1.4.7        | UI/Interaction    | Scrollbar appears and functions smoothly for large datasets.            | Ensures usability for data-heavy tables.                               |Written - 18/11/24 | n/a |
 
+### UI Layout
+
+|         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
+| -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
+| 1.5.1        |   Functionality     |  The logo is present on the page. | Ensures the component is visible. | Written - 20/11/24 | n/a |
+| 1.5.2        | Functionality | The configuration panel is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.3        | Functionality | The compression visualisation graph is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.4        | Functionality | The compression matrix is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.5        |Functionality | The save optimal parameters button is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.6        |Functionality | The sidebar toggle is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.7        |Functionality | Compare the visual similarity of the current iteration of the website to our prototype. | Ensures that the layout adheres to our design and does not majorly change between iterations. | Written - 21/11/24|n/a|
+
 ## Back End
 
 ### Compression Algorithm
@@ -81,6 +93,25 @@
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
 | 2.2.1        |   Functionality     |  Compression configuration can be stored  | When the user chooses to save configuration parameters, this is written into storage. | Written - 14/11/24 | n/a |
-| 2.2.2        |               |             |              |              |              |
-| 2.2.3        |               |             |              |              |              |
-| 2.2.4        |               |             |              |              |              |
+| 2.2.2        |      Functionality         |     Input Blob Container exists       |  Input Blob Container exists under the name of "IP-input-container"            |   Written - 24/11/24           |     n/a         |
+| 2.2.3        |      Functionality         |     Output Blob Container exists       |  Output Blob Container exists under the name of "IP-output-container"            |   Written - 24/11/24           |     n/a         |
+| 2.2.4        |      Functionality         |     Service Bus Queue exists       |  Service Bus Queue exists under the name of "IP-fifo-queue"            |   Written - 24/11/24           |     n/a         |
+| 2.2.5        |      Functionality         |     Compression Azure Function exists       |  Compression Azure Function exists under the name of "IP-compression-function"            |   Written - 24/11/24           |     n/a         |
+| 2.2.6        |      Functionality         |     Intelligent Plant API Data Collection Azure Function exists       |  Intelligent Plant API Data Collection Azure Function exists under the name of "IP-API-data-getter-function"            |   Written - 24/11/24           |     n/a         |
+| 2.2.7        |      Functionality         |     Event Grid Subscription exists       |  Event Grid Subscription for "BlobCreated" event exists under the name of "IP-blob-created"            |   Written - 24/11/24           |     n/a         |
+| 2.2.8        |      Integration         |      Check API Data Collection Azure Function can write to Input Blob Container      |    API Data Collection Azure Function can successfully write to Input Blob Container         |   Written - 24/11/24           |     n/a         |
+| 2.2.9        |      Integration         |      Check BlobCreated Event Emmission      |    When a file is uploaded to IP-input-container, Azure Blob Storage emits an event for the new blob in the container         |   Written - 24/11/24           |     n/a         |
+| 2.2.10        |      Integration         |      Check BlobCreated Event has a valid and full Blob URL      |    The Blob URL created is the full path to the uploaded file and the file can be accessed using that path         |   Written - 24/11/24           |     n/a         |
+| 2.2.11       |      Integration         |   Check Event Type of BlobCreated Event         |    The event type of the event created has to be "Microsoft.Storage.BlobCreated"         |   Written - 24/11/24           |     n/a         |
+| 2.2.12      |      Integration         |   Check Metadata is available for Event         | The file size, content type, and upload timestamp must all be available in the event that was created             |   Written - 24/11/24           |     n/a         |
+| 2.2.13       |      Integration         |    Check Event is routed via Azure Event Grid      |   Check that the Event is sent to Azure Event Grid and that it is then forwarded to IP-fifo-queue          |   Written - 24/11/24           |     n/a         |
+| 2.2.14       |      Integration         |    Check Event is enqueued in in Service Bus Queue        |    The newly created event should be in IP-fifo-queue         |   Written - 24/11/24           |     n/a         |
+| 2.2.15       |      Accuracy         |   Check Events enqueued to Service Bus Queue are FIFO         |  The events enqueued to IP-fifo-queue should be stored FIFO           |   Written - 24/11/24           |     n/a         |
+| 2.2.16      |      Integration         |     Events from IP-fifo-queue trigger IP-compression-function       |     Each event in IP-fifo-queue triggers a new instance of IP-compression-function        |   Written - 24/11/24           |     n/a         |
+| 2.2.17       |      Integration         |      Events are removed from IP-fifo-queue once IP-compression-function triggered      |  Once IP-compression-function is triggered by an event in IP-fifo-queue, said event should be removed from the queue           |   Written - 24/11/24           |     n/a         |
+| 2.2.18       |      Integration         |     IP-compression-function writes file to IP-output-container       |     IP-compression-function writes file to IP-output-container        |   Written - 24/11/24           |     n/a         |
+| 2.2.19       |      Error Handling         |    Event Grid failure to deliver event to IP-fifo-queue causes retries        |  If the Event Grid fails to route the event to IP-fifo-queue then it should retry with exponential backoff           |   Written - 24/11/24           |     n/a         |
+| 2.2.20       |      Error Handling         |  Azure functions failure causes retries 1        |   If IP-compression-function does not produce a file in a configured amount of time then it will be terminated and re-run           |   Written - 24/11/24           |     n/a         |
+| 2.2.21       |      Error Handling         |  Azure functions failure causes retries 2        |   If IP-API-data-getter-function does not produce a file in a configured amount of time then it will be terminated and re-run           |   Written - 24/11/24           |     n/a         |
+| 2.2.22       |      Error Handling         |   Dead Letter Queue configured for Event Grid         |  A dead letter queue is configured for Event Grid for undelievered Event messages for manual inpsection           |   Written - 24/11/24           |     n/a         |
+| 2.2.23       |      Error Handling         |   Dead Letter Queue configured for IP-fifo-queue         |  A dead letter queue is configured for IP-fifo-queue for undelievered Event messages for manual inpsection           |   Written - 24/11/24           |     n/a         |

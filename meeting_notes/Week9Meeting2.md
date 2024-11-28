@@ -1,6 +1,6 @@
 ## Week 9
 
-### 1st Meeting: 25/11/24
+### 2nd Meeting: 26/11/24
 
 ### Attendance
 7/8 - Mayukhi, Frazer, Kasia, Libing, Will, Brendan, and Sai <br>

@@ -44,6 +44,7 @@
 | 1.3.10       | User Interaction | Interactivity: zoom, pan, and hover-over details | Test features like zoom, pan, and tooltips for usability and clarity of the graph | Written - 17/11/24 | n/a |
 
 [Ideas to Enhance Functionality](../tests/graph_testing_notes/graph_enhancements.md)
+<br>
 [Test Cases](../tests/graph_testing_notes/graph_test_cases.md)
 
 ### Compression Matrix Table

@@ -5,6 +5,9 @@ tmp/
 *.temp
 *.tmp
 
+# Node.js dependencies
+node_modules/
+
 # python
 *.py[cod]
 *.egg

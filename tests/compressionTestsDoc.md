@@ -314,8 +314,6 @@ def test_singlePoint(self):
 ```
 - **Step 5**: Report failure for unexpected behavior.
 
----
-
 ### **High-Frequency Noise Handling**  
 **Purpose**: Ensures the algorithm effectively reduces noise in a dataset with rapid fluctuations.
 

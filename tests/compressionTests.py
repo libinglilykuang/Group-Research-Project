@@ -134,11 +134,3 @@ class CompressionTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-## We realised that for many of the compression algorithm tests, 
-## data is required from other parts of the system, 
-## will likely feature more when we complete our integration/system testing later on.
-## However, we have written several short unit tests...
-## to ensure we are following test driven development and, 
-## to make us think about the system as a whole as well as...
-## the individual processes before we start programming.

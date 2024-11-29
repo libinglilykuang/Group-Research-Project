@@ -11,7 +11,6 @@ def test_functionality(self):
     """Check if the algorithm compresses data correctly"""
     data = [1, 2, 3, 4, 5]  # Step 1: Define the input data for the test.
 ```
-- **Comment**: Describes the test's intent.
 - **Step 1**: Input data is initialized. `[1, 2, 3, 4, 5]` is the dataset to be compressed.
 
 ```python
@@ -49,7 +48,6 @@ def test_accuracy(self):
     """Check if key data points are retained"""
     data = [10, 20, 30, 40, 50]  # Step 1: Define the input data for accuracy testing.
 ```
-- **Comment**: Describes the test's purpose.
 - **Step 1**: Input data is initialized to ensure sufficient variance to test retention of key data points.
 
 ```python
@@ -87,7 +85,6 @@ def test_emptyError(self):
     """Check handling of empty input"""
     data = []  # Step 1: Define an empty list as input.
 ```
-- **Comment**: Describes the test's focus on error handling.
 - **Step 1**: Initialize an empty list as the test input.
 
 ```python
@@ -259,9 +256,10 @@ def test_outputMetrics(self):
 ```
 - **Step 2**: Execute the algorithm with a `0.4` ratio.
 - **Step 3**: Compute storage savings using the formula:  
-  \[
-  \text{Savings} = \frac{\text{Original Size} - \text{Compressed Size}}{\text{Original Size}}
-  \]
+
+\[
+\text{Savings} = \frac{\text{Original Size} - \text{Compressed Size}}{\text{Original Size}}
+\]
 
 ```python
         self.assertAlmostEqual(storageSavings, 0.6, places=1)  # Step 4: Verify that the savings are approximately 60%.

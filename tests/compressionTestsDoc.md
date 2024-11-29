@@ -256,10 +256,9 @@ def test_outputMetrics(self):
 ```
 - **Step 2**: Execute the algorithm with a `0.4` ratio.
 - **Step 3**: Compute storage savings using the formula:  
-
-\[
-\text{Savings} = \frac{\text{Original Size} - \text{Compressed Size}}{\text{Original Size}}
-\]
+```markdown
+                        Savings = (Original Size - Compressed Size) / Original Size
+```
 
 ```python
         self.assertAlmostEqual(storageSavings, 0.6, places=1)  # Step 4: Verify that the savings are approximately 60%.

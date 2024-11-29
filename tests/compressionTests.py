@@ -86,7 +86,7 @@ class CompressionTests(unittest.TestCase):
     # Test 2.1.6 Performance
     def test_performance(self):
         """Check if operation finishes within a reasonable time"""
-        data = [0] * 1_000_000
+        data = [10] * 1_000_000
         try:
             startTime = time.time()
             self.compression_algorithm(data, 0.5)

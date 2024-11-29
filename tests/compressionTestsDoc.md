@@ -257,7 +257,7 @@ def test_outputMetrics(self):
 - **Step 2**: Execute the algorithm with a `0.4` ratio.
 - **Step 3**: Compute storage savings using the formula:  
 ```markdown
-                        Savings = (Original Size - Compressed Size) / Original Size
+                                        Savings = (Original Size - Compressed Size) / Original Size
 ```
 
 ```python

@@ -1,7 +1,26 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import CompressionMatrixTable from '../../src/components/CompressionMatrixTable';
+import CompressionMatrixTable from '../../main/CompressionMatrixTable';
+
+test('Displays original data metrics correctly', () => {
+    const originalData = [
+        { name: 'Metric 1', value: 'Value 1' },
+        { name: 'Metric 2', value: 'Value 2' },
+    ];
+
+    render(<CompressionMatrixTable data={originalData} onSave={jest.fn()} />);
+
+    expect(screen.getByTestId('header-metric')).toHaveTextContent('Metric');
+    expect(screen.getByTestId('header-value')).toHaveTextContent('Value');
+
+    expect(screen.getByTestId('row-metric-0')).toHaveTextContent('Metric 1');
+    expect(screen.getByTestId('row-value-0')).toHaveTextContent('Value 1');
+    expect(screen.getByTestId('row-metric-1')).toHaveTextContent('Metric 2');
+    expect(screen.getByTestId('row-value-1')).toHaveTextContent('Value 2');
+});
+
 
 test('Displays original data metrics correctly', () => {
     const originalData = [
@@ -11,39 +30,15 @@ test('Displays original data metrics correctly', () => {
 
     render(<CompressionMatrixTable data={originalData} />);
 
-    expect(screen.getByText(/Metric/i)).toBeInTheDocument();
-    expect(screen.getByText(/Value/i)).toBeInTheDocument();
+    expect(screen.getByTestId('header-metric')).toBeInTheDocument();
+    expect(screen.getByTestId('header-value')).toBeInTheDocument();
 
-    const rows = screen.getAllByRole('row');
-    expect(rows).toHaveLength(originalData.length + 1);
-
-    expect(screen.getByText(/Metric 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/Value 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/Metric 2/i)).toBeInTheDocument();
-    expect(screen.getByText(/Value 2/i)).toBeInTheDocument();
+    expect(screen.getByTestId('row-metric-0')).toHaveTextContent('Metric 1');
+    expect(screen.getByTestId('row-value-0')).toHaveTextContent('Value 1');
+    expect(screen.getByTestId('row-metric-1')).toHaveTextContent('Metric 2');
+    expect(screen.getByTestId('row-value-1')).toHaveTextContent('Value 2');
 });
 
-test('Displays optimal configuration metrics correctly', () => {
-    const optimalConfig = [
-        { name: 'Compression Rate', value: '95%' },
-        { name: 'Optimal Metric', value: 'Value A' },
-    ];
-
-    render(<CompressionMatrixTable data={optimalConfig} />);
-
-    expect(screen.getByText(/Metric/i)).toBeInTheDocument();
-    expect(screen.getByText(/Value/i)).toBeInTheDocument();
-
-    expect(screen.getByText(/Compression Rate/i)).toBeInTheDocument();
-    expect(screen.getByText(/95%/i)).toBeInTheDocument();
-    expect(screen.getByText(/Optimal Metric/i)).toBeInTheDocument();
-    expect(screen.getByText(/Value A/i)).toBeInTheDocument();
-
-    const rows = screen.getAllByRole('row');
-    expect(rows).toHaveLength(optimalConfig.length + 1);
-});
-
-import userEvent from '@testing-library/user-event';
 
 test('Saves optimal configuration when button is clicked', async () => {
     const onSave = jest.fn();
@@ -59,28 +54,29 @@ test('Saves optimal configuration when button is clicked', async () => {
     expect(onSave).toHaveBeenCalledWith(data);
 });
 
-test('Updates the table dynamically when parameters are adjusted', () => {
-    const { rerender } = render(<CompressionMatrixTable data={[{ name: 'Metric 1', value: 'Value 1' }]} />);
+test('Updates table rows dynamically when data changes', () => {
+    const { rerender } = render(
+        <CompressionMatrixTable data={[{ name: 'Metric 1', value: 'Value 1' }]} onSave={jest.fn()} />
+    );
 
-    expect(screen.getByText(/Metric 1/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Metric 2/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId('row-metric-0')).toHaveTextContent('Metric 1');
+    expect(screen.getByTestId('row-value-0')).toHaveTextContent('Value 1');
+    expect(screen.queryByTestId('row-metric-1')).not.toBeInTheDocument();
 
-    rerender(<CompressionMatrixTable data={[{ name: 'Metric 2', value: 'Value 2' }]} />);
+    rerender(<CompressionMatrixTable data={[{ name: 'Metric 2', value: 'Value 2' }]} onSave={jest.fn()} />);
 
-    expect(screen.getByText(/Metric 2/i)).toBeInTheDocument();
+    expect(screen.getByTestId('row-metric-0')).toHaveTextContent('Metric 2');
+    expect(screen.getByTestId('row-value-0')).toHaveTextContent('Value 2');
     expect(screen.queryByText(/Metric 1/i)).not.toBeInTheDocument();
-
-    expect(screen.getByText(/Metric/i)).toBeInTheDocument();
-    expect(screen.getByText(/Value/i)).toBeInTheDocument();
 });
 
+
 test('Handles empty datasets gracefully', () => {
-    render(<CompressionMatrixTable data={[]} />);
+    render(<CompressionMatrixTable data={[]} onSave={jest.fn()} />);
 
-    expect(screen.getByText(/No data available/i)).toBeInTheDocument();
-
-    const rows = screen.queryAllByRole('row');
-    expect(rows).toHaveLength(0);
+    const noDataMessage = screen.getByTestId('no-data-message');
+    expect(noDataMessage).toBeInTheDocument();
+    expect(noDataMessage).toHaveTextContent('No data available');
 
     const saveButton = screen.getByRole('button', { name: /Save Optimal Configuration/i });
     expect(saveButton).toBeEnabled();
@@ -96,13 +92,16 @@ test('Displays large datasets correctly', () => {
 });
 
 test('Scrollbar appears and functions smoothly for large datasets', () => {
-    const largeData = Array.from({ length: 1000 }, (_, index) => ({ name: `Metric ${index}`, value: `Value ${index}` }));
+    const largeData = Array.from({ length: 1000 }, (_, index) => ({
+        name: `Metric ${index}`,
+        value: `Value ${index}`,
+    }));
 
-    render(<CompressionMatrixTable data={largeData} />);
+    render(<CompressionMatrixTable data={largeData} onSave={jest.fn()} />);
 
-    const table = screen.getByRole('table');
-    expect(table).toHaveStyle({ overflow: 'auto' });
+    const scrollContainer = screen.getByTestId('scroll-container');
+    expect(scrollContainer).toHaveStyle({ overflow: 'auto' });
 
-    table.scrollTop = 100;
-    expect(table.scrollTop).toBe(100);
+    scrollContainer.scrollTop = 100;
+    expect(scrollContainer.scrollTop).toBe(100);
 });

@@ -42,6 +42,14 @@
 | [Week 7 : Meeting 1](./meeting_notes/Week7Meeting1.md)| 11/11/24 | Catchup before industry meeting |
 | [Week 7 : Meeting 2](./meeting_notes/Week7Meeting2.md)| 12/11/24 | Industry Meeting |
 | [Week 7 : Meeting 3](./meeting_notes/Week7Meeting3.md)| 14/11/24 | End of 1st sprint |
+| [Week 8 : Meeting 1](./meeting_notes//Week8Meeting1.md) | 18/11/24 | Started work on test plans | 
+| [Week 8 : Meeting 2](./meeting_notes/Week8Meeting2.md) | 21/11/24 | Worked on test plans/tests |
+| [Week 9 : Meeting 1](./meeting_notes/Week9Meeting1.md) | 25/11/24 | Worked on test writing |
+| [Week 9 : Meeting 2](./meeting_notes/Week9Meeting2.md) | 26/11/24 | Industry Meeting |
+| [Week 9 : Meeting 3](./meeting_notes/Week9Meeting3.md) | 28/11/24 | Finishing tests and report writing |
+| [Week 10 : Meeting 1](./meeting_notes/Week10Meeting1.md) | 2/12/24 | Worked on prototypes |
+
+
 
 
 
@@ -53,6 +61,13 @@
 | [User Stories](./documentation/user_stories.md)              |   14/11/24      |           #            |
 | [Use Case Diagram](./documentation/use_case_diagram.png)     |   14/11/24      |           #            |
 | [Activity Diagram](./documentation/activity_diagram.png)     |   14/11/24      |           #            |
+
+
+#### Reports & Notes
+
+|           #                                                    |               Date            |       Description         |
+| -----------------                                              |               -----           | -----------               |
+| [Interim Report Notes](./documentation/Interim_Report_Notes.md)|               25/11/24        |          #                |
 
 
 #### Test Plan

@@ -7,16 +7,16 @@
 Missing Lucas
 
 ### What happened?
-1. 
-2. 
-3. 
+1. Worked on writing tests
+
 
 ##### 1. 
-- 
+- Start of next sprint
+- Planning for prototype 
+- Planned for interim report
 
-##### 2.
-- 
 
 
 ### Next Tasks
--
+- Finish tests
+- Start building prototypes (frontend and backend)

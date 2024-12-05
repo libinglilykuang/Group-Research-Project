@@ -1,6 +1,6 @@
 ## Week 7
 
-### 1st Meeting: 12/11/24
+### 2nd Meeting: 12/11/24
 
 ### Attendance
 6/8 - Frazer, Kasia, Libing, Will, Brendan and Sai <br>

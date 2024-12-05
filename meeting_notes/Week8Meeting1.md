@@ -1,4 +1,4 @@
-## Week 7
+## Week 8
 
 ### 1st Meeting: 18/11/24
 

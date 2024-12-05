@@ -44,6 +44,7 @@
 | 1.3.10       | User Interaction | Interactivity: zoom, pan, and hover-over details | Test features like zoom, pan, and tooltips for usability and clarity of the graph | Written - 17/11/24 | n/a |
 
 [Ideas to Enhance Functionality](../tests/graph_testing_notes/graph_enhancements.md)
+<br>
 [Test Cases](../tests/graph_testing_notes/graph_test_cases.md)
 
 ### Compression Matrix Table
@@ -84,7 +85,7 @@
 | 2.1.5        |     Scalability    |  Test te algorithm's ability to handle large datasets.     | The algorithm should compress up to 100,000,000 points without crashing or failing.     | Written 16/11/24      | n/a    |
 | 2.1.6        |     Performance   | Ensure compression completes within a reasonable time.    | Compression time should not exceed 5 seconds for 1,000,000 points.    | Written 16/11/24     |     n/a         |
 | 2.1.7        |     Integration   | Check that the algorithm integrates well with other components.      | Compressed data should work correctly with the Data Core API and visualisation tools.   | Written 16/11/24    | n/a      |
-| 2.1.8        |     Output Metrics     |  Confirm the algorithm calculatees and displays metrics correctly.     | Metrics like storage savings, point counts and data fideltity must align with the actual results.      | Written 16/11/24    | n/a      |
+| 2.1.8        |     Output Metrics     |  Confirm the algorithm calculates and displays metrics correctly.     | Metrics like storage savings, point counts and data fideltity must align with the actual results.      | Written 16/11/24    | n/a      |
 | 2.1.9        |     Edge Cases         |  Test the algorithm with unusual or extreme datasets.      | Include datasets with single points, duplicates or high frequency noise.  | Written 16/11/24  | n/a    |
 
 

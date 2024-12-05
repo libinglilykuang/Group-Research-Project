@@ -21,7 +21,10 @@ Missing Brendan, Sai and Lucas
 
 ##### 3.
 - Talked as a team about next steps
+- Created a mockup for the GUI screen with features mentioned by industry
+- Planned to write tests for the next sprint (penultimate sprint before the xmas holidays)
 
 
 ### Next Tasks
-- Complete personas and user stories by thursday (using info from industry meeting)
+- Incorporate any feedback from emails to industry re user stories and personas
+- Split into subteams and work on tests for the GUI and tests for the backend 

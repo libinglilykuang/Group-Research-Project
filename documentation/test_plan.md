@@ -7,27 +7,69 @@
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
 | 1.1.1        |   Functionality     |  "optimise" button can be pressed  | When the user presses the "optimise" button, the app should calculate and apply the optimal compression values. | Written - 14/11/24 | n/a |
-| 1.1.2        |               |             |              |              |              |
-| 1.1.3        |               |             |              |              |              |
-| 1.1.4        |               |             |              |              |              |
+| 1.1.2        |  Functionality      |  Clicking data with no no file selected.           | This should result in an error.             | Written - 21/11/24            |  n/a            |
+| 1.1.3        |  Functionality      |  Provide input for valid parameter 1           |  Input is saved.            | Written - 21/11/24             | n/a             |
+| 1.1.4        |  Functionality      |  Provide valid input for paramter 2           |  Input is saved.            | Written - 21/11/24             | n/a             |
+| 1.1.5        |  Functionality      |  Clicking compress without a selected file           |  Should result in an error message.            | Written - 21/11/24             |  n/a            |
+| 1.1.6        |  Functionality      |  Clicking download icon           |   Should download current metrics and the graphs represented currently.           | Written - 21/11/24             |  n/a            |
 
-### Compression History Panel
+### Compression Sidebar Panel
 
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
-| 1.2.1        |   Functionality     | Button to view History sidebar can be pressed  | When the user presses the button to view the Compression History sidebar, the app should maximise the panel to display previous compression configurations. | Written - 14/11/24 | n/a |
-| 1.2.2        |               |             |              |              |              |
-| 1.2.3        |               |             |              |              |              |
-| 1.2.4        |               |             |              |              |              |
+| 1.2.1        | Functionality          | Sidebar renders correctly when the app is opened, displaying the title and search box. | Ensures the basic UI elements load correctly. | Written - 18/11/24 | n/a |
+| 1.2.2        | Functionality          | Clicking the button opens the sidebar when it is closed.            | Ensures the sidebar is displayed after clicking the button.      | Written - 18/11/24 | n/a |
+| 1.2.3        | Functionality          | Clicking the button closes the sidebar when it is open.          | Ensures the sidebar is hidden after clicking the button.            |  Written - 18/11/24 | n/a |
+| 1.2.4        | Functionality          | Clicking the "..." button shows a menu with Load, Edit, Download, and Delete options.        | Validates the menu appears with the correct options.      | Written - 18/11/24| n/a |
+| 1.2.5        | Functionality          | Filters configurations based on the entered keyword (case-insensitive).            |  Keyword matching should work regardless of letter case.            | Written - 18/11/24| n/a |
+| 1.2.6        | Functionality          | Shows "No matching configurations" when no names match the keyword.     |  Ensures user receives clear feedback when no results are found.               | Written - 18/11/24 | n/a |
+| 1.2.7        | Functionality          | Clicking the magnifying glass activates the search input field.         | Ensures the input field is focused and ready for text.              |Written - 18/11/24 | n/a |
+| 1.2.8        | Interaction            | Dynamically updates the list as the user types in the search box.       |  Ensures seamless user experience with real-time filtering.         |  Written - 18/11/24 | n/a |
+| 1.2.9        | Edge Case              | Handles special characters (e.g., "&", "%") and overly long keywords without crashing. | Includes validation for uncommon input scenarios.    |  Written - 18/11/24| n/a |
+| 1.2.10       | Responsiveness         | Sidebar and menus render correctly on both desktop and mobile devices.           | Ensures layout integrity across devices.            |Written - 18/11/24 | n/a |
 
 ### Compression Visualisation Graphs
 
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
-| 1.3.1        |   Functionality     |  Graph renders on page  | When the user sends data to be compressed, the app should display the resulting compression graph | Written - 14/11/24 | n/a |
-| 1.3.2        |               |             |              |              |              |
-| 1.3.3        |               |             |              |              |              |
-| 1.3.4        |               |             |              |              |              |
+| 1.3.1        | Functionality |  Graph renders on page  | When the user sends data to be compressed, the app should display the resulting compression graph | Written - 17/11/24 | n/a |
+| 1.3.2        | Functionality | Graph updates with parameter changes | Ensure the graph dynamically updates when a user adjusts compression parameters such as accuracy or file size | Written - 17/11/24 | n/a|
+| 1.3.3        | Functionality | Multiple compression methods can be compared | Verify that users can select multiple compression methods and view them on the same graph for comparison | Written - 17/11/24 | n/a |
+| 1.3.4        | Functionality | Legends and tooltips display correctly |Ensure legends and tooltips are visible and show correct information for data points | Written - 17/11/24 | n/a |
+| 1.3.5        | User Interaction | Input validation for parameters | Test error messages when invalid parameters are input, and ensure graph doesn’t break | Written - 17/11/24 | n/a |
+| 1.3.6        | Performance | Graph renders with large datasets | Measure load time and responsiveness of the graph when handling datasets of varying sizes | Written - 17/11/24 | n/a |
+| 1.3.7        | Functionality | Graph export options | Test exporting the graph as an image and ensure the data reflects the graph view accurately | Written - 17/11/24 | n/a |
+| 1.3.8        | Responsiveness | Graph adjusts to screen size | Ensure the graph scales and remains readable on different devices (desktop, tablet, mobile) | Written - 17/11/24 | n/a |
+| 1.3.9        | Back End | Data integrity for plotted points | Validate the plotted data matches the raw dataset values and compression calculations | Written - 17/11/24 | n/a |
+| 1.3.10       | User Interaction | Interactivity: zoom, pan, and hover-over details | Test features like zoom, pan, and tooltips for usability and clarity of the graph | Written - 17/11/24 | n/a |
+
+[Ideas to Enhance Functionality](../tests/graph_testing_notes/graph_enhancements.md)
+<br>
+[Test Cases](../tests/graph_testing_notes/graph_test_cases.md)
+
+### Compression Matrix Table
+
+|         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
+| -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
+| 1.4.1        | Functionality     | Displays original data metrics correctly.          | Verifies correct rendering of original dataset metrics. | Written - 14/11/24 | n/a |
+| 1.4.2        | Functionality     | Displays optimal configuration metrics after running the compression algorithm.           | Ensures metrics like compression rate are accurate.  |Written - 18/11/24| n/a |
+| 1.4.3        | Functionality     | Saves optimal configuration when "Save Optimal Configuration" button is clicked.           |  Confirms saved configuration metrics are accurate. | Written - 18/11/24| n/a |
+| 1.4.4        | Functionality     | Updates the table dynamically when parameters are adjusted.            |  Ensures real-time table updates after parameter changes.               |Written - 18/11/24| n/a |
+| 1.4.5        | Edge Case         | Handles empty datasets gracefully with "No data available" message.           |   Ensures proper feedback for empty inputs.                      | Written - 18/11/24| n/a |
+| 1.4.6        | Edge Case         | Displays large datasets (e.g., millions of data points) correctly.          |  Verifies stable rendering for large datasets.                     | Written - 18/11/24 | n/a |
+| 1.4.7        | UI/Interaction    | Scrollbar appears and functions smoothly for large datasets.            | Ensures usability for data-heavy tables.                               |Written - 18/11/24 | n/a |
+
+### UI Layout
+
+|         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
+| -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
+| 1.5.1        |   Functionality     |  The logo is present on the page. | Ensures the component is visible. | Written - 20/11/24 | n/a |
+| 1.5.2        | Functionality | The configuration panel is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.3        | Functionality | The compression visualisation graph is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.4        | Functionality | The compression matrix is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.5        |Functionality | The save optimal parameters button is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.6        |Functionality | The sidebar toggle is present on the page.|Ensures the component is visible.|Written - 20/11/24| n/a |
+| 1.5.7        |Functionality | Compare the visual similarity of the current iteration of the website to our prototype. | Ensures that the layout adheres to our design and does not majorly change between iterations. | Written - 21/11/24|n/a|
 
 ## Back End
 
@@ -52,6 +94,25 @@
 |         ID           | Test Type      | Description  | Notes | Pass/Fail | Change Notes |
 | -----------------    | -------------  | -----------  | ----- | --------- | ------------ |
 | 2.2.1        |   Functionality     |  Compression configuration can be stored  | When the user chooses to save configuration parameters, this is written into storage. | Written - 14/11/24 | n/a |
-| 2.2.2        |               |             |              |              |              |
-| 2.2.3        |               |             |              |              |              |
-| 2.2.4        |               |             |              |              |              |
+| 2.2.2        |      Functionality         |     Input Blob Container exists       |  Input Blob Container exists under the name of "IP-input-container"            |   Written - 24/11/24           |     n/a         |
+| 2.2.3        |      Functionality         |     Output Blob Container exists       |  Output Blob Container exists under the name of "IP-output-container"            |   Written - 24/11/24           |     n/a         |
+| 2.2.4        |      Functionality         |     Service Bus Queue exists       |  Service Bus Queue exists under the name of "IP-fifo-queue"            |   Written - 24/11/24           |     n/a         |
+| 2.2.5        |      Functionality         |     Compression Azure Function exists       |  Compression Azure Function exists under the name of "IP-compression-function"            |   Written - 24/11/24           |     n/a         |
+| 2.2.6        |      Functionality         |     Intelligent Plant API Data Collection Azure Function exists       |  Intelligent Plant API Data Collection Azure Function exists under the name of "IP-API-data-getter-function"            |   Written - 24/11/24           |     n/a         |
+| 2.2.7        |      Functionality         |     Event Grid Subscription exists       |  Event Grid Subscription for "BlobCreated" event exists under the name of "IP-blob-created"            |   Written - 24/11/24           |     n/a         |
+| 2.2.8        |      Integration         |      Check API Data Collection Azure Function can write to Input Blob Container      |    API Data Collection Azure Function can successfully write to Input Blob Container         |   Written - 24/11/24           |     n/a         |
+| 2.2.9        |      Integration         |      Check BlobCreated Event Emmission      |    When a file is uploaded to IP-input-container, Azure Blob Storage emits an event for the new blob in the container         |   Written - 24/11/24           |     n/a         |
+| 2.2.10        |      Integration         |      Check BlobCreated Event has a valid and full Blob URL      |    The Blob URL created is the full path to the uploaded file and the file can be accessed using that path         |   Written - 24/11/24           |     n/a         |
+| 2.2.11       |      Integration         |   Check Event Type of BlobCreated Event         |    The event type of the event created has to be "Microsoft.Storage.BlobCreated"         |   Written - 24/11/24           |     n/a         |
+| 2.2.12      |      Integration         |   Check Metadata is available for Event         | The file size, content type, and upload timestamp must all be available in the event that was created             |   Written - 24/11/24           |     n/a         |
+| 2.2.13       |      Integration         |    Check Event is routed via Azure Event Grid      |   Check that the Event is sent to Azure Event Grid and that it is then forwarded to IP-fifo-queue          |   Written - 24/11/24           |     n/a         |
+| 2.2.14       |      Integration         |    Check Event is enqueued in in Service Bus Queue        |    The newly created event should be in IP-fifo-queue         |   Written - 24/11/24           |     n/a         |
+| 2.2.15       |      Accuracy         |   Check Events enqueued to Service Bus Queue are FIFO         |  The events enqueued to IP-fifo-queue should be stored FIFO           |   Written - 24/11/24           |     n/a         |
+| 2.2.16      |      Integration         |     Events from IP-fifo-queue trigger IP-compression-function       |     Each event in IP-fifo-queue triggers a new instance of IP-compression-function        |   Written - 24/11/24           |     n/a         |
+| 2.2.17       |      Integration         |      Events are removed from IP-fifo-queue once IP-compression-function triggered      |  Once IP-compression-function is triggered by an event in IP-fifo-queue, said event should be removed from the queue           |   Written - 24/11/24           |     n/a         |
+| 2.2.18       |      Integration         |     IP-compression-function writes file to IP-output-container       |     IP-compression-function writes file to IP-output-container        |   Written - 24/11/24           |     n/a         |
+| 2.2.19       |      Error Handling         |    Event Grid failure to deliver event to IP-fifo-queue causes retries        |  If the Event Grid fails to route the event to IP-fifo-queue then it should retry with exponential backoff           |   Written - 24/11/24           |     n/a         |
+| 2.2.20       |      Error Handling         |  Azure functions failure causes retries 1        |   If IP-compression-function does not produce a file in a configured amount of time then it will be terminated and re-run           |   Written - 24/11/24           |     n/a         |
+| 2.2.21       |      Error Handling         |  Azure functions failure causes retries 2        |   If IP-API-data-getter-function does not produce a file in a configured amount of time then it will be terminated and re-run           |   Written - 24/11/24           |     n/a         |
+| 2.2.22       |      Error Handling         |   Dead Letter Queue configured for Event Grid         |  A dead letter queue is configured for Event Grid for undelievered Event messages for manual inpsection           |   Written - 24/11/24           |     n/a         |
+| 2.2.23       |      Error Handling         |   Dead Letter Queue configured for IP-fifo-queue         |  A dead letter queue is configured for IP-fifo-queue for undelievered Event messages for manual inpsection           |   Written - 24/11/24           |     n/a         |

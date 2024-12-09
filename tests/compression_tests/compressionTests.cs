@@ -2,6 +2,8 @@
 // Write tests here using C# and the test plan
 
 using System;
+using NUnit.Framework;
+
 
 namespace compression_tests {
     [Test Class]
@@ -26,22 +28,28 @@ namespace compression_tests {
                 Console.WriteLine(e);
             }
         }
+    }
 
         // Test 2.1.1 - Functionality
-        public void test_functionality(self) {
+        public void test_functionality() {
             // Check if the algorithm compresses data correctly
-            int[] data = [1,2,3,4,5];
+            List<int> data = new List<int>{1,2,3,4,5};
+            double compressionRatio = 0.5
             try {
-                compressed = self.compression_algorithm(data, 0.5);
-                self.assertEqual(compressed, [1,2]) // expect half the input size
+                List<int>compressed = compression_algorithm.Compress(data, compressionRatio);
+                Assert.Equal(compressed, {1,2}) // expect half the input size
                 Console.WriteLine("\nFunctionality: OK");
             } catch (Exception e) {
-                self.fail("Functionality test failed" + e);
+                Assert.Fail("Functionality test failed" + e);
             }
         }
         
+    public class CompressionAlgorithm{
+        public List<int> Compress(List<int> data, double ratio){
+            int[] compressedData = data[data.length * compressionRatio];
+            return data.Take(compressedData).ToList();
+        }
     }
-
 
 }
 

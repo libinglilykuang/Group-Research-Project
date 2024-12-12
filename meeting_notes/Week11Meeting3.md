@@ -14,4 +14,4 @@ Missing Kasia, Lucas and Sai
 - Worked on peer reviews
 
 ### Next Tasks
-- Finalise inteirm report
+- Finalise interim report

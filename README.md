@@ -50,10 +50,8 @@
 | [Week 10 : Meeting 1](./meeting_notes/Week10Meeting1.md) | 2/12/24 | Worked on prototypes |
 | [Week 10 : Meeting 2](./meeting_notes/Week10Meeting2.md) | 5/12/24 | Worked on report and prototypes |
 | [Week 11 : Meeting 1](./meeting_notes/Week11Meeting1.md) | 9/12/24 | Worked on report and prototypes |
-| [Week 11 : Meeting 2](./meeting_notes/Week11Meeting2.md) | 9/12/24 | Final industry meeting (before xmas) |
-
-
-
+| [Week 11 : Meeting 2](./meeting_notes/Week11Meeting2.md) | 10/12/24 | Final industry meeting (before xmas) |
+| [Week 11 : Meeting 3](./meeting_notes/Week11Meeting3.md) | 12/12/24 | Final group meeting (before xmas) |
 
 
 #### Requirements and Specifications Table

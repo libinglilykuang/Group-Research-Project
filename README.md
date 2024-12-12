@@ -63,6 +63,20 @@
 | [Use Case Diagram](./documentation/use_case_diagram.png)     |   14/11/24      |           #            |
 | [Activity Diagram](./documentation/activity_diagram.png)     |   14/11/24      |           #            |
 
+#### Reports & Notes
+
+|           #                                                   |               Date            |       Description         |
+| -----------------                                             |               -----           | -----------               |
+| [Interim Report Notes](./documentation/InterimReport-Notes.md)|               25/11/24        |          #                | 
+
+
+
+#### Reports & Notes
+
+|           #                                                    |               Date            |       Description         |
+| -----------------                                              |               -----           | -----------               |
+| [Interim Report Notes](./documentation/Interim_Report_Notes.md)|               25/11/24        |          #                |
+
 
 #### Reports & Notes
 

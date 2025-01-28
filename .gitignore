@@ -5,6 +5,10 @@ tmp/
 *.temp
 *.tmp
 
+# Node.js dependencies
+node_modules/
+.idea/
+
 # python
 *.py[cod]
 *.egg
@@ -13,6 +17,7 @@ htmlcov
 
 # terraform
 *.tfstate.*
+*.tfstate
 **/.terraform/*
 *.tfvars
 *.tfvars.json

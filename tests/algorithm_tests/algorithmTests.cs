@@ -1,33 +1,58 @@
+// Compression Tests
+// Write tests here using C# and the test plan
+
 using System;
+using NUnit.Framework;
 
-// Mock compression algorithm
-public class CompressionAlgorithm
-{
-    public string CompressData(string data, double? compressionRatio = null)
-    {
-        try
-        {
-            // Check if data is null
-            if (data == null)
-            {
-                throw new ArgumentException("Input data cannot be null");
+
+namespace compression_tests {
+    [Test Class]
+    public class compressionTests {
+        Console.WriteLine("\nCompression Algorithm Tests: \n");
+
+        public int compression_algorithm(self, data, compressionRatio) {
+            try {
+                // simulate logic
+                if (data == null) {
+                    throw new ArgumentNullException(nameof(data), "Input data cannot be null");
+                } else if (data.isNullorEmpty()) {
+                    throw new ArgumentException ("Data cannot be empty " (nameof(data)));
+                }
+                // simulate operation
+                if (compressionRatio.isNullorEmpty()) {
+                    compressionRatio = 0.5
+                }
+                int[] compressedData = data[data.length * compressionRatio];
+                return compressedData;
+            } catch (Exception e){
+                Console.WriteLine(e);
             }
-
-            // Check if data is empty
-            if (string.IsNullOrEmpty(data))
-            {
-                throw new ArgumentException("Input data cannot be empty");
-            }
-
-            // Simulate compression logic
-            int compressedLength = (int)(data.Length * (compressionRatio ?? 0.5));
-            string compressedData = data.Substring(0, compressedLength);
-
-            return compressedData;
-        }
-        catch (Exception ex)
-        {
-            throw ex; // Re-throw the exception for handling at a higher level
         }
     }
+
+        // Test 2.1.1 - Functionality
+        public void test_functionality() {
+            // Check if the algorithm compresses data correctly
+            List<int> data = new List<int>{1,2,3,4,5};
+            double compressionRatio = 0.5
+            try {
+                List<int>compressed = compression_algorithm.Compress(data, compressionRatio);
+                Assert.Equal(compressed, {1,2}) // expect half the input size
+                Console.WriteLine("\nFunctionality: OK");
+            } catch (Exception e) {
+                Assert.Fail("Functionality test failed" + e);
+            }
+        }
+        
+    public class CompressionAlgorithm{
+        public List<int> Compress(List<int> data, double ratio){
+            int[] compressedData = data[data.length * compressionRatio];
+            return data.Take(compressedData).ToList();
+        }
+    }
+
 }
+
+
+
+

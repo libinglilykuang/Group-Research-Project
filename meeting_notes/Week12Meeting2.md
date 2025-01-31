@@ -7,12 +7,15 @@
 Missing Sai and Lucas
 
 ### What happened?
-1. 
+1. Worked on tasks individually
 
 ##### 1. 
-- 
+- Finished translating tests from python to c#
+- Completed research on tuning parameters for optimisation
+- Talked about storage mechanism needed to optimise compression
 
 
 ### Next Tasks
-- 
+- Check algorithm tests functionality (now in C#)
+- Continue working in subteams 
 

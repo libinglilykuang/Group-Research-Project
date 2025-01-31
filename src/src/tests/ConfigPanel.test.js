@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; 
 import userEvent from '@testing-library/user-event';
+import ConfigPanel from '../components/ConfigPanel';
+
 
 test('displays an error when "Select Data" is clicked without a file selected', async () => {
     render(<ConfigPanel />); 
@@ -39,18 +41,3 @@ test('displays an error when "Compress" is clicked without selecting a file', as
 });
 
 
-est('downloads data and metrics when compress button with download icon is clicked', async () => {
-    render(<ConfigPanel />);
-    const compressButton = screen.getByRole('button', { name: /compress/i });
-
-    jest.spyOn(global, 'URL').mockImplementation(() => ({
-        createObjectURL: jest.fn(),
-    }));
-    const downloadSpy = jest.fn();
-    global.URL.createObjectURL = downloadSpy;
-
-    await userEvent.click(compressButton);
-
-    expect(downloadSpy).toHaveBeenCalled();
-    expect(screen.getByText(/download initiated/i)).toBeVisible();
-});

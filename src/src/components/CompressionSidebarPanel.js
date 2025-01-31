@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import './CompressionSidebarPanel.css';
 
 const CompressionSidebarPanel = ({ configurations = [] }) => {
     const [isSidebarExpanded, setSidebarExpanded] = useState(false);

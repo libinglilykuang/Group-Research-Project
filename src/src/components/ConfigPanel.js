@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 
 
 
-const ConfigPanel = () => {
+    const ConfigPanel = () => {
     const [file, setFile] = useState(null);
     const [param1, setParam1] = useState('');
     const [param2, setParam2] = useState('');
@@ -33,6 +32,8 @@ const ConfigPanel = () => {
             setMessage('Download initiated');
         }
     };
+
+    //HandleSelectData and HandlCompress are just placeholders for now
 
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>

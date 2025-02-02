@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { format, isToday, isYesterday } from 'date-fns';
 
-// 示例配置数据
 const exampleConfigurations = [
     { name: 'Config 1', date: '2025-01-30T12:00:00Z' },
     { name: 'Config 2', date: '2025-01-29T15:30:00Z' },
@@ -27,22 +26,35 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
     const [isSidebarExpanded, setSidebarExpanded] = useState(false);
     const [searchInput, setSearchInput] = useState('');
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
+    const menuRef = useRef(null);
 
-    // 搜索并分组按日期
     const filteredConfigurations = useMemo(() => {
         const filtered = configurations
             .filter((config) => config.name.toLowerCase().includes(searchInput.toLowerCase()))
-            .sort((a, b) => new Date(b.date) - new Date(a.date)); // 按时间降序
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
         return groupByDate(filtered);
     }, [configurations, searchInput]);
 
-    const handleMenuToggle = (index) => {
-        setActiveMenuIndex(activeMenuIndex === index ? null : index);
+    const handleMenuToggle = (configName) => {
+        setActiveMenuIndex(activeMenuIndex === configName ? null : configName);
     };
+
+    const handleClickOutside = (event) => {
+        if (menuRef.current && !menuRef.current.contains(event.target)) {
+            setActiveMenuIndex(null);
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     return (
         <div>
-            <button onClick={() => setSidebarExpanded(true)} aria-label="Open Sidebar">Open Sidebar</button>
+            <button onClick={() => setSidebarExpanded(true)}>Open Sidebar</button>
             <div
                 className={`sidebar ${isSidebarExpanded ? 'expanded' : 'collapsed'}`}
                 style={{
@@ -58,79 +70,34 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                 }}
             >
                 {isSidebarExpanded && (
-                    <button
-                        onClick={() => setSidebarExpanded(false)}
-                        style={{
-                            position: 'absolute',
-                            right: 10,
-                            top: 10,
-                            background: 'transparent',
-                            border: 'none',
-                            fontSize: '20px',
-                            cursor: 'pointer',
-                        }}
-                    >
+                    <button onClick={() => setSidebarExpanded(false)} style={{ position: 'absolute', right: 10, top: 10 }}>
                         ✖
                     </button>
                 )}
                 <div className="sidebar-content">
-                    {/* 搜索框 */}
                     <div className="search-bar" style={{ marginBottom: '15px' }}>
                         <input
                             type="text"
                             placeholder="Search configurations"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                fontSize: '14px',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                            }}
+                            style={{ width: 'calc(100% - 20px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
                         />
                     </div>
-
-                    {/* 日期分组显示 */}
                     {Object.keys(filteredConfigurations).length > 0 ? (
                         <div>
                             {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
                                 <div key={dateLabel}>
-                                    <h4
-                                        style={{
-                                            marginTop: '10px',
-                                            fontWeight: 'bold',
-                                            fontSize: '16px',
-                                            color: '#333',
-                                        }}
-                                    >
-                                        {dateLabel}
-                                    </h4>
+                                    <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4>
                                     <ul style={{ paddingLeft: '10px' }}>
-                                        {configs.map((config, index) => (
-                                            <li
-                                                key={index}
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    padding: '5px 0',
-                                                }}
-                                            >
+                                        {configs.map((config) => (
+                                            <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
                                                 <span>{config.name}</span>
-                                                <div style={{ position: 'relative' }}>
-                                                    <button
-                                                        onClick={() => handleMenuToggle(index)}
-                                                        aria-label="More options"
-                                                        style={{
-                                                            background: 'transparent',
-                                                            border: 'none',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
+                                                <div style={{ position: 'relative' }} ref={menuRef}>
+                                                    <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
                                                         ...
                                                     </button>
-                                                    {activeMenuIndex === index && (
+                                                    {activeMenuIndex === config.name && (
                                                         <div
                                                             className="menu"
                                                             style={{
@@ -157,9 +124,7 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                             ))}
                         </div>
                     ) : (
-                        <div style={{ color: 'gray', fontStyle: 'italic' }}>
-                            No configurations available
-                        </div>
+                        <div style={{ color: 'gray', fontStyle: 'italic' }}>No configurations available</div>
                     )}
                 </div>
             </div>
@@ -176,5 +141,4 @@ CompressionSidebarPanel.propTypes = {
     ),
 };
 
-// 传入示例配置
 export default () => <CompressionSidebarPanel configurations={exampleConfigurations} />;

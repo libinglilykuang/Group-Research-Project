@@ -24,13 +24,13 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h1>Welcome to the App</h1>
-      <ConfigPanel />
-      <CompressionMatrixTable data={sampleData} onSave={handleSave} />
-      <CompressionSidebarPanel configurations={sampleConfigurations} />
+      <div className="App">
+        <h1>Welcome to the App</h1>
+        <ConfigPanel />
+        <CompressionMatrixTable data={sampleData} onSave={handleSave} />
+        <CompressionSidebarPanel configurations={sampleConfigurations} />
 
-    </div>
+      </div>
   );
 }
 

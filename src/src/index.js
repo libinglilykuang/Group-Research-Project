@@ -1,16 +1,10 @@
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import ConfigPanel from './components/ConfigPanel';
-import CompressionMatrixTable from './components/CompressionMatrixTable';
-import CompressionSidebarPanel from './components/CompressionSidebarPanel';
+import App from './App';
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-  <StrictMode>
-    <CompressionSidebarPanel/>
-    <ConfigPanel/>
-    <CompressionMatrixTable
-      data = {1}
-    />
-  </StrictMode>
+    <StrictMode>
+        <App />
+    </StrictMode>
 );

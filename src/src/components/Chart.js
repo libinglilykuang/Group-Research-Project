@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
@@ -15,27 +15,23 @@ ChartJS.register(
     zoomPlugin // 注册zoom插件
 );
 
-// 压缩数据函数（示例：降采样）
-const compressData = (data, factor) => {
-    const compressedData = [];
-    for (let i = 0; i < data.length; i += factor) {
-        compressedData.push(data[i]);
-    }
-    return compressedData;
-};
-
-export default function ZoomableChart() {
+const ZoomableChart = ({ rawData, compressionFactor }) => {
     const chartContainerRef = useRef(null); // 用于引用图表容器
     const chartRef = useRef(null); // 用于引用图表实例
 
-    // 原始数据
-    const rawData = [10, 30, 20, 50, 40, 60, 80, 70, 90, 100, 85, 95, 75, 65, 55];
-    const labels = rawData.map((_, index) => index + 1); // X轴标签
+    // 生成标签
+    const labels = rawData.map((_, index) => index + 1);
 
     // 压缩数据
-    const compressionFactor = 2; // 压缩因子
+    const compressData = (data, factor) => {
+        const compressedData = [];
+        for (let i = 0; i < data.length; i += factor) {
+            compressedData.push(data[i]);
+        }
+        return compressedData;
+    };
+
     const compressedData = compressData(rawData, compressionFactor);
-    const compressedLabels = labels.filter((_, index) => index % compressionFactor === 0);
 
     // 图表数据
     const chartData = {
@@ -121,7 +117,7 @@ export default function ZoomableChart() {
                     enabled: true, // 启用平移
                     mode: 'x', // 仅沿X轴平移
                     threshold: 10, // 拖拽触发的最小距离
-                    onPan: function({ chart }) {
+                    onPan: function ({ chart }) {
                         const { min, max } = chart.scales.x;
                         // 动态更新数据范围
                         chart.options.scales.x.min = min;
@@ -144,7 +140,7 @@ export default function ZoomableChart() {
                         mode: 'xy',
                         speed: 0.1,
                         threshold: 10,
-                        onZoom: function({ chart, event }) {
+                        onZoom: function ({ chart, event }) {
                             const { offsetX, offsetY } = event; // 获取鼠标位置
                             const chartArea = chart.chartArea;
                             // 计算鼠标相对于图表的坐标比例
@@ -184,7 +180,7 @@ export default function ZoomableChart() {
     };
 
     // 添加滚轮事件监听
-    React.useEffect(() => {
+    useEffect(() => {
         const container = chartContainerRef.current;
         if (container) {
             container.addEventListener('wheel', handleWheel, { passive: false });
@@ -200,7 +196,7 @@ export default function ZoomableChart() {
     return (
         <div
             ref={chartContainerRef} // 引用图表容器
-            style={{ width: '90%', height: '500px', margin: '0 auto', overflow: 'hidden' }} // 增大容器尺寸
+            style={{ width: '100%', height: '500px', overflow: 'hidden' }} // 增大容器尺寸
         >
             <Line
                 ref={chartRef}
@@ -209,4 +205,6 @@ export default function ZoomableChart() {
             />
         </div>
     );
-}
+};
+
+export default ZoomableChart;

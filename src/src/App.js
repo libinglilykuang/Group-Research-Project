@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ConfigPanel from './components/ConfigPanel';
-import CompressionMatrixTable from './components/CompressionMatrixTable';
+import MetricsTable from './components/CompressionMatrixTable';
 import CompressionSidebarPanel from './components/CompressionSidebarPanel';
-import Chart from './components/Chart';
+import ZoomableChart from './components/Chart';
 
 function App() {
+    // 原始数据
+    const rawData = [10, 30, 20, 50, 40, 60, 80, 70, 90, 100, 85, 95, 75, 65, 55];
 
-    // 示例数据
-    const sampleData = [
-        { name: 'Metric 1', value: '123' },
-        { name: 'Metric 2', value: '456' },
-        { name: 'Metric 3', value: '789' },
-    ];
+    // 压缩因子
+    const [compressionFactor, setCompressionFactor] = useState(2);
 
+    // 压缩数据
+    const compressData = (data, factor) => {
+        const compressedData = [];
+        for (let i = 0; i < data.length; i += factor) {
+            compressedData.push(data[i]);
+        }
+        return compressedData;
+    };
+
+    const compressedData = compressData(rawData, compressionFactor);
+
+    // 示例配置数据
     const sampleConfigurations = [
         { name: 'Config A', group: 'Group 1' },
         { name: 'Config B', group: 'Group 2' },
@@ -33,17 +43,23 @@ function App() {
             </div>
 
             <div style={{ width: '80%', marginBottom: '20px' }}>
-                <ConfigPanel />
+                <ConfigPanel
+                    compressionFactor={compressionFactor}
+                    setCompressionFactor={setCompressionFactor}
+                />
             </div>
 
             <div style={{ width: '80%', flexGrow: 1, marginBottom: '20px' }}>
-                <Chart />
+                <ZoomableChart rawData={rawData} compressionFactor={compressionFactor} />
             </div>
 
             <div style={{ width: '80%', flexShrink: 0, marginBottom: '20px' }}>
-                <CompressionMatrixTable data={sampleData} onSave={handleSave} />
+                <MetricsTable
+                    rawData={rawData}
+                    compressedData={compressedData}
+                    onSave={handleSave}
+                />
             </div>
-
         </div>
     );
 }

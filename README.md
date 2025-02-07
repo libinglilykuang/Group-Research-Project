@@ -61,7 +61,9 @@
 |         #         | Date     | Description            |
 | ----------------- | -----    | -----------            |
 | [Week 12 : Meeting 1](./meeting_notes/Week12Meeting1.md) | 28/1/25 | First meeting back of term |
-| [Week 12 : Meeting 2](./meeting_notes/Week12Meeting2.md) | 31/1/25 | Lab work |
+| [Week 12 : Meeting 2](./meeting_notes/Week12Meeting2.md) | 31/1/25 | Lab work in subteams |
+| [Week 13 : Meeting 1](./meeting_notes/Week13Meeting1.md) | 7/2/25 | Lab work in subteams |
+
 
 
 

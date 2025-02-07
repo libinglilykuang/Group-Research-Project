@@ -1,0 +1,5 @@
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\tests\algorithm_tests\TestProject1\obj\Debug\net8.0\TestProject1.csproj.AssemblyReference.cache
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\tests\algorithm_tests\TestProject1\obj\Debug\net8.0\TestProject1.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\tests\algorithm_tests\TestProject1\obj\Debug\net8.0\TestProject1.AssemblyInfoInputs.cache
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\tests\algorithm_tests\TestProject1\obj\Debug\net8.0\TestProject1.AssemblyInfo.cs
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\tests\algorithm_tests\TestProject1\obj\Debug\net8.0\TestProject1.csproj.CoreCompileInputs.cache

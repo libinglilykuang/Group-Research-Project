@@ -1,10 +1,7 @@
 // Compression Tests
 // Write tests here using C# and the test plan
 
-using System;
 using System.Diagnostics;
-using System.Timers;
-using NUnit.Framework;
 
 
 namespace algorithmTesting {

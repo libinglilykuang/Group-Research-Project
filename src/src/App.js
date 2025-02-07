@@ -1,38 +1,67 @@
-import React from 'react'
-import ConfigPanel from '../components/ConfigPanel';
-import CompressionMatrixTable from '../components/CompressionMatrixTable';
-import CompressionSidebarPanel from '../components/CompressionSidebarPanel';
+import React, { useState } from 'react';
+import ConfigPanel from './components/ConfigPanel';
+import MetricsTable from './components/CompressionMatrixTable';
+import CompressionSidebarPanel from './components/CompressionSidebarPanel';
+import ZoomableChart from './components/Chart';
 
 function App() {
+    // 原始数据
+    const rawData = [10, 30, 20, 50, 40, 60, 80, 70, 90, 100, 85, 95, 75, 65, 55];
 
-  const sampleData = [
-    { name: 'Metric 1', value: '123' },
-    { name: 'Metric 2', value: '456' },
-    { name: 'Metric 3', value: '789' },
-  ];
+    // 压缩因子
+    const [compressionFactor, setCompressionFactor] = useState(2);
 
-  const sampleConfigurations = [
-    { name: 'Config A', group: 'Group 1' },
-    { name: 'Config B', group: 'Group 2' },
-    { name: 'Config C', group: 'Group 3' },
-  ];
+    // 压缩数据
+    const compressData = (data, factor) => {
+        const compressedData = [];
+        for (let i = 0; i < data.length; i += factor) {
+            compressedData.push(data[i]);
+        }
+        return compressedData;
+    };
 
+    const compressedData = compressData(rawData, compressionFactor);
 
-  const handleSave = (data) => {
-    console.log('Saved data:', data);
-    alert('Optimal configuration saved!');
-  };
+    // 示例配置数据
+    const sampleConfigurations = [
+        { name: 'Config A', group: 'Group 1' },
+        { name: 'Config B', group: 'Group 2' },
+        { name: 'Config C', group: 'Group 3' },
+    ];
 
-  return (
-    <div className="App">
-      <h1>Welcome to the App</h1>
-      <ConfigPanel />
-      <CompressionMatrixTable data={sampleData} onSave={handleSave} />
-      <CompressionSidebarPanel configurations={sampleConfigurations} />
+    // 保存数据处理函数
+    const handleSave = (data) => {
+        console.log('Saved data:', data);
+        alert('Optimal configuration saved!');
+    };
 
-    </div>
-  );
+    return (
+        <div className="App" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
+            <h1>Welcome to the App</h1>
+            <div style={{ width: '80%' }}>
+                <CompressionSidebarPanel configurations={sampleConfigurations} />
+            </div>
+
+            <div style={{ width: '80%', marginBottom: '20px' }}>
+                <ConfigPanel
+                    compressionFactor={compressionFactor}
+                    setCompressionFactor={setCompressionFactor}
+                />
+            </div>
+
+            <div style={{ width: '80%', flexGrow: 1, marginBottom: '20px' }}>
+                <ZoomableChart rawData={rawData} compressionFactor={compressionFactor} />
+            </div>
+
+            <div style={{ width: '80%', flexShrink: 0, marginBottom: '20px' }}>
+                <MetricsTable
+                    rawData={rawData}
+                    compressedData={compressedData}
+                    onSave={handleSave}
+                />
+            </div>
+        </div>
+    );
 }
-
 
 export default App;

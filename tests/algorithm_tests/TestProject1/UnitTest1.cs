@@ -73,10 +73,11 @@ namespace algorithmTesting {
             try {
                 List<int>compressed = compress_data(data, compressionRatio);
                 Assert.Fail();
+            } catch (ArgumentException e) {
                 Console.WriteLine("\nError handling null: OK");
             } catch (Exception e) {
-                Assert.Fail("Error handling null failed" + e);
-            }
+            Assert.Fail("Unexpected exception type: " + e);
+    }
         }
 
         // Test 2.1.4 - Error Handling None
@@ -98,7 +99,7 @@ namespace algorithmTesting {
         public void test_configurability() {
             List<int>data = new List<int> {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
             double compressionRatio = 0.5;
-            int expectedLength = 3;
+            int expectedLength = 5;
             try {
                 List<int>compressed = compress_data(data, compressionRatio);
                 Assert.That(compressed.Count, Is.EqualTo(expectedLength));

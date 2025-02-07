@@ -2,22 +2,21 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const MetricsTable = ({ rawData, compressedData, onSave }) => {
-    // 计算指标的函数
     const calculateMetrics = (rawData, compressedData) => {
-        const rawDataPoints = rawData.length; // 原始数据点数量
-        const compressedDataPoints = compressedData.length; // 压缩后数据点数量
+        const rawDataPoints = rawData.length;
+        const compressedDataPoints = compressedData.length;
 
-        // 压缩比
+        //compressionRatio
         const compressionRatio = (rawDataPoints / compressedDataPoints).toFixed(2);
 
-        // 存储大小（假设每个数据点占用 4 字节）
+        // storage size
         const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
         const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
 
-        // 数据准确率（误差率）
+        // error rate
         const rawSum = rawData.reduce((sum, value) => sum + value, 0);
         const compressedSum = compressedData.reduce((sum, value) => sum + value, 0);
-        const errorRate = ((1 - compressedSum / rawSum) * 100).toFixed(2); // 误差率百分比
+        const errorRate = ((1 - compressedSum / rawSum) * 100).toFixed(2);
 
         return [
             { name: 'Number of Data Points (Raw)', value: rawDataPoints.toString() },

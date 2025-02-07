@@ -10,7 +10,7 @@ const exampleConfigurations = [
     { name: 'Config 5', date: '2025-01-27T10:00:00Z', parameters: { param1: 'value9', param2: 'value10' } }
 ];
 
-// 分组数据
+// Group Data
 const groupByDate = (configs) => {
     return configs.reduce((acc, config) => {
         const date = new Date(config.date);
@@ -30,18 +30,18 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
     const [configurationsState, setConfigurationsState] = useState(configurations);
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
-    const [editedConfig, setEditedConfig] = useState(null); // 用于存储编辑后的配置
-    const [loadedConfig, setLoadedConfig] = useState(null); // 用于存储加载的配置
+    const [editedConfig, setEditedConfig] = useState(null);
+    const [loadedConfig, setLoadedConfig] = useState(null);
     const menuRef = useRef(null);
 
-    // 过滤配置
+    // Filter
     const filteredConfigurations = groupByDate(
         configurationsState.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
         )
     );
 
-    // 删除操作
+    // Delete
     const handleDelete = useCallback((configName) => {
         setConfigurationsState((prevConfigs) => {
             const newConfigs = prevConfigs.filter((config) => config.name !== configName);
@@ -50,7 +50,7 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         setActiveMenuIndex(null);
     }, []);
 
-    // 下载操作
+    // Download
     const handleDownload = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
 
@@ -82,22 +82,20 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         }
     };
 
-    // 打开编辑配置的弹窗
     const handleEdit = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
-        setSelectedConfig(config);  // 选择配置
-        setEditedConfig({ ...config }); // 将配置内容复制到编辑状态
-        setModalOpen(true);  // 打开弹窗
+        setSelectedConfig(config);
+        setEditedConfig({ ...config });
+        setModalOpen(true);
     };
 
-    // 加载配置到面板
     const handleLoad = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
-        setLoadedConfig(config);  // 将选中的配置加载到配置面板中
-        setActiveMenuIndex(null); // 关闭菜单
+        setLoadedConfig(config);
+        setActiveMenuIndex(null);
     };
 
-    // 保存修改
+    // Save
     const handleSave = () => {
         setConfigurationsState((prevConfigs) => {
             const updatedConfigs = prevConfigs.map((config) =>
@@ -108,12 +106,10 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         setModalOpen(false);
     };
 
-    // 取消修改
     const handleCancel = () => {
         setModalOpen(false);
     };
 
-    // 更新参数
     const handleParamChange = (paramName, value) => {
         setEditedConfig((prevConfig) => ({
             ...prevConfig,
@@ -216,7 +212,6 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                 </div>
             </div>
 
-            {/* 配置面板 */}
             {loadedConfig && (
                 <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0px 0px 10px rgba(0,0,0,0.1)', margin: '20px' }}>
                     <h3>Loaded Configuration</h3>
@@ -231,7 +226,6 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                 </div>
             )}
 
-            {/* 编辑配置的弹窗 */}
             {isModalOpen && selectedConfig && (
                 <div
                     style={{

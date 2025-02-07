@@ -5,13 +5,13 @@ import CompressionSidebarPanel from './components/CompressionSidebarPanel';
 import ZoomableChart from './components/Chart';
 
 function App() {
-    // 原始数据
+    // Original Data
     const rawData = [10, 30, 20, 50, 40, 60, 80, 70, 90, 100, 85, 95, 75, 65, 55];
 
-    // 压缩因子
+    // Compression Factor
     const [compressionFactor, setCompressionFactor] = useState(2);
 
-    // 压缩数据
+    // Compression Data
     const compressData = (data, factor) => {
         const compressedData = [];
         for (let i = 0; i < data.length; i += factor) {
@@ -22,14 +22,13 @@ function App() {
 
     const compressedData = compressData(rawData, compressionFactor);
 
-    // 示例配置数据
+    // Example configuration
     const sampleConfigurations = [
         { name: 'Config A', group: 'Group 1' },
         { name: 'Config B', group: 'Group 2' },
         { name: 'Config C', group: 'Group 3' },
     ];
 
-    // 保存数据处理函数
     const handleSave = (data) => {
         console.log('Saved data:', data);
         alert('Optimal configuration saved!');

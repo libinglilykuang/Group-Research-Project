@@ -210,7 +210,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                             alt="New Config"
                             style={{ width: '20px', height: '20px', marginRight: '10px' }}
                         />
-                        <span>开启新配置</span>
+                        <span>Start New Configuration</span>
                     </button>
 
                     {/* 配置列表 */}

@@ -179,6 +179,16 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
                         />
                     </button>
                 )}
+                {/* 搜索栏 */}
+                <div className="search-bar" style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="Search configurations"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
+                    />
+                </div>
                 <div className="sidebar-content">
                     {/* 开启新配置按钮 */}
                     <button
@@ -202,17 +212,6 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
                         />
                         <span>开启新配置</span>
                     </button>
-
-                    {/* 搜索栏 */}
-                    <div className="search-bar" style={{ marginBottom: '15px' }}>
-                        <input
-                            type="text"
-                            placeholder="Search configurations"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
-                        />
-                    </div>
 
                     {/* 配置列表 */}
                     {Object.keys(filteredConfigurations).length > 0 ? (

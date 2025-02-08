@@ -45,7 +45,7 @@ function App() {
 
     return (
         <div className="App" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
-            <h1>Welcome to the App</h1>
+            <h2>Intelligent Plant Compression Optimisation</h2>
             <div style={{ width: '80%' }}>
                 <CompressionSidebarPanel
                     configurations={sampleConfigurations}

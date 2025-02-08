@@ -7,6 +7,7 @@ import ZoomableChart from './components/Chart';
 function App() {
     const rawData = [10, 30, 20, 50, 40, 60, 80, 70, 90, 100, 85, 95, 75, 65, 55];
     const [compressionFactor, setCompressionFactor] = useState(2);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // 控制侧边栏状态
 
     // Function to compress data based on the compression factor
     const compressData = (data, factor) => {
@@ -43,17 +44,32 @@ function App() {
         }
     };
 
+    // 切换侧边栏状态
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     return (
         <div className="App" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
             <h2>Intelligent Plant Compression Optimisation</h2>
             <div style={{ width: '80%' }}>
                 <CompressionSidebarPanel
                     configurations={sampleConfigurations}
-                    onNewConfig={handleNewConfig} // Pass the callback function
+                    onNewConfig={handleNewConfig}
+                    isOpen={isSidebarOpen} // 传递侧边栏状态
+                    toggleSidebar={toggleSidebar} // 传递切换侧边栏的函数
                 />
             </div>
 
-            <div style={{ width: '80%', marginBottom: '20px' }}>
+            {/* 配置面板 */}
+            <div
+                style={{
+                    width: '80%',
+                    marginBottom: '20px',
+                    marginLeft: isSidebarOpen ? '250px' : '0', // 根据侧边栏状态调整 marginLeft
+                    transition: 'margin-left 0.3s ease', // 添加过渡效果
+                }}
+            >
                 <ConfigPanel
                     ref={configPanelRef}
                     compressionFactor={compressionFactor}
@@ -61,11 +77,29 @@ function App() {
                 />
             </div>
 
-            <div style={{ width: '80%', flexGrow: 1, marginBottom: '20px' }}>
+            {/* 图表 */}
+            <div
+                style={{
+                    width: '80%',
+                    flexGrow: 1,
+                    marginBottom: '20px',
+                    marginLeft: isSidebarOpen ? '250px' : '0', // 根据侧边栏状态调整 marginLeft
+                    transition: 'margin-left 0.3s ease', // 添加过渡效果
+                }}
+            >
                 <ZoomableChart rawData={rawData} compressionFactor={compressionFactor} />
             </div>
 
-            <div style={{ width: '80%', flexShrink: 0, marginBottom: '20px' }}>
+            {/* 数据表格 */}
+            <div
+                style={{
+                    width: '80%',
+                    flexShrink: 0,
+                    marginBottom: '20px',
+                    marginLeft: isSidebarOpen ? '250px' : '0', // 根据侧边栏状态调整 marginLeft
+                    transition: 'margin-left 0.3s ease', // 添加过渡效果
+                }}
+            >
                 <MetricsTable
                     rawData={rawData}
                     compressedData={compressedData}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { format, isToday, isYesterday, isValid } from 'date-fns';
 
@@ -23,8 +23,7 @@ const groupByDate = (configs) => {
     }, {});
 };
 
-const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
-    const [isSidebarExpanded, setSidebarExpanded] = useState(false);
+const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar }) => {
     const [searchInput, setSearchInput] = useState('');
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
     const [configurationsState, setConfigurationsState] = useState(configurations);
@@ -43,11 +42,11 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
     };
 
     // 过滤配置
-    const filteredConfigurations = groupByDate(
+    const filteredConfigurations = useMemo(() => groupByDate(
         configurationsState.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
         )
-    );
+    ), [configurationsState, searchInput]);
 
     // 删除配置
     const handleDelete = useCallback((configName) => {
@@ -145,31 +144,32 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
     return (
         <div>
             {/* 侧边栏展开按钮 */}
-            {!isSidebarExpanded && (
+            {!isOpen && (
                 <button
-                    onClick={() => setSidebarExpanded(true)}
+                    onClick={toggleSidebar}
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', position: 'fixed', top: '10px', left: '10px', zIndex: 1000 }}
                 >
                     <img src="/icons/menu-icon.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
                 </button>
             )}
             <div
-                className={`sidebar ${isSidebarExpanded ? 'expanded' : 'collapsed'}`}
+                className={`sidebar ${isOpen ? 'expanded' : 'collapsed'}`}
                 style={{
                     position: 'fixed',
                     left: 0,
                     top: 0,
                     height: '100vh',
-                    width: isSidebarExpanded ? '250px' : '0',
+                    width: isOpen ? '250px' : '0',
                     transition: 'width 0.3s',
                     overflow: 'hidden',
                     background: '#f4f4f4',
-                    padding: isSidebarExpanded ? '10px' : '0',
+                    padding: isOpen ? '10px' : '0',
+                    zIndex: 999,
                 }}
             >
-                {isSidebarExpanded && (
+                {isOpen && (
                     <button
-                        onClick={() => setSidebarExpanded(false)}
+                        onClick={toggleSidebar}
                         style={{ position: 'absolute', right: 10, top: 10, background: 'transparent', border: 'none', cursor: 'pointer' }}
                     >
                         <img
@@ -233,11 +233,13 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
                                                             style={{
                                                                 position: 'absolute',
                                                                 right: 0,
+                                                                top: '100%',
                                                                 background: '#fff',
                                                                 boxShadow: '0px 0px 5px rgba(0,0,0,0.2)',
                                                                 padding: '5px',
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
+                                                                zIndex: 100,
                                                             }}
                                                         >
                                                             <button data-action="load" onClick={() => handleLoad(config.name)}>
@@ -281,6 +283,9 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
                         justifyContent: 'center',
                         alignItems: 'center',
                         zIndex: 1000,
+                        opacity: isModalOpen ? 1 : 0,
+                        transition: 'opacity 0.3s',
+                        pointerEvents: isModalOpen ? 'auto' : 'none',
                     }}
                     onClick={handleCancel}
                 >
@@ -292,6 +297,8 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig }) => {
                             width: '400px',
                             boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
                             zIndex: 1100,
+                            transform: isModalOpen ? 'scale(1)' : 'scale(0.9)',
+                            transition: 'transform 0.3s',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -330,6 +337,8 @@ CompressionSidebarPanel.propTypes = {
         })
     ),
     onNewConfig: PropTypes.func,
+    isOpen: PropTypes.bool.isRequired,
+    toggleSidebar: PropTypes.func.isRequired,
 };
 
 export default CompressionSidebarPanel;

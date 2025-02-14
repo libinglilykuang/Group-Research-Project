@@ -1,30 +1,29 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format, isToday, isYesterday, isValid } from 'date-fns';
 
-const exampleConfigurations = [
-    { name: 'Config 1', date: '2025-01-30T12:00:00Z', parameters: { param1: 'value1', param2: 'value2' } },
-    { name: 'Config 2', date: '2025-01-29T15:30:00Z', parameters: { param1: 'value3', param2: 'value4' } },
-    { name: 'Config 3', date: '2025-01-28T09:00:00Z', parameters: { param1: 'value5', param2: 'value6' } },
-    { name: 'Config 4', date: '2025-01-28T13:45:00Z', parameters: { param1: 'value7', param2: 'value8' } },
-    { name: 'Config 5', date: '2025-01-27T10:00:00Z', parameters: { param1: 'value9', param2: 'value10' } }
-];
-
-// Group Data
+// 按日期分组
 const groupByDate = (configs) => {
     return configs.reduce((acc, config) => {
         const date = new Date(config.date);
+
+        // 检查日期是否有效
+        if (!isValid(date)) {
+            console.warn(`Invalid date for config: ${config.name}`, config.date);
+            return acc; // 跳过无效日期
+        }
+
         let label = format(date, 'yyyy-MM-dd');
         if (isToday(date)) label = 'Today';
         else if (isYesterday(date)) label = 'Yesterday';
+
         acc[label] = acc[label] || [];
         acc[label].push(config);
         return acc;
     }, {});
 };
 
-const CompressionSidebarPanel = ({ configurations = [] }) => {
-    const [isSidebarExpanded, setSidebarExpanded] = useState(false);
+const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar }) => {
     const [searchInput, setSearchInput] = useState('');
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
     const [configurationsState, setConfigurationsState] = useState(configurations);
@@ -34,14 +33,22 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
     const [loadedConfig, setLoadedConfig] = useState(null);
     const menuRef = useRef(null);
 
-    // Filter
-    const filteredConfigurations = groupByDate(
+    // 处理开启新配置
+    const handleNewConfig = () => {
+        setLoadedConfig(null); // 清除已加载的配置
+        if (onNewConfig) {
+            onNewConfig(); // 调用父组件传递的回调函数
+        }
+    };
+
+    // 过滤配置
+    const filteredConfigurations = useMemo(() => groupByDate(
         configurationsState.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
         )
-    );
+    ), [configurationsState, searchInput]);
 
-    // Delete
+    // 删除配置
     const handleDelete = useCallback((configName) => {
         setConfigurationsState((prevConfigs) => {
             const newConfigs = prevConfigs.filter((config) => config.name !== configName);
@@ -50,7 +57,7 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         setActiveMenuIndex(null);
     }, []);
 
-    // Download
+    // 下载配置
     const handleDownload = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
 
@@ -65,10 +72,12 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         }
     };
 
+    // 切换菜单
     const handleMenuToggle = (configName) => {
         setActiveMenuIndex(activeMenuIndex === configName ? null : configName);
     };
 
+    // 点击外部关闭菜单
     const handleClickOutside = (event) => {
         if (
             menuRef.current &&
@@ -82,6 +91,7 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         }
     };
 
+    // 编辑配置
     const handleEdit = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
         setSelectedConfig(config);
@@ -89,13 +99,14 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         setModalOpen(true);
     };
 
+    // 加载配置
     const handleLoad = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
         setLoadedConfig(config);
         setActiveMenuIndex(null);
     };
 
-    // Save
+    // 保存编辑
     const handleSave = () => {
         setConfigurationsState((prevConfigs) => {
             const updatedConfigs = prevConfigs.map((config) =>
@@ -106,10 +117,12 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         setModalOpen(false);
     };
 
+    // 取消编辑
     const handleCancel = () => {
         setModalOpen(false);
     };
 
+    // 处理参数更改
     const handleParamChange = (paramName, value) => {
         setEditedConfig((prevConfig) => ({
             ...prevConfig,
@@ -120,6 +133,7 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
         }));
     };
 
+    // 监听外部点击
     useEffect(() => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
@@ -129,36 +143,77 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
 
     return (
         <div>
-            <button onClick={() => setSidebarExpanded(true)}>Open Sidebar</button>
+            {/* 侧边栏展开按钮 */}
+            {!isOpen && (
+                <button
+                    onClick={toggleSidebar}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', position: 'fixed', top: '10px', left: '10px', zIndex: 1000 }}
+                >
+                    <img src="/icons/menu-icon.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
+                </button>
+            )}
             <div
-                className={`sidebar ${isSidebarExpanded ? 'expanded' : 'collapsed'}`}
+                className={`sidebar ${isOpen ? 'expanded' : 'collapsed'}`}
                 style={{
                     position: 'fixed',
                     left: 0,
                     top: 0,
                     height: '100vh',
-                    width: isSidebarExpanded ? '250px' : '0',
+                    width: isOpen ? '250px' : '0',
                     transition: 'width 0.3s',
                     overflow: 'hidden',
                     background: '#f4f4f4',
-                    padding: isSidebarExpanded ? '10px' : '0',
+                    padding: isOpen ? '10px' : '0',
+                    zIndex: 999,
                 }}
             >
-                {isSidebarExpanded && (
-                    <button onClick={() => setSidebarExpanded(false)} style={{ position: 'absolute', right: 10, top: 10 }}>
-                        ✖
+                {isOpen && (
+                    <button
+                        onClick={toggleSidebar}
+                        style={{ position: 'absolute', right: 10, top: 10, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    >
+                        <img
+                            src="/icons/close-icon.png"
+                            alt="Close"
+                            style={{ width: '36px', height: '36px' }}
+                        />
                     </button>
                 )}
+                {/* 搜索栏 */}
+                <div className="search-bar" style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="Search configurations"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
+                    />
+                </div>
                 <div className="sidebar-content">
-                    <div className="search-bar" style={{ marginBottom: '15px' }}>
-                        <input
-                            type="text"
-                            placeholder="Search configurations"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            style={{ width: 'calc(100% - 20px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
+                    {/* 开启新配置按钮 */}
+                    <button
+                        onClick={handleNewConfig}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            marginBottom: '15px',
+                            padding: '5px',
+                            width: '100%',
+                            textAlign: 'left',
+                        }}
+                    >
+                        <img
+                            src="/icons/new-config-icon.png"
+                            alt="New Config"
+                            style={{ width: '20px', height: '20px', marginRight: '10px' }}
                         />
-                    </div>
+                        <span>Start New Configuration</span>
+                    </button>
+
+                    {/* 配置列表 */}
                     {Object.keys(filteredConfigurations).length > 0 ? (
                         <div>
                             {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
@@ -178,11 +233,13 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                                                             style={{
                                                                 position: 'absolute',
                                                                 right: 0,
+                                                                top: '100%',
                                                                 background: '#fff',
                                                                 boxShadow: '0px 0px 5px rgba(0,0,0,0.2)',
                                                                 padding: '5px',
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
+                                                                zIndex: 100,
                                                             }}
                                                         >
                                                             <button data-action="load" onClick={() => handleLoad(config.name)}>
@@ -212,20 +269,7 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                 </div>
             </div>
 
-            {loadedConfig && (
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0px 0px 10px rgba(0,0,0,0.1)', margin: '20px' }}>
-                    <h3>Loaded Configuration</h3>
-                    <p><strong>Name:</strong> {loadedConfig.name}</p>
-                    <p><strong>Date:</strong> {format(new Date(loadedConfig.date), 'yyyy-MM-dd HH:mm')}</p>
-                    <h4>Parameters:</h4>
-                    <ul>
-                        {Object.entries(loadedConfig.parameters).map(([key, value]) => (
-                            <li key={key}><strong>{key}:</strong> {value}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
+            {/* 编辑模态框 */}
             {isModalOpen && selectedConfig && (
                 <div
                     style={{
@@ -239,6 +283,9 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                         justifyContent: 'center',
                         alignItems: 'center',
                         zIndex: 1000,
+                        opacity: isModalOpen ? 1 : 0,
+                        transition: 'opacity 0.3s',
+                        pointerEvents: isModalOpen ? 'auto' : 'none',
                     }}
                     onClick={handleCancel}
                 >
@@ -250,6 +297,8 @@ const CompressionSidebarPanel = ({ configurations = [] }) => {
                             width: '400px',
                             boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
                             zIndex: 1100,
+                            transform: isModalOpen ? 'scale(1)' : 'scale(0.9)',
+                            transition: 'transform 0.3s',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -287,6 +336,9 @@ CompressionSidebarPanel.propTypes = {
             parameters: PropTypes.object.isRequired,
         })
     ),
+    onNewConfig: PropTypes.func,
+    isOpen: PropTypes.bool.isRequired,
+    toggleSidebar: PropTypes.func.isRequired,
 };
 
-export default () => <CompressionSidebarPanel configurations={exampleConfigurations} />;
+export default CompressionSidebarPanel;

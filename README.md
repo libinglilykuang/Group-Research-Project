@@ -64,6 +64,8 @@
 | [Week 12 : Meeting 2](./meeting_notes/Week12Meeting2.md) | 31/1/25 | Lab work in subteams |
 | [Week 13 : Meeting 1](./meeting_notes/Week13Meeting1.md) | 7/2/25 | Lab work in subteams |
 | [Week 14 : Meeting 1](./meeting_notes/Week14Meeting1.md) | 10/2/25 | Industry Meeting |
+| [Week 14 : Meeting 2](./meeting_notes/Week14Meeting2.md) | 13/2/25 | Check-in with academic supervisor |
+| [Week 14 : Meeting 3](./meeting_notes/Week14Meeting3.md) | 14/2/25 | Lab work |
 
 
 

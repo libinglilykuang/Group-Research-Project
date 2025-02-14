@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 
-
-
-    const ConfigPanel = () => {
+const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor }, ref) => {
     const [file, setFile] = useState(null);
     const [param1, setParam1] = useState('');
     const [param2, setParam2] = useState('');
@@ -33,7 +31,17 @@ import React, { useState } from 'react';
         }
     };
 
-    //HandleSelectData and HandlCompress are just placeholders for now
+    // Expose the reset function to the parent component
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            setFile(null);
+            setParam1('');
+            setParam2('');
+            setError('');
+            setMessage('');
+            setCompressionFactor(2); // Reset the compression factor to the default value
+        },
+    }));
 
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -121,6 +129,6 @@ import React, { useState } from 'react';
             {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
         </div>
     );
-};
+});
 
 export default ConfigPanel;

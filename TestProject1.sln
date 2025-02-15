@@ -3,11 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9CBBAC5D-8B5F-44C4-9410-6B004771B2D2}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "algorithm_tests", "algorithm_tests", "{B31A8F8B-7EF2-41E9-A934-3608E01AE55D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "tests\algorithm_tests\TestProject1\TestProject1.csproj", "{5C0D2084-9AE1-4237-9C1C-7C55403B2283}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "algorithmTests", "team6_project\tests\algorithm_tests\algorithmTests\algorithmTests.csproj", "{68C73127-F2BF-5424-83B5-E8A85B1DFAA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

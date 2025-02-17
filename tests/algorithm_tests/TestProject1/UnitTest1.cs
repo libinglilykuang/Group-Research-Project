@@ -2,7 +2,7 @@
 // Write tests here using C# and the test plan
 
 using System.Diagnostics;
-
+using NUnit.Framework;
 
 namespace algorithmTesting {
 
@@ -74,7 +74,7 @@ namespace algorithmTesting {
                 Console.WriteLine("\nError handling null: OK");
             } catch (Exception e) {
             Assert.Fail("Unexpected exception type: " + e);
-    }
+            }
         }
 
         // Test 2.1.4 - Error Handling None

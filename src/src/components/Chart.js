@@ -7,7 +7,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const ZoomableChart = ({ rawData, labels, compressionFactor }) => {
     if (!rawData.length || !labels.length) {
-        return <p style={{ textAlign: 'center', fontSize: '18px', color: 'gray' }}>请上传 CSV 数据</p>;
+        return <p style={{ textAlign: 'center', fontSize: '18px', color: 'gray' }}>Please upload CSV data</p>;
     }
 
     // 压缩数据
@@ -17,17 +17,17 @@ const ZoomableChart = ({ rawData, labels, compressionFactor }) => {
     const compressedLabels = compressData(labels, compressionFactor);
 
     const chartData = {
-        labels: compressedLabels,
+        labels: compressedLabels, // X 轴（时间）
         datasets: [
             {
-                label: '原始数据',
+                label: 'Raw Data',
                 data: rawData,
                 borderColor: '#8884d8',
                 borderWidth: 2,
                 fill: false,
             },
             {
-                label: '压缩数据',
+                label: 'Compressed Data',
                 data: compressedData,
                 borderColor: '#82ca9d',
                 borderWidth: 2,
@@ -42,11 +42,16 @@ const ZoomableChart = ({ rawData, labels, compressionFactor }) => {
         maintainAspectRatio: false,
         scales: {
             x: {
-                title: { display: true, text: '时间', font: { size: 16 } },
-                ticks: { font: { size: 14 } },
+                type: 'category', // 使用分类轴
+                title: { display: true, text: 'Time', font: { size: 16 } },
+                ticks: {
+                    autoSkip: true, // 自动跳过密集的标签
+                    maxTicksLimit: 10, // 最多显示 10 个标签
+                    font: { size: 14 },
+                },
             },
             y: {
-                title: { display: true, text: '数据值', font: { size: 16 } },
+                title: { display: true, text: 'Value', font: { size: 16 } },
                 ticks: { font: { size: 14 } },
             },
         },

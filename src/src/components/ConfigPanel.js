@@ -8,6 +8,20 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
 
+    // Format time to display only the specific time (e.g., 12:34 PM)
+    const formatTime = (timeString) => {
+        const date = new Date(timeString);
+        if (isNaN(date.getTime())) {
+            return timeString; // If unable to parse as date, return the original string
+        }
+        // Display only hour and minute using a 12-hour clock
+        return date.toLocaleString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true, // Use 12-hour format
+        });
+    };
+
     // Handle file upload
     const handleFileUpload = (e) => {
         const selectedFile = e.target.files[0];
@@ -23,11 +37,11 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
         reader.onload = ({ target }) => {
             const csv = Papa.parse(target.result, { skipEmptyLines: true });
 
-            if (csv.data.length > 1) { // Ensure there's data
-                const dataRows = csv.data.slice(1); // Skip the header row
+            if (csv.data.length > 1) { // Ensure there is data
+                const dataRows = csv.data.slice(1); // Skip header row
 
                 // Parse time and data
-                const xValues = dataRows.map(row => row[0]); // First column: time
+                const xValues = dataRows.map(row => formatTime(row[0])); // First column: time (formatted)
                 const yValues = dataRows.map(row => parseFloat(row[1])); // Second column: data
 
                 if (xValues.length > 0 && yValues.length > 0) {

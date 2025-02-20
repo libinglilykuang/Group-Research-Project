@@ -10,15 +10,17 @@ function App() {
     const [compressionFactor, setCompressionFactor] = useState(2);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const compressData = (data, factor) => {
+    const compressData = (data, labels, factor) => {
         const compressedData = [];
+        const compressedLabels = [];
         for (let i = 0; i < data.length; i += factor) {
             compressedData.push(data[i]);
+            compressedLabels.push(labels[i]); // 保留原始数据的横坐标
         }
-        return compressedData;
+        return { compressedData, compressedLabels };
     };
 
-    const compressedData = compressData(rawData, compressionFactor);
+    const { compressedData, compressedLabels } = compressData(rawData, labels, compressionFactor);
 
     const sampleConfigurations = [
         { name: 'Config 1', date: '2025-01-30T12:00:00Z', parameters: { param1: 'value1', param2: 'value2' } },
@@ -83,7 +85,12 @@ function App() {
                     transition: 'margin-left 0.3s ease',
                 }}
             >
-                <ZoomableChart rawData={rawData} labels={labels} compressionFactor={compressionFactor} />
+                <ZoomableChart
+                    rawData={rawData}
+                    labels={labels}
+                    compressedData={compressedData}
+                    compressedLabels={compressedLabels}
+                />
             </div>
 
             <div

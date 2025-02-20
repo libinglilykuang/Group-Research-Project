@@ -5,38 +5,32 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, zoomPlugin);
 
-const ZoomableChart = ({ rawData, labels, compressionFactor }) => {
+const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) => {
     if (!rawData.length || !labels.length) {
         return <p style={{ textAlign: 'center', fontSize: '18px', color: 'gray' }}>Please upload CSV data</p>;
     }
 
-    // 压缩数据
-    const compressData = (data, factor) => data.filter((_, index) => index % factor === 0);
-
-    const compressedData = compressData(rawData, compressionFactor);
-    const compressedLabels = compressData(labels, compressionFactor);
-
     const chartData = {
-        labels: compressedLabels, // X 轴（时间）
+        labels: labels, // X 轴使用原始数据的横坐标
         datasets: [
             {
-                label: 'Compressed Data', // 反过来
-                data: compressedData,
-                borderColor: '#8884d8',
-                borderWidth: 2,
-                fill: false,
-            },
-            {
-                label: 'Raw Data', // 反过来
-                data: rawData,
+                label: 'Raw Data',
+                data: rawData.map((value, index) => ({ x: labels[index], y: value })), // 原始数据
                 borderColor: '#82ca9d',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 5,
+                pointRadius: 2, // 较小的点半径
+            },
+            {
+                label: 'Compressed Data',
+                data: compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })), // 压缩数据
+                borderColor: '#8884d8',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 5, // 较大的点半径
             },
         ],
     };
-
 
     const options = {
         responsive: true,

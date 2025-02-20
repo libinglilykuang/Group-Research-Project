@@ -20,15 +20,15 @@ const ZoomableChart = ({ rawData, labels, compressionFactor }) => {
         labels: compressedLabels, // X 轴（时间）
         datasets: [
             {
-                label: 'Raw Data',
-                data: rawData,
+                label: 'Compressed Data', // 反过来
+                data: compressedData,
                 borderColor: '#8884d8',
                 borderWidth: 2,
                 fill: false,
             },
             {
-                label: 'Compressed Data',
-                data: compressedData,
+                label: 'Raw Data', // 反过来
+                data: rawData,
                 borderColor: '#82ca9d',
                 borderWidth: 2,
                 fill: false,
@@ -36,6 +36,7 @@ const ZoomableChart = ({ rawData, labels, compressionFactor }) => {
             },
         ],
     };
+
 
     const options = {
         responsive: true,

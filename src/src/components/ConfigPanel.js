@@ -1,28 +1,81 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import Papa from 'papaparse';
 
-
-
-const ConfigPanel = () => {
+const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels }, ref) => {
     const [file, setFile] = useState(null);
     const [param1, setParam1] = useState('');
     const [param2, setParam2] = useState('');
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
 
-    const handleSelectData = () => {
-        if (!file) {
-            setError('No file selected');
-        } else {
-            setError('');
+    // Format time to display only the specific time (e.g., 12:34 PM)
+    const formatTime = (timeString) => {
+        const date = new Date(timeString);
+        if (isNaN(date.getTime())) {
+            return timeString; // If unable to parse as date, return the original string
+        }
+        // Display only hour and minute using a 12-hour clock
+        return date.toLocaleString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true, // Use 12-hour format
+        });
+    };
+
+    // Handle file upload
+    const handleFileUpload = (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            parseCSV(selectedFile);
         }
     };
 
-    const handleCompress = () => {
+    // Parse CSV file
+    const parseCSV = (file) => {
+        const reader = new FileReader();
+        reader.onload = ({ target }) => {
+            const csv = Papa.parse(target.result, { skipEmptyLines: true });
+
+            if (csv.data.length > 1) { // Ensure there is data
+                const dataRows = csv.data.slice(1); // Skip header row
+
+                // Parse time and data
+                const xValues = dataRows.map(row => formatTime(row[0])); // First column: time (formatted)
+                const yValues = dataRows.map(row => parseFloat(row[1])); // Second column: data
+
+                if (xValues.length > 0 && yValues.length > 0) {
+                    setLabels(xValues);
+                    setRawData(yValues);
+                    setMessage('CSV data loaded');
+                    setError('');
+                } else {
+                    setError('CSV file format error: valid data not found');
+                }
+            } else {
+                setError('CSV file is empty or formatted incorrectly');
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    // Handle data selection
+    const handleSelectData = () => {
         if (!file) {
-            setError('No file selected');
+            setError('Please upload a file first');
         } else {
             setError('');
+            setMessage('Data selected');
+        }
+    };
+
+    // Handle compression
+    const handleCompress = () => {
+        if (!file) {
+            setError('Please upload a file first');
+        } else {
+            setError('');
+            // Generate compressed file and trigger download
             const blob = new Blob(['Compressed Data'], { type: 'application/octet-stream' });
             const downloadUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -30,9 +83,21 @@ const ConfigPanel = () => {
             link.download = 'compressed-data.zip';
             link.click();
             URL.revokeObjectURL(downloadUrl);
-            setMessage('Download initiated');
+            setMessage('Compressed file generated and download started');
         }
     };
+
+    // Expose reset method
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            setFile(null);
+            setParam1('');
+            setParam2('');
+            setError('');
+            setMessage('');
+            setCompressionFactor(2); // Reset compression factor
+        },
+    }));
 
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -43,7 +108,8 @@ const ConfigPanel = () => {
                 <input
                     id="file-input"
                     type="file"
-                    onChange={(e) => setFile(e.target.files[0])}
+                    accept=".csv"
+                    onChange={handleFileUpload}
                     style={{ marginBottom: '20px' }}
                 />
             </div>
@@ -51,7 +117,7 @@ const ConfigPanel = () => {
             <div>
                 <input
                     type="text"
-                    placeholder="Configure Parameter 1"
+                    placeholder="Config Parameter 1"
                     value={param1}
                     onChange={(e) => setParam1(e.target.value)}
                     style={{
@@ -65,7 +131,7 @@ const ConfigPanel = () => {
                 />
                 <input
                     type="text"
-                    placeholder="Configure Parameter 2"
+                    placeholder="Config Parameter 2"
                     value={param2}
                     onChange={(e) => setParam2(e.target.value)}
                     style={{
@@ -120,6 +186,6 @@ const ConfigPanel = () => {
             {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
         </div>
     );
-};
+});
 
 export default ConfigPanel;

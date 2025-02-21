@@ -6,16 +6,15 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, zoomPlugin);
 
 const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) => {
-    if (!rawData.length || !labels.length) {
-        return <p style={{ textAlign: 'center', fontSize: '18px', color: 'gray' }}>Please upload CSV data</p>;
-    }
+    // 如果没有数据，显示一个空的图表框架
+    const isEmpty = !rawData.length || !labels.length;
 
     const chartData = {
-        labels: labels, // X 轴使用原始数据的横坐标
+        labels: isEmpty ? [] : labels, // 如果没有数据，使用空数组
         datasets: [
             {
                 label: 'Raw Data',
-                data: rawData.map((value, index) => ({ x: labels[index], y: value })), // 原始数据
+                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })), // 如果没有数据，使用空数组
                 borderColor: '#82ca9d',
                 borderWidth: 2,
                 fill: false,
@@ -23,7 +22,7 @@ const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) =>
             },
             {
                 label: 'Compressed Data',
-                data: compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })), // 压缩数据
+                data: isEmpty ? [] : compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })), // 如果没有数据，使用空数组
                 borderColor: '#8884d8',
                 borderWidth: 2,
                 fill: false,
@@ -54,6 +53,14 @@ const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) =>
             zoom: {
                 pan: { enabled: true, mode: 'xy' },
                 zoom: { enabled: true, mode: 'xy', wheel: { enabled: true } },
+            },
+            // 如果没有数据，显示提示信息
+            title: {
+                display: isEmpty,
+                text: 'Please upload CSV data to display the chart',
+                font: { size: 18 },
+                color: 'gray',
+                padding: 20,
             },
         },
     };

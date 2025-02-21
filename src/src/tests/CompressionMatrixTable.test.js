@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import CompressionMatrixTable from '../../main/CompressionMatrixTable';
+import CompressionMatrixTable from '../components/CompressionMatrixTable';
 
 test('Displays original data metrics correctly', () => {
     const originalData = [

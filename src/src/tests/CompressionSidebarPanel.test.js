@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import CompressionSidebarPanel from '../../main/CompressionSidebarPanel';
+import CompressionSidebarPanel from '../components/CompressionSidebarPanel';
 
 test('renders sidebar with title and search box', () => {
     render(<CompressionSidebarPanel />);

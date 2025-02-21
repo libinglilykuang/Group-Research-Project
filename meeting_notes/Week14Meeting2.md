@@ -4,7 +4,7 @@
 
 ### Attendance
 6/8 - Mayukhi, Will, Brendan, Frazer, Libing and Sai
-Missing Kasia and Lucas
+<br> Missing Kasia and Lucas
 
 ### What happened?
 1. Provided progress report to Shreyank (academic supervisor)

@@ -4,7 +4,7 @@
 
 ### Attendance
 6/8 - Mayukhi, Kasia, Frazer, Lucas, Libing and Brendan
-Missing Sai and Will
+<br> Missing Sai and Will
 
 ### What happened?
 1. Worked in subteams using feedback from industry

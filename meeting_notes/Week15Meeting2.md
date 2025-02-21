@@ -4,7 +4,7 @@
 
 ### Attendance
 5/8 - Mayukhi, Kasia, Frazer, Lucas, and Libing
-Missing Sai and Will
+<br> Missing Sai and Will
 
 ### What happened?
 1. Worked in subteams on Compression, UI and Optimisation

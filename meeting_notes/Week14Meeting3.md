@@ -4,7 +4,7 @@
 
 ### Attendance
 4/8 - Mayukhi, Frazer, Will and Libing
-Missing Kasia, Sai, Brendan and Lucas
+<br> Missing Kasia, Sai, Brendan and Lucas
 
 ### What happened?
 1. Planned next sprint

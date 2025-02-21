@@ -3,8 +3,8 @@
 ### 2nd Meeting: 21/02/25
 
 ### Attendance
-5/8 - Mayukhi, Kasia, Frazer, Lucas, and Libing
-<br> Missing Sai and Will
+5/8 - Mayukhi, Kasia, Frazer, Lucas, and Libing<br>
+Missing Sai and Will
 
 ### What happened?
 1. Worked in subteams on Compression, UI and Optimisation

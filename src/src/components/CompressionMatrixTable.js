@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 const MetricsTable = ({ rawData, compressedData, onSave }) => {
+    const [isSaveModalOpen, setSaveModalOpen] = useState(false);
+    const [includeCSV, setIncludeCSV] = useState(false);
+
     const calculateMetrics = (rawData, compressedData) => {
         const rawDataPoints = rawData.length;
         const compressedDataPoints = compressedData.length;
 
-        //compressionRatio
+        // 计算压缩比
         const compressionRatio = (rawDataPoints / compressedDataPoints).toFixed(2);
 
-        // storage size
+        // 计算存储大小
         const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
         const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
 
-        // error rate
+        // 计算误差率
         const rawSum = rawData.reduce((sum, value) => sum + value, 0);
         const compressedSum = compressedData.reduce((sum, value) => sum + value, 0);
         const errorRate = ((1 - compressedSum / rawSum) * 100).toFixed(2);
@@ -29,6 +32,28 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
     };
 
     const metrics = calculateMetrics(rawData, compressedData);
+
+    const handleSave = () => {
+        setSaveModalOpen(true); // 打开弹窗
+    };
+
+    const handleConfirmSave = () => {
+        const config = {
+            name: `Configuration ${new Date().toLocaleString()}`,
+            date: new Date().toISOString(),
+            parameters: metrics.reduce((acc, metric) => {
+                acc[metric.name] = metric.value;
+                return acc;
+            }, {}),
+            includeCSV, // 是否包含 CSV 文件
+        };
+        onSave(config); // 将配置对象传递给父组件
+        setSaveModalOpen(false); // 关闭弹窗
+    };
+
+    const handleCancelSave = () => {
+        setSaveModalOpen(false); // 关闭弹窗
+    };
 
     return (
         <div
@@ -78,7 +103,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 </p>
             )}
             <button
-                onClick={() => onSave(metrics)}
+                onClick={handleSave}
                 style={{
                     marginTop: '1rem',
                     padding: '0.5rem 1rem',
@@ -91,6 +116,53 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             >
                 Save Optimal Configuration
             </button>
+
+            {/* 保存配置的弹窗 */}
+            {isSaveModalOpen && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 1000,
+                    }}
+                >
+                    <div
+                        style={{
+                            background: '#fff',
+                            padding: '20px',
+                            borderRadius: '8px',
+                            width: '400px',
+                            boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
+                        }}
+                    >
+                        <h3>Save Configuration</h3>
+                        <div style={{ marginBottom: '10px' }}>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={includeCSV}
+                                    onChange={(e) => setIncludeCSV(e.target.checked)}
+                                />
+                                Include CSV File
+                            </label>
+                        </div>
+                        <button
+                            onClick={handleConfirmSave}
+                            style={{ marginRight: '10px' }}
+                        >
+                            Confirm
+                        </button>
+                        <button onClick={handleCancelSave}>Cancel</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

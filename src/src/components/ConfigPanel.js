@@ -1,8 +1,7 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Papa from 'papaparse';
 
-const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels }, ref) => {
-    const [file, setFile] = useState(null);
+const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels, setFile }, ref) => {
     const [param1, setParam1] = useState('');
     const [param2, setParam2] = useState('');
     const [error, setError] = useState('');
@@ -26,7 +25,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
     const handleFileUpload = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
-            setFile(selectedFile);
+            setFile(selectedFile); // 更新当前 CSV 文件
             parseCSV(selectedFile);
         }
     };
@@ -87,7 +86,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
         }
     };
 
-    // Expose reset method
+    // Expose reset method and parameters
     useImperativeHandle(ref, () => ({
         reset: () => {
             setFile(null);
@@ -96,6 +95,15 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
             setError('');
             setMessage('');
             setCompressionFactor(2); // Reset compression factor
+        },
+        getParams: () => ({ param1, param2 }), // 暴露当前参数
+        setParams: (params) => {
+            setParam1(params.param1 || '');
+            setParam2(params.param2 || '');
+        },
+        loadFile: (file) => {
+            setFile(file);
+            parseCSV(file); // 解析 CSV 文件并加载数据
         },
     }));
 

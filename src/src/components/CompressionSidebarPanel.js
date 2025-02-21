@@ -23,19 +23,22 @@ const groupByDate = (configs) => {
     }, {});
 };
 
-const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar }) => {
+const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar, onLoadConfig }) => {
     const [searchInput, setSearchInput] = useState('');
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
     const [configurationsState, setConfigurationsState] = useState(configurations);
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
     const [editedConfig, setEditedConfig] = useState(null);
-    const [loadedConfig, setLoadedConfig] = useState(null);
     const menuRef = useRef(null);
+
+    // 当 configurations 属性变化时，更新 configurationsState
+    useEffect(() => {
+        setConfigurationsState(configurations);
+    }, [configurations]);
 
     // 处理开启新配置
     const handleNewConfig = () => {
-        setLoadedConfig(null); // 清除已加载的配置
         if (onNewConfig) {
             onNewConfig(); // 调用父组件传递的回调函数
         }
@@ -82,7 +85,6 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
         if (
             menuRef.current &&
             !menuRef.current.contains(event.target) &&
-            !event.target.closest('button[data-action="load"]') &&
             !event.target.closest('button[data-action="edit"]') &&
             !event.target.closest('button[data-action="download"]') &&
             !event.target.closest('button[data-action="delete"]')
@@ -92,25 +94,18 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
     };
 
     // 编辑配置
-    const handleEdit = (configName) => {
+    const handleEdit = (configName, index) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
         setSelectedConfig(config);
-        setEditedConfig({ ...config });
+        setEditedConfig({ ...config }); // 复制配置以进行编辑
         setModalOpen(true);
     };
 
-    // 加载配置
-    const handleLoad = (configName) => {
-        const config = configurationsState.find((cfg) => cfg.name === configName);
-        setLoadedConfig(config);
-        setActiveMenuIndex(null);
-    };
-
     // 保存编辑
-    const handleSave = () => {
+    const handleSaveEdit = () => {
         setConfigurationsState((prevConfigs) => {
             const updatedConfigs = prevConfigs.map((config) =>
-                config.name === selectedConfig.name ? { ...config, parameters: editedConfig.parameters } : config
+                config.name === selectedConfig.name ? editedConfig : config
             );
             return updatedConfigs;
         });
@@ -118,8 +113,16 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
     };
 
     // 取消编辑
-    const handleCancel = () => {
+    const handleCancelEdit = () => {
         setModalOpen(false);
+    };
+
+    // 处理名称更改
+    const handleNameChange = (e) => {
+        setEditedConfig((prevConfig) => ({
+            ...prevConfig,
+            name: e.target.value,
+        }));
     };
 
     // 处理参数更改
@@ -131,6 +134,13 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                 [paramName]: value,
             },
         }));
+    };
+
+    // 加载配置
+    const handleLoadConfig = (config) => {
+        if (onLoadConfig) {
+            onLoadConfig(config); // 调用父组件传递的回调函数
+        }
     };
 
     // 监听外部点击
@@ -220,9 +230,9 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                 <div key={dateLabel}>
                                     <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4>
                                     <ul style={{ paddingLeft: '10px' }}>
-                                        {configs.map((config) => (
+                                        {configs.map((config, index) => (
                                             <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
-                                                <span>{config.name}</span>
+                                                <span>{config.name}</span> {/* 显示更新后的名称 */}
                                                 <div style={{ position: 'relative' }} ref={menuRef}>
                                                     <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
                                                         ...
@@ -242,10 +252,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                                                 zIndex: 100,
                                                             }}
                                                         >
-                                                            <button data-action="load" onClick={() => handleLoad(config.name)}>
-                                                                Load
-                                                            </button>
-                                                            <button data-action="edit" onClick={() => handleEdit(config.name)}>
+                                                            <button data-action="edit" onClick={() => handleEdit(config.name, index)}>
                                                                 Edit
                                                             </button>
                                                             <button data-action="download" onClick={() => handleDownload(config.name)}>
@@ -253,6 +260,9 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                                             </button>
                                                             <button data-action="delete" onClick={() => handleDelete(config.name)}>
                                                                 Delete
+                                                            </button>
+                                                            <button data-action="load" onClick={() => handleLoadConfig(config)}>
+                                                                Load
                                                             </button>
                                                         </div>
                                                     )}
@@ -283,11 +293,8 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                         justifyContent: 'center',
                         alignItems: 'center',
                         zIndex: 1000,
-                        opacity: isModalOpen ? 1 : 0,
-                        transition: 'opacity 0.3s',
-                        pointerEvents: isModalOpen ? 'auto' : 'none',
                     }}
-                    onClick={handleCancel}
+                    onClick={handleCancelEdit}
                 >
                     <div
                         style={{
@@ -296,14 +303,19 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                             borderRadius: '8px',
                             width: '400px',
                             boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
-                            zIndex: 1100,
-                            transform: isModalOpen ? 'scale(1)' : 'scale(0.9)',
-                            transition: 'transform 0.3s',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3>Edit Configuration</h3>
-                        <p><strong>Name:</strong> {selectedConfig.name}</p>
+                        <div style={{ marginBottom: '10px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
+                            <input
+                                type="text"
+                                value={editedConfig.name}
+                                onChange={handleNameChange}
+                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                            />
+                        </div>
                         <p><strong>Date:</strong> {format(new Date(selectedConfig.date), 'yyyy-MM-dd HH:mm')}</p>
                         <h4>Parameters:</h4>
                         <form>
@@ -319,8 +331,8 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                 </div>
                             ))}
                         </form>
-                        <button onClick={handleSave} style={{ marginTop: '10px', marginRight: '10px' }}>Save</button>
-                        <button onClick={handleCancel} style={{ marginTop: '10px' }}>Cancel</button>
+                        <button onClick={handleSaveEdit} style={{ marginTop: '10px', marginRight: '10px' }}>Save</button>
+                        <button onClick={handleCancelEdit} style={{ marginTop: '10px' }}>Cancel</button>
                     </div>
                 </div>
             )}
@@ -339,6 +351,7 @@ CompressionSidebarPanel.propTypes = {
     onNewConfig: PropTypes.func,
     isOpen: PropTypes.bool.isRequired,
     toggleSidebar: PropTypes.func.isRequired,
+    onLoadConfig: PropTypes.func.isRequired,
 };
 
 export default CompressionSidebarPanel;

@@ -9,6 +9,10 @@ function App() {
     const [labels, setLabels] = useState([]);
     const [compressionFactor, setCompressionFactor] = useState(2);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [configurations, setConfigurations] = useState([]);
+    const [file, setFile] = useState(null); // 用于存储当前 CSV 文件
+
+    const configPanelRef = useRef(null);
 
     const compressData = (data, labels, factor) => {
         const compressedData = [];
@@ -22,29 +26,47 @@ function App() {
 
     const { compressedData, compressedLabels } = compressData(rawData, labels, compressionFactor);
 
-    const sampleConfigurations = [
-        { name: 'Config 1', date: '2025-01-30T12:00:00Z', parameters: { param1: 'value1', param2: 'value2' } },
-        { name: 'Config 2', date: '2025-01-29T15:30:00Z', parameters: { param1: 'value3', param2: 'value4' } },
-        { name: 'Config 3', date: '2025-01-28T09:00:00Z', parameters: { param1: 'value5', param2: 'value6' } },
-        { name: 'Config 4', date: '2025-01-28T13:45:00Z', parameters: { param1: 'value7', param2: 'value8' } },
-        { name: 'Config 5', date: '2025-01-27T10:00:00Z', parameters: { param1: 'value9', param2: 'value10' } }
-    ];
-
-    const handleSave = (data) => {
-        console.log('Saved data:', data);
+    const handleSave = (config) => {
+        const params = configPanelRef.current ? configPanelRef.current.getParams() : { param1: '', param2: '' };
+        const newConfig = {
+            ...config,
+            name: `Configuration ${configurations.length + 1}`, // 动态生成名称
+            date: new Date().toISOString(),
+            parameters: {
+                ...config.parameters,
+                ...params,
+            },
+            rawData: config.includeCSV ? rawData : null, // 如果用户选择保存 CSV 文件，则保存原始数据
+            labels: config.includeCSV ? labels : null,   // 如果用户选择保存 CSV 文件，则保存原始标签
+            csvFile: config.includeCSV ? file : null,    // 如果用户选择保存 CSV 文件，则保存原始文件
+        };
+        setConfigurations((prevConfigs) => [...prevConfigs, newConfig]);
         alert('Optimal configuration saved!');
     };
-
-    const configPanelRef = useRef(null);
 
     const handleNewConfig = () => {
         if (configPanelRef.current) {
             configPanelRef.current.reset();
         }
+        setFile(null); // 清除当前 CSV 文件
     };
 
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
+    };
+
+    // 加载配置
+    const handleLoadConfig = (config) => {
+        // 加载原始数据到 Chart
+        setRawData(config.rawData || []);
+        setLabels(config.labels || []);
+        // 加载参数到 ConfigPanel
+        if (configPanelRef.current) {
+            configPanelRef.current.setParams(config.parameters);
+            if (config.csvFile) {
+                configPanelRef.current.loadFile(config.csvFile); // 如果包含 CSV 文件，则加载
+            }
+        }
     };
 
     return (
@@ -52,10 +74,11 @@ function App() {
             <h2>Intelligent Plant Compression Optimisation</h2>
             <div style={{ width: '80%' }}>
                 <CompressionSidebarPanel
-                    configurations={sampleConfigurations}
+                    configurations={configurations}
                     onNewConfig={handleNewConfig}
                     isOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
+                    onLoadConfig={handleLoadConfig} // 传递加载配置的回调函数
                 />
             </div>
 
@@ -73,6 +96,7 @@ function App() {
                     setCompressionFactor={setCompressionFactor}
                     setRawData={setRawData}
                     setLabels={setLabels}
+                    setFile={setFile} // 传递 setFile 函数以更新当前 CSV 文件
                 />
             </div>
 

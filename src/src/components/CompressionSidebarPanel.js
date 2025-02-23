@@ -2,15 +2,15 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import PropTypes from 'prop-types';
 import { format, isToday, isYesterday, isValid } from 'date-fns';
 
-// 按日期分组
+// Group by date
 const groupByDate = (configs) => {
     return configs.reduce((acc, config) => {
         const date = new Date(config.date);
 
-        // 检查日期是否有效
+        // Check if the date is valid
         if (!isValid(date)) {
             console.warn(`Invalid date for config: ${config.name}`, config.date);
-            return acc; // 跳过无效日期
+            return acc; // Skip invalid dates
         }
 
         let label = format(date, 'yyyy-MM-dd');
@@ -23,32 +23,35 @@ const groupByDate = (configs) => {
     }, {});
 };
 
-const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar }) => {
+const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar, onLoadConfig }) => {
     const [searchInput, setSearchInput] = useState('');
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
     const [configurationsState, setConfigurationsState] = useState(configurations);
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
     const [editedConfig, setEditedConfig] = useState(null);
-    const [loadedConfig, setLoadedConfig] = useState(null);
     const menuRef = useRef(null);
 
-    // 处理开启新配置
+    // Update configurationsState when the configurations prop changes
+    useEffect(() => {
+        setConfigurationsState(configurations);
+    }, [configurations]);
+
+    // Handle creating a new configuration
     const handleNewConfig = () => {
-        setLoadedConfig(null); // 清除已加载的配置
         if (onNewConfig) {
-            onNewConfig(); // 调用父组件传递的回调函数
+            onNewConfig(); // Call the callback function passed from the parent component
         }
     };
 
-    // 过滤配置
+    // Filter configurations
     const filteredConfigurations = useMemo(() => groupByDate(
         configurationsState.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
         )
     ), [configurationsState, searchInput]);
 
-    // 删除配置
+    // Delete a configuration
     const handleDelete = useCallback((configName) => {
         setConfigurationsState((prevConfigs) => {
             const newConfigs = prevConfigs.filter((config) => config.name !== configName);
@@ -57,7 +60,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
         setActiveMenuIndex(null);
     }, []);
 
-    // 下载配置
+    // Download a configuration
     const handleDownload = (configName) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
 
@@ -72,17 +75,16 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
         }
     };
 
-    // 切换菜单
+    // Toggle the menu
     const handleMenuToggle = (configName) => {
         setActiveMenuIndex(activeMenuIndex === configName ? null : configName);
     };
 
-    // 点击外部关闭菜单
+    // Close the menu when clicking outside
     const handleClickOutside = (event) => {
         if (
             menuRef.current &&
             !menuRef.current.contains(event.target) &&
-            !event.target.closest('button[data-action="load"]') &&
             !event.target.closest('button[data-action="edit"]') &&
             !event.target.closest('button[data-action="download"]') &&
             !event.target.closest('button[data-action="delete"]')
@@ -91,38 +93,39 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
         }
     };
 
-    // 编辑配置
-    const handleEdit = (configName) => {
+    // Edit a configuration
+    const handleEdit = (configName, index) => {
         const config = configurationsState.find((cfg) => cfg.name === configName);
         setSelectedConfig(config);
-        setEditedConfig({ ...config });
+        setEditedConfig({ ...config }); // Copy the configuration for editing
         setModalOpen(true);
     };
 
-    // 加载配置
-    const handleLoad = (configName) => {
-        const config = configurationsState.find((cfg) => cfg.name === configName);
-        setLoadedConfig(config);
-        setActiveMenuIndex(null);
-    };
-
-    // 保存编辑
-    const handleSave = () => {
+    // Save the edited configuration
+    const handleSaveEdit = () => {
         setConfigurationsState((prevConfigs) => {
             const updatedConfigs = prevConfigs.map((config) =>
-                config.name === selectedConfig.name ? { ...config, parameters: editedConfig.parameters } : config
+                config.name === selectedConfig.name ? editedConfig : config
             );
             return updatedConfigs;
         });
         setModalOpen(false);
     };
 
-    // 取消编辑
-    const handleCancel = () => {
+    // Cancel editing
+    const handleCancelEdit = () => {
         setModalOpen(false);
     };
 
-    // 处理参数更改
+    // Handle name change
+    const handleNameChange = (e) => {
+        setEditedConfig((prevConfig) => ({
+            ...prevConfig,
+            name: e.target.value,
+        }));
+    };
+
+    // Handle parameter change
     const handleParamChange = (paramName, value) => {
         setEditedConfig((prevConfig) => ({
             ...prevConfig,
@@ -133,7 +136,14 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
         }));
     };
 
-    // 监听外部点击
+    // Load a configuration
+    const handleLoadConfig = (config) => {
+        if (onLoadConfig) {
+            onLoadConfig(config); // Call the callback function passed from the parent component
+        }
+    };
+
+    // Listen for clicks outside the menu
     useEffect(() => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
@@ -143,13 +153,13 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
 
     return (
         <div>
-            {/* 侧边栏展开按钮 */}
+            {/* Sidebar toggle button */}
             {!isOpen && (
                 <button
                     onClick={toggleSidebar}
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', position: 'fixed', top: '10px', left: '10px', zIndex: 1000 }}
                 >
-                    <img src="/icons/menu-icon.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
+                    <img src="/icons/open-sidebar.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
                 </button>
             )}
             <div
@@ -162,9 +172,11 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                     width: isOpen ? '250px' : '0',
                     transition: 'width 0.3s',
                     overflow: 'hidden',
-                    background: '#f4f4f4',
+                    background: '#ffffff', // Pure white background
                     padding: isOpen ? '10px' : '0',
                     zIndex: 999,
+                    color: '#333', // Dark text
+                    boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // Light shadow
                 }}
             >
                 {isOpen && (
@@ -173,24 +185,24 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                         style={{ position: 'absolute', right: 10, top: 10, background: 'transparent', border: 'none', cursor: 'pointer' }}
                     >
                         <img
-                            src="/icons/close-icon.png"
+                            src="/icons/close.png"
                             alt="Close"
                             style={{ width: '36px', height: '36px' }}
                         />
                     </button>
                 )}
-                {/* 搜索栏 */}
+                {/* Search bar */}
                 <div className="search-bar" style={{ marginBottom: '15px' }}>
                     <input
                         type="text"
                         placeholder="Search configurations"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
-                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
+                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px', background: '#f0f0f0', color: '#333' }} // Search bar styling
                     />
                 </div>
                 <div className="sidebar-content">
-                    {/* 开启新配置按钮 */}
+                    {/* Button to start a new configuration */}
                     <button
                         onClick={handleNewConfig}
                         style={{
@@ -203,28 +215,31 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                             padding: '5px',
                             width: '100%',
                             textAlign: 'left',
+                            color: '#333', // Dark text
+                            transition: 'background 0.2s', // Hover transition effect
+                            ':hover': { background: '#f0f0f0' }, // Hover background color
                         }}
                     >
                         <img
-                            src="/icons/new-config-icon.png"
+                            src="/icons/start-new-config.png"
                             alt="New Config"
                             style={{ width: '20px', height: '20px', marginRight: '10px' }}
                         />
                         <span>Start New Configuration</span>
                     </button>
 
-                    {/* 配置列表 */}
+                    {/* Configuration list */}
                     {Object.keys(filteredConfigurations).length > 0 ? (
                         <div>
                             {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
                                 <div key={dateLabel}>
-                                    <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4>
+                                    <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4> {/* Dark text */}
                                     <ul style={{ paddingLeft: '10px' }}>
-                                        {configs.map((config) => (
-                                            <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
-                                                <span>{config.name}</span>
+                                        {configs.map((config, index) => (
+                                            <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', color: '#333' }}> {/* Dark text */}
+                                                <span>{config.name}</span> {/* Display the updated name */}
                                                 <div style={{ position: 'relative' }} ref={menuRef}>
-                                                    <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                                                    <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#333' }}> {/* Dark text */}
                                                         ...
                                                     </button>
                                                     {activeMenuIndex === config.name && (
@@ -232,27 +247,116 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                                             className="menu"
                                                             style={{
                                                                 position: 'absolute',
-                                                                right: 0,
+                                                                right: '-20px', // Offset 20px to the right, outside the sidebar boundary
                                                                 top: '100%',
-                                                                background: '#fff',
-                                                                boxShadow: '0px 0px 5px rgba(0,0,0,0.2)',
+                                                                background: '#ffffff', // White background
+                                                                border: '1px solid #ddd', // Add border
+                                                                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
                                                                 padding: '5px',
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
-                                                                zIndex: 100,
+                                                                zIndex: 1000, // Ensure the menu is above the sidebar
+                                                                borderRadius: '4px', // Rounded corners
                                                             }}
                                                         >
-                                                            <button data-action="load" onClick={() => handleLoad(config.name)}>
-                                                                Load
-                                                            </button>
-                                                            <button data-action="edit" onClick={() => handleEdit(config.name)}>
+                                                            <button
+                                                                data-action="edit"
+                                                                onClick={() => handleEdit(config.name, index)}
+                                                                style={{
+                                                                    background: '#ffffff', // White background
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // Dark text
+                                                                    padding: '8px 12px', // Increase padding
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // Hover transition effect
+                                                                    borderRadius: '4px', // Rounded corners
+                                                                    marginBottom: '4px', // Button spacing
+                                                                    display: 'flex', // Use flex layout
+                                                                    alignItems: 'center', // Vertically center
+                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/edit.png"
+                                                                    alt="Edit"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
+                                                                />
                                                                 Edit
                                                             </button>
-                                                            <button data-action="download" onClick={() => handleDownload(config.name)}>
+                                                            <button
+                                                                data-action="download"
+                                                                onClick={() => handleDownload(config.name)}
+                                                                style={{
+                                                                    background: '#ffffff', // White background
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // Dark text
+                                                                    padding: '8px 12px', // Increase padding
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // Hover transition effect
+                                                                    borderRadius: '4px', // Rounded corners
+                                                                    marginBottom: '4px', // Button spacing
+                                                                    display: 'flex', // Use flex layout
+                                                                    alignItems: 'center', // Vertically center
+                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/download.png"
+                                                                    alt="Download"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
+                                                                />
                                                                 Download
                                                             </button>
-                                                            <button data-action="delete" onClick={() => handleDelete(config.name)}>
+                                                            <button
+                                                                data-action="delete"
+                                                                onClick={() => handleDelete(config.name)}
+                                                                style={{
+                                                                    background: '#ffffff', // White background
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // Dark text
+                                                                    padding: '8px 12px', // Increase padding
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // Hover transition effect
+                                                                    borderRadius: '4px', // Rounded corners
+                                                                    marginBottom: '4px', // Button spacing
+                                                                    display: 'flex', // Use flex layout
+                                                                    alignItems: 'center', // Vertically center
+                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/delete.png"
+                                                                    alt="Delete"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
+                                                                />
                                                                 Delete
+                                                            </button>
+                                                            <button
+                                                                data-action="load"
+                                                                onClick={() => handleLoadConfig(config)}
+                                                                style={{
+                                                                    background: '#ffffff', // White background
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // Dark text
+                                                                    padding: '8px 12px', // Increase padding
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // Hover transition effect
+                                                                    borderRadius: '4px', // Rounded corners
+                                                                    display: 'flex', // Use flex layout
+                                                                    alignItems: 'center', // Vertically center
+                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/load.png"
+                                                                    alt="Load"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
+                                                                />
+                                                                Load
                                                             </button>
                                                         </div>
                                                     )}
@@ -269,7 +373,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                 </div>
             </div>
 
-            {/* 编辑模态框 */}
+            {/* Edit modal */}
             {isModalOpen && selectedConfig && (
                 <div
                     style={{
@@ -283,11 +387,8 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                         justifyContent: 'center',
                         alignItems: 'center',
                         zIndex: 1000,
-                        opacity: isModalOpen ? 1 : 0,
-                        transition: 'opacity 0.3s',
-                        pointerEvents: isModalOpen ? 'auto' : 'none',
                     }}
-                    onClick={handleCancel}
+                    onClick={handleCancelEdit}
                 >
                     <div
                         style={{
@@ -296,14 +397,19 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                             borderRadius: '8px',
                             width: '400px',
                             boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
-                            zIndex: 1100,
-                            transform: isModalOpen ? 'scale(1)' : 'scale(0.9)',
-                            transition: 'transform 0.3s',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3>Edit Configuration</h3>
-                        <p><strong>Name:</strong> {selectedConfig.name}</p>
+                        <div style={{ marginBottom: '10px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
+                            <input
+                                type="text"
+                                value={editedConfig.name}
+                                onChange={handleNameChange}
+                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                            />
+                        </div>
                         <p><strong>Date:</strong> {format(new Date(selectedConfig.date), 'yyyy-MM-dd HH:mm')}</p>
                         <h4>Parameters:</h4>
                         <form>
@@ -319,8 +425,8 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                 </div>
                             ))}
                         </form>
-                        <button onClick={handleSave} style={{ marginTop: '10px', marginRight: '10px' }}>Save</button>
-                        <button onClick={handleCancel} style={{ marginTop: '10px' }}>Cancel</button>
+                        <button onClick={handleSaveEdit} style={{ marginTop: '10px', marginRight: '10px' }}>Save</button>
+                        <button onClick={handleCancelEdit} style={{ marginTop: '10px' }}>Cancel</button>
                     </div>
                 </div>
             )}
@@ -339,6 +445,7 @@ CompressionSidebarPanel.propTypes = {
     onNewConfig: PropTypes.func,
     isOpen: PropTypes.bool.isRequired,
     toggleSidebar: PropTypes.func.isRequired,
+    onLoadConfig: PropTypes.func.isRequired,
 };
 
 export default CompressionSidebarPanel;

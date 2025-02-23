@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 const MetricsTable = ({ rawData, compressedData, onSave }) => {
+    const [isSaveModalOpen, setSaveModalOpen] = useState(false);
+    const [includeCSV, setIncludeCSV] = useState(false);
+
+    // Function to calculate metrics
     const calculateMetrics = (rawData, compressedData) => {
         const rawDataPoints = rawData.length;
         const compressedDataPoints = compressedData.length;
 
-        //compressionRatio
+        // Calculate compression ratio
         const compressionRatio = (rawDataPoints / compressedDataPoints).toFixed(2);
 
-        // storage size
+        // Calculate storage size
         const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
         const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
 
-        // error rate
+        // Calculate error rate
         const rawSum = rawData.reduce((sum, value) => sum + value, 0);
         const compressedSum = compressedData.reduce((sum, value) => sum + value, 0);
         const errorRate = ((1 - compressedSum / rawSum) * 100).toFixed(2);
@@ -29,6 +33,31 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
     };
 
     const metrics = calculateMetrics(rawData, compressedData);
+
+    // Handle save button click
+    const handleSave = () => {
+        setSaveModalOpen(true); // Open the modal
+    };
+
+    // Handle confirm save
+    const handleConfirmSave = () => {
+        const config = {
+            name: `Configuration ${new Date().toLocaleString()}`,
+            date: new Date().toISOString(),
+            parameters: metrics.reduce((acc, metric) => {
+                acc[metric.name] = metric.value;
+                return acc;
+            }, {}),
+            includeCSV, // Whether to include CSV file
+        };
+        onSave(config); // Pass the configuration object to the parent component
+        setSaveModalOpen(false); // Close the modal
+    };
+
+    // Handle cancel save
+    const handleCancelSave = () => {
+        setSaveModalOpen(false); // Close the modal
+    };
 
     return (
         <div
@@ -78,7 +107,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 </p>
             )}
             <button
-                onClick={() => onSave(metrics)}
+                onClick={handleSave}
                 style={{
                     marginTop: '1rem',
                     padding: '0.5rem 1rem',
@@ -91,6 +120,53 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             >
                 Save Optimal Configuration
             </button>
+
+            {/* Save configuration modal */}
+            {isSaveModalOpen && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 1000,
+                    }}
+                >
+                    <div
+                        style={{
+                            background: '#fff',
+                            padding: '20px',
+                            borderRadius: '8px',
+                            width: '400px',
+                            boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
+                        }}
+                    >
+                        <h3>Save Configuration</h3>
+                        <div style={{ marginBottom: '10px' }}>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={includeCSV}
+                                    onChange={(e) => setIncludeCSV(e.target.checked)}
+                                />
+                                Include CSV File
+                            </label>
+                        </div>
+                        <button
+                            onClick={handleConfirmSave}
+                            style={{ marginRight: '10px' }}
+                        >
+                            Confirm
+                        </button>
+                        <button onClick={handleCancelSave}>Cancel</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

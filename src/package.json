@@ -7,9 +7,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "jest",
-    "start": "react-scripts start",
+    "start": "set CI=true && react-scripts start",
     "build": "react-scripts build",
+    "test": "jest",
     "lint": "eslint ."
   },
   "keywords": [],
@@ -26,7 +26,7 @@
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.25.9",
     "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.0.1",
+    "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.2",
     "babel-jest": "^29.7.0",
     "eslint": "^8.0.0",
@@ -43,6 +43,8 @@
     }
   },
   "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "chart.js": "^4.4.7",
     "chartjs-plugin-zoom": "^2.2.0",
     "date-fns": "^4.1.0",
@@ -52,10 +54,6 @@
     "react-chartjs-2": "^5.3.0",
     "react-router-dom": "^7.1.5",
     "resolve-url-loader": "^5.0.0"
-  },
-  "overrides": {
-    "nth-check": "^2.1.1",
-    "postcss": "^8.4.49"
   },
   "browserslist": {
     "production": [

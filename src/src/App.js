@@ -9,53 +9,90 @@ function App() {
     const [labels, setLabels] = useState([]);
     const [compressionFactor, setCompressionFactor] = useState(2);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [configurations, setConfigurations] = useState([]);
+    const [file, setFile] = useState(null); // Used to store the current CSV file
 
+    const configPanelRef = useRef(null);
+
+    // Compress data based on the compression factor
     const compressData = (data, labels, factor) => {
         const compressedData = [];
         const compressedLabels = [];
         for (let i = 0; i < data.length; i += factor) {
             compressedData.push(data[i]);
-            compressedLabels.push(labels[i]); // 保留原始数据的横坐标
+            compressedLabels.push(labels[i]); // Preserve the original x-axis labels
         }
         return { compressedData, compressedLabels };
     };
 
     const { compressedData, compressedLabels } = compressData(rawData, labels, compressionFactor);
 
-    const sampleConfigurations = [
-        { name: 'Config 1', date: '2025-01-30T12:00:00Z', parameters: { param1: 'value1', param2: 'value2' } },
-        { name: 'Config 2', date: '2025-01-29T15:30:00Z', parameters: { param1: 'value3', param2: 'value4' } },
-        { name: 'Config 3', date: '2025-01-28T09:00:00Z', parameters: { param1: 'value5', param2: 'value6' } },
-        { name: 'Config 4', date: '2025-01-28T13:45:00Z', parameters: { param1: 'value7', param2: 'value8' } },
-        { name: 'Config 5', date: '2025-01-27T10:00:00Z', parameters: { param1: 'value9', param2: 'value10' } }
-    ];
-
-    const handleSave = (data) => {
-        console.log('Saved data:', data);
+    // Handle saving configurations
+    const handleSave = (config) => {
+        const params = configPanelRef.current ? configPanelRef.current.getParams() : { param1: '', param2: '' };
+        const newConfig = {
+            ...config,
+            name: `Configuration ${configurations.length + 1}`, // Dynamically generate a name
+            date: new Date().toISOString(),
+            parameters: {
+                ...config.parameters,
+                ...params,
+            },
+            rawData: config.includeCSV ? rawData : null, // Save raw data if the user chooses to include the CSV file
+            labels: config.includeCSV ? labels : null,   // Save labels if the user chooses to include the CSV file
+            csvFile: config.includeCSV ? file : null,    // Save the CSV file if the user chooses to include it
+        };
+        setConfigurations((prevConfigs) => [...prevConfigs, newConfig]);
         alert('Optimal configuration saved!');
     };
 
-    const configPanelRef = useRef(null);
-
+    // Handle creating a new configuration
     const handleNewConfig = () => {
         if (configPanelRef.current) {
             configPanelRef.current.reset();
         }
+        setFile(null); // Clear the current CSV file
     };
 
+    // Toggle the sidebar open/close
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
+    // Load a configuration
+    const handleLoadConfig = (config) => {
+        // Load raw data into the Chart
+        setRawData(config.rawData || []);
+        setLabels(config.labels || []);
+        // Load parameters into the ConfigPanel
+        if (configPanelRef.current) {
+            configPanelRef.current.setParams(config.parameters);
+            if (config.csvFile) {
+                configPanelRef.current.loadFile(config.csvFile); // Load the CSV file if included
+            }
+        }
+    };
+
     return (
-        <div className="App" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
-            <h2>Intelligent Plant Compression Optimisation</h2>
+        <div
+            className="App"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                minHeight: '100vh',
+                backgroundColor: '#f0f0f0', // Main background color set to light gray
+                padding: '20px',
+            }}
+        >
+            <h2 style={{ color: '#333', marginBottom: '20px' }}>Intelligent Plant Compression Optimisation</h2>
             <div style={{ width: '80%' }}>
                 <CompressionSidebarPanel
-                    configurations={sampleConfigurations}
+                    configurations={configurations}
                     onNewConfig={handleNewConfig}
                     isOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
+                    onLoadConfig={handleLoadConfig} // Pass the load configuration callback
                 />
             </div>
 
@@ -73,6 +110,7 @@ function App() {
                     setCompressionFactor={setCompressionFactor}
                     setRawData={setRawData}
                     setLabels={setLabels}
+                    setFile={setFile} // Pass the setFile function to update the current CSV file
                 />
             </div>
 
@@ -83,6 +121,10 @@ function App() {
                     marginBottom: '20px',
                     marginLeft: isSidebarOpen ? '250px' : '0',
                     transition: 'margin-left 0.3s ease',
+                    backgroundColor: '#ffffff', // Chart area background color set to white
+                    borderRadius: '8px', // Add rounded corners
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
+                    padding: '20px',
                 }}
             >
                 <ZoomableChart
@@ -100,6 +142,10 @@ function App() {
                     marginBottom: '20px',
                     marginLeft: isSidebarOpen ? '250px' : '0',
                     transition: 'margin-left 0.3s ease',
+                    backgroundColor: '#ffffff', // Table area background color set to white
+                    borderRadius: '8px', // Add rounded corners
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
+                    padding: '20px',
                 }}
             >
                 <MetricsTable

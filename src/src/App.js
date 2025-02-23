@@ -10,61 +10,65 @@ function App() {
     const [compressionFactor, setCompressionFactor] = useState(2);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [configurations, setConfigurations] = useState([]);
-    const [file, setFile] = useState(null); // 用于存储当前 CSV 文件
+    const [file, setFile] = useState(null); // Used to store the current CSV file
 
     const configPanelRef = useRef(null);
 
+    // Compress data based on the compression factor
     const compressData = (data, labels, factor) => {
         const compressedData = [];
         const compressedLabels = [];
         for (let i = 0; i < data.length; i += factor) {
             compressedData.push(data[i]);
-            compressedLabels.push(labels[i]); // 保留原始数据的横坐标
+            compressedLabels.push(labels[i]); // Preserve the original x-axis labels
         }
         return { compressedData, compressedLabels };
     };
 
     const { compressedData, compressedLabels } = compressData(rawData, labels, compressionFactor);
 
+    // Handle saving configurations
     const handleSave = (config) => {
         const params = configPanelRef.current ? configPanelRef.current.getParams() : { param1: '', param2: '' };
         const newConfig = {
             ...config,
-            name: `Configuration ${configurations.length + 1}`, // 动态生成名称
+            name: `Configuration ${configurations.length + 1}`, // Dynamically generate a name
             date: new Date().toISOString(),
             parameters: {
                 ...config.parameters,
                 ...params,
             },
-            rawData: config.includeCSV ? rawData : null, // 如果用户选择保存 CSV 文件，则保存原始数据
-            labels: config.includeCSV ? labels : null,   // 如果用户选择保存 CSV 文件，则保存原始标签
-            csvFile: config.includeCSV ? file : null,    // 如果用户选择保存 CSV 文件，则保存原始文件
+            rawData: config.includeCSV ? rawData : null, // Save raw data if the user chooses to include the CSV file
+            labels: config.includeCSV ? labels : null,   // Save labels if the user chooses to include the CSV file
+            csvFile: config.includeCSV ? file : null,    // Save the CSV file if the user chooses to include it
         };
         setConfigurations((prevConfigs) => [...prevConfigs, newConfig]);
         alert('Optimal configuration saved!');
     };
 
+    // Handle creating a new configuration
     const handleNewConfig = () => {
         if (configPanelRef.current) {
             configPanelRef.current.reset();
         }
-        setFile(null); // 清除当前 CSV 文件
+        setFile(null); // Clear the current CSV file
     };
 
+    // Toggle the sidebar open/close
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    // 加载配置
+    // Load a configuration
     const handleLoadConfig = (config) => {
-        // 加载原始数据到 Chart
+        // Load raw data into the Chart
         setRawData(config.rawData || []);
         setLabels(config.labels || []);
-        // 加载参数到 ConfigPanel
+        // Load parameters into the ConfigPanel
         if (configPanelRef.current) {
             configPanelRef.current.setParams(config.parameters);
             if (config.csvFile) {
-                configPanelRef.current.loadFile(config.csvFile); // 如果包含 CSV 文件，则加载
+                configPanelRef.current.loadFile(config.csvFile); // Load the CSV file if included
             }
         }
     };
@@ -77,7 +81,7 @@ function App() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 minHeight: '100vh',
-                backgroundColor: '#f0f0f0', // 主界面背景色改为浅灰色
+                backgroundColor: '#f0f0f0', // Main background color set to light gray
                 padding: '20px',
             }}
         >
@@ -88,7 +92,7 @@ function App() {
                     onNewConfig={handleNewConfig}
                     isOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
-                    onLoadConfig={handleLoadConfig} // 传递加载配置的回调函数
+                    onLoadConfig={handleLoadConfig} // Pass the load configuration callback
                 />
             </div>
 
@@ -106,7 +110,7 @@ function App() {
                     setCompressionFactor={setCompressionFactor}
                     setRawData={setRawData}
                     setLabels={setLabels}
-                    setFile={setFile} // 传递 setFile 函数以更新当前 CSV 文件
+                    setFile={setFile} // Pass the setFile function to update the current CSV file
                 />
             </div>
 
@@ -117,9 +121,9 @@ function App() {
                     marginBottom: '20px',
                     marginLeft: isSidebarOpen ? '250px' : '0',
                     transition: 'margin-left 0.3s ease',
-                    backgroundColor: '#ffffff', // 图表区域背景色为白色
-                    borderRadius: '8px', // 添加圆角
-                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // 添加阴影
+                    backgroundColor: '#ffffff', // Chart area background color set to white
+                    borderRadius: '8px', // Add rounded corners
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
                     padding: '20px',
                 }}
             >
@@ -138,9 +142,9 @@ function App() {
                     marginBottom: '20px',
                     marginLeft: isSidebarOpen ? '250px' : '0',
                     transition: 'margin-left 0.3s ease',
-                    backgroundColor: '#ffffff', // 表格区域背景色为白色
-                    borderRadius: '8px', // 添加圆角
-                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // 添加阴影
+                    backgroundColor: '#ffffff', // Table area background color set to white
+                    borderRadius: '8px', // Add rounded corners
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
                     padding: '20px',
                 }}
             >

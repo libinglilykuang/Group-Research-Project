@@ -3,44 +3,47 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 
+// Register Chart.js components and plugins
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, zoomPlugin);
 
 const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) => {
-    // 如果没有数据，显示一个空的图表框架
+    // Check if data is empty
     const isEmpty = !rawData.length || !labels.length;
 
+    // Define chart data
     const chartData = {
-        labels: isEmpty ? [] : labels, // 如果没有数据，使用空数组
+        labels: isEmpty ? [] : labels, // Use empty array if no data
         datasets: [
             {
                 label: 'Raw Data',
-                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })), // 如果没有数据，使用空数组
+                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })), // Use empty array if no data
                 borderColor: '#82ca9d',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 2, // 较小的点半径
+                pointRadius: 2, // Smaller point radius
             },
             {
                 label: 'Compressed Data',
-                data: isEmpty ? [] : compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })), // 如果没有数据，使用空数组
+                data: isEmpty ? [] : compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })), // Use empty array if no data
                 borderColor: '#8884d8',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 5, // 较大的点半径
+                pointRadius: 5, // Larger point radius
             },
         ],
     };
 
+    // Define chart options
     const options = {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
             x: {
-                type: 'category', // 使用分类轴
+                type: 'category', // Use category axis
                 title: { display: true, text: 'Time', font: { size: 16 } },
                 ticks: {
-                    autoSkip: true, // 自动跳过密集的标签
-                    maxTicksLimit: 10, // 最多显示 10 个标签
+                    autoSkip: true, // Automatically skip dense labels
+                    maxTicksLimit: 10, // Display a maximum of 10 labels
                     font: { size: 14 },
                 },
             },
@@ -51,10 +54,10 @@ const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) =>
         },
         plugins: {
             zoom: {
-                pan: { enabled: true, mode: 'xy' },
-                zoom: { enabled: true, mode: 'xy', wheel: { enabled: true } },
+                pan: { enabled: true, mode: 'xy' }, // Enable panning
+                zoom: { enabled: true, mode: 'xy', wheel: { enabled: true } }, // Enable zooming with mouse wheel
             },
-            // 如果没有数据，显示提示信息
+            // Display a message if no data is available
             title: {
                 display: isEmpty,
                 text: 'Please upload CSV data to display the chart',

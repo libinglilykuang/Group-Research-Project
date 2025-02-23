@@ -5,18 +5,19 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
     const [isSaveModalOpen, setSaveModalOpen] = useState(false);
     const [includeCSV, setIncludeCSV] = useState(false);
 
+    // Function to calculate metrics
     const calculateMetrics = (rawData, compressedData) => {
         const rawDataPoints = rawData.length;
         const compressedDataPoints = compressedData.length;
 
-        // 计算压缩比
+        // Calculate compression ratio
         const compressionRatio = (rawDataPoints / compressedDataPoints).toFixed(2);
 
-        // 计算存储大小
+        // Calculate storage size
         const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
         const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
 
-        // 计算误差率
+        // Calculate error rate
         const rawSum = rawData.reduce((sum, value) => sum + value, 0);
         const compressedSum = compressedData.reduce((sum, value) => sum + value, 0);
         const errorRate = ((1 - compressedSum / rawSum) * 100).toFixed(2);
@@ -33,10 +34,12 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
 
     const metrics = calculateMetrics(rawData, compressedData);
 
+    // Handle save button click
     const handleSave = () => {
-        setSaveModalOpen(true); // 打开弹窗
+        setSaveModalOpen(true); // Open the modal
     };
 
+    // Handle confirm save
     const handleConfirmSave = () => {
         const config = {
             name: `Configuration ${new Date().toLocaleString()}`,
@@ -45,14 +48,15 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 acc[metric.name] = metric.value;
                 return acc;
             }, {}),
-            includeCSV, // 是否包含 CSV 文件
+            includeCSV, // Whether to include CSV file
         };
-        onSave(config); // 将配置对象传递给父组件
-        setSaveModalOpen(false); // 关闭弹窗
+        onSave(config); // Pass the configuration object to the parent component
+        setSaveModalOpen(false); // Close the modal
     };
 
+    // Handle cancel save
     const handleCancelSave = () => {
-        setSaveModalOpen(false); // 关闭弹窗
+        setSaveModalOpen(false); // Close the modal
     };
 
     return (
@@ -117,7 +121,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 Save Optimal Configuration
             </button>
 
-            {/* 保存配置的弹窗 */}
+            {/* Save configuration modal */}
             {isSaveModalOpen && (
                 <div
                     style={{

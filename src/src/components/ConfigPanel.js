@@ -25,7 +25,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
     const handleFileUpload = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
-            setFile(selectedFile); // 更新当前 CSV 文件
+            setFile(selectedFile); // Update current CSV file
             parseCSV(selectedFile);
         }
     };
@@ -96,21 +96,34 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
             setMessage('');
             setCompressionFactor(2); // Reset compression factor
         },
-        getParams: () => ({ param1, param2 }), // 暴露当前参数
+        getParams: () => ({ param1, param2 }), // Expose current parameters
         setParams: (params) => {
             setParam1(params.param1 || '');
             setParam2(params.param2 || '');
         },
         loadFile: (file) => {
             setFile(file);
-            parseCSV(file); // 解析 CSV 文件并加载数据
+            parseCSV(file); // Parse CSV file and load data
         },
     }));
 
     return (
-        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-            <div>
-                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px' }}>
+        <div
+            style={{
+                padding: '20px', // Padding
+                fontFamily: 'Arial, sans-serif',
+                backgroundColor: '#ffffff', // Background color
+                borderRadius: '8px', // Rounded corners
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Shadow
+                border: '1px solid #ccc', // Border
+                minHeight: '400px', // Minimum height
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center', // Center content
+            }}
+        >
+            <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
+                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333' }}>
                     Upload File:
                 </label>
                 <input
@@ -118,59 +131,59 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                     type="file"
                     accept=".csv"
                     onChange={handleFileUpload}
-                    style={{ marginBottom: '20px' }}
-                />
-            </div>
-
-            <div>
-                <input
-                    type="text"
-                    placeholder="Config Parameter 1"
-                    value={param1}
-                    onChange={(e) => setParam1(e.target.value)}
                     style={{
-                        width: '100%',
-                        padding: '10px',
-                        marginBottom: '10px',
-                        fontSize: '16px',
-                        borderRadius: '5px',
-                        border: '1px solid #ccc',
-                    }}
-                />
-                <input
-                    type="text"
-                    placeholder="Config Parameter 2"
-                    value={param2}
-                    onChange={(e) => setParam2(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '10px',
                         marginBottom: '20px',
-                        fontSize: '16px',
+                        padding: '10px',
+                        backgroundColor: '#f0f0f0', // Input background color
+                        border: '1px solid #4CAF50', // Dark green border
                         borderRadius: '5px',
-                        border: '1px solid #ccc',
+                        width: '100%',
                     }}
                 />
             </div>
 
-            <div>
-                <button
-                    onClick={handleSelectData}
-                    style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '10px',
-                        fontSize: '16px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        marginBottom: '10px',
-                        cursor: 'pointer',
-                    }}
-                >
-                    Select Data
-                </button>
+            <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
+                <div style={{ marginBottom: '10px' }}>
+                    <label htmlFor="param1" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                        Config Parameter 1:
+                    </label>
+                    <input
+                        id="param1"
+                        type="text"
+                        value={param1}
+                        onChange={(e) => setParam1(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50', // Dark green border
+                            backgroundColor: '#f0f0f0', // Input background color
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="param2" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                        Config Parameter 2:
+                    </label>
+                    <input
+                        id="param2"
+                        type="text"
+                        value={param2}
+                        onChange={(e) => setParam2(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50', // Dark green border
+                            backgroundColor: '#f0f0f0', // Input background color
+                        }}
+                    />
+                </div>
+            </div>
+
+            <div style={{ width: '80%' }}> {/* Adjust button width */}
                 <button
                     onClick={handleCompress}
                     style={{
@@ -178,7 +191,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         width: '100%',
                         padding: '10px',
                         fontSize: '16px',
-                        backgroundColor: '#28a745',
+                        backgroundColor: '#28a745', // Green button background
                         color: 'white',
                         border: 'none',
                         borderRadius: '5px',

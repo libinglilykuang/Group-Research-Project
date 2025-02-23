@@ -70,8 +70,18 @@ function App() {
     };
 
     return (
-        <div className="App" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
-            <h2>Intelligent Plant Compression Optimisation</h2>
+        <div
+            className="App"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                minHeight: '100vh',
+                backgroundColor: '#f0f0f0', // 主界面背景色改为浅灰色
+                padding: '20px',
+            }}
+        >
+            <h2 style={{ color: '#333', marginBottom: '20px' }}>Intelligent Plant Compression Optimisation</h2>
             <div style={{ width: '80%' }}>
                 <CompressionSidebarPanel
                     configurations={configurations}
@@ -107,6 +117,10 @@ function App() {
                     marginBottom: '20px',
                     marginLeft: isSidebarOpen ? '250px' : '0',
                     transition: 'margin-left 0.3s ease',
+                    backgroundColor: '#ffffff', // 图表区域背景色为白色
+                    borderRadius: '8px', // 添加圆角
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // 添加阴影
+                    padding: '20px',
                 }}
             >
                 <ZoomableChart
@@ -124,6 +138,10 @@ function App() {
                     marginBottom: '20px',
                     marginLeft: isSidebarOpen ? '250px' : '0',
                     transition: 'margin-left 0.3s ease',
+                    backgroundColor: '#ffffff', // 表格区域背景色为白色
+                    borderRadius: '8px', // 添加圆角
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // 添加阴影
+                    padding: '20px',
                 }}
             >
                 <MetricsTable

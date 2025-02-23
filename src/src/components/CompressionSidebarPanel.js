@@ -159,7 +159,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                     onClick={toggleSidebar}
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', position: 'fixed', top: '10px', left: '10px', zIndex: 1000 }}
                 >
-                    <img src="/icons/menu-icon.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
+                    <img src="/icons/open-sidebar.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
                 </button>
             )}
             <div
@@ -172,9 +172,11 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                     width: isOpen ? '250px' : '0',
                     transition: 'width 0.3s',
                     overflow: 'hidden',
-                    background: '#f4f4f4',
+                    background: '#ffffff', // 纯白色背景
                     padding: isOpen ? '10px' : '0',
                     zIndex: 999,
+                    color: '#333', // 深色文字
+                    boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // 浅色阴影
                 }}
             >
                 {isOpen && (
@@ -183,7 +185,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                         style={{ position: 'absolute', right: 10, top: 10, background: 'transparent', border: 'none', cursor: 'pointer' }}
                     >
                         <img
-                            src="/icons/close-icon.png"
+                            src="/icons/close.png"
                             alt="Close"
                             style={{ width: '36px', height: '36px' }}
                         />
@@ -196,7 +198,7 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                         placeholder="Search configurations"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
-                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px' }}
+                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px', background: '#f0f0f0', color: '#333' }} // 搜索栏样式
                     />
                 </div>
                 <div className="sidebar-content">
@@ -213,10 +215,13 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                             padding: '5px',
                             width: '100%',
                             textAlign: 'left',
+                            color: '#333', // 深色文字
+                            transition: 'background 0.2s', // 悬停过渡效果
+                            ':hover': { background: '#f0f0f0' }, // 悬停背景颜色
                         }}
                     >
                         <img
-                            src="/icons/new-config-icon.png"
+                            src="/icons/start-new-config.png"
                             alt="New Config"
                             style={{ width: '20px', height: '20px', marginRight: '10px' }}
                         />
@@ -228,13 +233,13 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                         <div>
                             {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
                                 <div key={dateLabel}>
-                                    <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4>
+                                    <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4> {/* 深色文字 */}
                                     <ul style={{ paddingLeft: '10px' }}>
                                         {configs.map((config, index) => (
-                                            <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0' }}>
+                                            <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', color: '#333' }}> {/* 深色文字 */}
                                                 <span>{config.name}</span> {/* 显示更新后的名称 */}
                                                 <div style={{ position: 'relative' }} ref={menuRef}>
-                                                    <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                                                    <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#333' }}> {/* 深色文字 */}
                                                         ...
                                                     </button>
                                                     {activeMenuIndex === config.name && (
@@ -242,26 +247,115 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                                                             className="menu"
                                                             style={{
                                                                 position: 'absolute',
-                                                                right: 0,
+                                                                right: '-20px', // 向右偏移 20px，超出侧边栏边界
                                                                 top: '100%',
-                                                                background: '#fff',
-                                                                boxShadow: '0px 0px 5px rgba(0,0,0,0.2)',
+                                                                background: '#ffffff', // 白色背景
+                                                                border: '1px solid #ddd', // 添加边框
+                                                                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // 添加阴影
                                                                 padding: '5px',
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
-                                                                zIndex: 100,
+                                                                zIndex: 1000, // 确保菜单在侧边栏上方
+                                                                borderRadius: '4px', // 圆角
                                                             }}
                                                         >
-                                                            <button data-action="edit" onClick={() => handleEdit(config.name, index)}>
+                                                            <button
+                                                                data-action="edit"
+                                                                onClick={() => handleEdit(config.name, index)}
+                                                                style={{
+                                                                    background: '#ffffff', // 白色背景
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // 深色文字
+                                                                    padding: '8px 12px', // 增加内边距
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // 悬停过渡效果
+                                                                    borderRadius: '4px', // 圆角
+                                                                    marginBottom: '4px', // 按钮间距
+                                                                    display: 'flex', // 使用 flex 布局
+                                                                    alignItems: 'center', // 垂直居中
+                                                                    ':hover': { background: '#f0f0f0' }, // 悬停背景颜色
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/edit.png"
+                                                                    alt="Edit"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // 图标样式
+                                                                />
                                                                 Edit
                                                             </button>
-                                                            <button data-action="download" onClick={() => handleDownload(config.name)}>
+                                                            <button
+                                                                data-action="download"
+                                                                onClick={() => handleDownload(config.name)}
+                                                                style={{
+                                                                    background: '#ffffff', // 白色背景
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // 深色文字
+                                                                    padding: '8px 12px', // 增加内边距
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // 悬停过渡效果
+                                                                    borderRadius: '4px', // 圆角
+                                                                    marginBottom: '4px', // 按钮间距
+                                                                    display: 'flex', // 使用 flex 布局
+                                                                    alignItems: 'center', // 垂直居中
+                                                                    ':hover': { background: '#f0f0f0' }, // 悬停背景颜色
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/download.png"
+                                                                    alt="Download"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // 图标样式
+                                                                />
                                                                 Download
                                                             </button>
-                                                            <button data-action="delete" onClick={() => handleDelete(config.name)}>
+                                                            <button
+                                                                data-action="delete"
+                                                                onClick={() => handleDelete(config.name)}
+                                                                style={{
+                                                                    background: '#ffffff', // 白色背景
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // 深色文字
+                                                                    padding: '8px 12px', // 增加内边距
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // 悬停过渡效果
+                                                                    borderRadius: '4px', // 圆角
+                                                                    marginBottom: '4px', // 按钮间距
+                                                                    display: 'flex', // 使用 flex 布局
+                                                                    alignItems: 'center', // 垂直居中
+                                                                    ':hover': { background: '#f0f0f0' }, // 悬停背景颜色
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/delete.png"
+                                                                    alt="Delete"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // 图标样式
+                                                                />
                                                                 Delete
                                                             </button>
-                                                            <button data-action="load" onClick={() => handleLoadConfig(config)}>
+                                                            <button
+                                                                data-action="load"
+                                                                onClick={() => handleLoadConfig(config)}
+                                                                style={{
+                                                                    background: '#ffffff', // 白色背景
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    color: '#333', // 深色文字
+                                                                    padding: '8px 12px', // 增加内边距
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.2s', // 悬停过渡效果
+                                                                    borderRadius: '4px', // 圆角
+                                                                    display: 'flex', // 使用 flex 布局
+                                                                    alignItems: 'center', // 垂直居中
+                                                                    ':hover': { background: '#f0f0f0' }, // 悬停背景颜色
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src="/icons/load.png"
+                                                                    alt="Load"
+                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // 图标样式
+                                                                />
                                                                 Load
                                                             </button>
                                                         </div>

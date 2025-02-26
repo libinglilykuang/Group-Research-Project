@@ -10,7 +10,6 @@
 - Either absolute e.g. 2 i.e. 2 points OR percentage e.g. 2 i.e. 2% either way
 
 ### Callback filter
-
 - Can be used to filter out certain values e.g. smaller than or greater than a certain value e.g. reject all values less than 50 (fine grained control over what data gets processed)
 - Can use custom rules?
 
@@ -29,4 +28,6 @@
 - Define what is good compressed? i.e. what is compressed enough - value status variable in Model folder returning Good, Uncertain or Bad?
 - Save after results after first run of compression algorithm and then depending on result of compression e.g Good, Uncertain or Bad, either run again or save to Azure infrastructure
 
-
+## Feedback to questions
+- All 4 of these parameters should be able to be modified by the user (need to build in functionality to the UI and check how to change them in the algorithm - getters & setters?)
+- Optimisation work should be looked into only once the main functionality is working (added-extra opt-in feature for the user but not essential right now -> focus on producing something to show them in 2 weeks time before Easter break)

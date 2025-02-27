@@ -7,29 +7,84 @@ import ZoomableChart from './components/Chart';
 function App() {
     const [rawData, setRawData] = useState([]);
     const [labels, setLabels] = useState([]);
-    const [compressionFactor, setCompressionFactor] = useState(2);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [configurations, setConfigurations] = useState([]);
     const [file, setFile] = useState(null); // Used to store the current CSV file
 
     const configPanelRef = useRef(null);
 
-    // Compress data based on the compression factor
-    const compressData = (data, labels, factor) => {
+    // Compress data based on the new parameters
+    const compressData = (data, labels, deviationLimit, deviationType, callbackFilter, exceptionFilter) => {
         const compressedData = [];
         const compressedLabels = [];
-        for (let i = 0; i < data.length; i += factor) {
-            compressedData.push(data[i]);
-            compressedLabels.push(labels[i]); // Preserve the original x-axis labels
+
+        // Example compression logic based on the new parameters
+        for (let i = 0; i < data.length; i++) {
+            const value = data[i];
+            const label = labels[i];
+
+            // Apply deviation limit
+            if (deviationLimit && Math.abs(value) > deviationLimit) {
+                continue; // Skip values exceeding the deviation limit
+            }
+
+            // Apply deviation type (example: positive or negative deviations)
+            if (deviationType === 'positive' && value < 0) {
+                continue; // Skip negative values if deviationType is 'positive'
+            } else if (deviationType === 'negative' && value > 0) {
+                continue; // Skip positive values if deviationType is 'negative'
+            }
+
+            // Apply callback filter (example: custom filtering logic)
+            if (callbackFilter && !callbackFilter(value)) {
+                continue; // Skip values that don't pass the callback filter
+            }
+
+            // Apply exception filter (example: exclude specific values)
+            if (exceptionFilter && exceptionFilter(value)) {
+                continue; // Skip values that match the exception filter
+            }
+
+            // Add the value and label to the compressed data
+            compressedData.push(value);
+            compressedLabels.push(label);
         }
+
         return { compressedData, compressedLabels };
     };
 
-    const { compressedData, compressedLabels } = compressData(rawData, labels, compressionFactor);
+    // Get the parameters from the ConfigPanel
+    const getCompressionParameters = () => {
+        if (configPanelRef.current) {
+            return configPanelRef.current.getParams();
+        }
+        return {
+            deviationLimit: null,
+            deviationType: null,
+            callbackFilter: null,
+            exceptionFilter: null,
+        };
+    };
+
+    // Compress the data using the current parameters
+    const { deviationLimit, deviationType, callbackFilter, exceptionFilter } = getCompressionParameters();
+    const { compressedData, compressedLabels } = compressData(
+        rawData,
+        labels,
+        deviationLimit,
+        deviationType,
+        callbackFilter,
+        exceptionFilter
+    );
 
     // Handle saving configurations
     const handleSave = (config) => {
-        const params = configPanelRef.current ? configPanelRef.current.getParams() : { param1: '', param2: '' };
+        const params = configPanelRef.current ? configPanelRef.current.getParams() : {
+            deviationLimit: null,
+            deviationType: null,
+            callbackFilter: null,
+            exceptionFilter: null,
+        };
         const newConfig = {
             ...config,
             name: `Configuration ${configurations.length + 1}`, // Dynamically generate a name
@@ -106,8 +161,6 @@ function App() {
             >
                 <ConfigPanel
                     ref={configPanelRef}
-                    compressionFactor={compressionFactor}
-                    setCompressionFactor={setCompressionFactor}
                     setRawData={setRawData}
                     setLabels={setLabels}
                     setFile={setFile} // Pass the setFile function to update the current CSV file

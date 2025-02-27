@@ -1,9 +1,12 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Papa from 'papaparse';
 
-const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels, setFile }, ref) => {
-    const [param1, setParam1] = useState('');
-    const [param2, setParam2] = useState('');
+const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels }, ref) => {
+    const [deviationLimit, setDeviationLimit] = useState('');
+    const [deviationType, setDeviationType] = useState('');
+    const [callbackFilter, setCallbackFilter] = useState('');
+    const [exceptionFilter, setExceptionFilter] = useState('');
+    const [file, setFile] = useState(null); // Add file state here
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
 
@@ -58,16 +61,6 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
         reader.readAsText(file);
     };
 
-    // Handle data selection
-    const handleSelectData = () => {
-        if (!file) {
-            setError('Please upload a file first');
-        } else {
-            setError('');
-            setMessage('Data selected');
-        }
-    };
-
     // Handle compression
     const handleCompress = () => {
         if (!file) {
@@ -90,16 +83,20 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
     useImperativeHandle(ref, () => ({
         reset: () => {
             setFile(null);
-            setParam1('');
-            setParam2('');
+            setDeviationLimit('');
+            setDeviationType('');
+            setCallbackFilter('');
+            setExceptionFilter('');
             setError('');
             setMessage('');
             setCompressionFactor(2); // Reset compression factor
         },
-        getParams: () => ({ param1, param2 }), // Expose current parameters
+        getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter }), // Expose current parameters
         setParams: (params) => {
-            setParam1(params.param1 || '');
-            setParam2(params.param2 || '');
+            setDeviationLimit(params.deviationLimit || '');
+            setDeviationType(params.deviationType || '');
+            setCallbackFilter(params.callbackFilter || '');
+            setExceptionFilter(params.exceptionFilter || '');
         },
         loadFile: (file) => {
             setFile(file);
@@ -144,14 +141,52 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
 
             <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
                 <div style={{ marginBottom: '10px' }}>
-                    <label htmlFor="param1" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
-                        Config Parameter 1:
+                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                        Deviation Limit:
                     </label>
                     <input
-                        id="param1"
+                        id="deviationLimit"
                         type="text"
-                        value={param1}
-                        onChange={(e) => setParam1(e.target.value)}
+                        value={deviationLimit}
+                        onChange={(e) => setDeviationLimit(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50', // Dark green border
+                            backgroundColor: '#f0f0f0', // Input background color
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '10px' }}>
+                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                        Deviation Type:
+                    </label>
+                    <input
+                        id="deviationType"
+                        type="text"
+                        value={deviationType}
+                        onChange={(e) => setDeviationType(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50', // Dark green border
+                            backgroundColor: '#f0f0f0', // Input background color
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '10px' }}>
+                    <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                        Callback Filter:
+                    </label>
+                    <input
+                        id="callbackFilter"
+                        type="text"
+                        value={callbackFilter}
+                        onChange={(e) => setCallbackFilter(e.target.value)}
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -163,14 +198,14 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="param2" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
-                        Config Parameter 2:
+                    <label htmlFor="exceptionFilter" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                        Exception Filter:
                     </label>
                     <input
-                        id="param2"
+                        id="exceptionFilter"
                         type="text"
-                        value={param2}
-                        onChange={(e) => setParam2(e.target.value)}
+                        value={exceptionFilter}
+                        onChange={(e) => setExceptionFilter(e.target.value)}
                         style={{
                             width: '100%',
                             padding: '10px',

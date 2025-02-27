@@ -396,38 +396,84 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
                             padding: '20px',
                             borderRadius: '8px',
                             width: '400px',
+                            maxHeight: '80vh',
                             boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            position: 'relative',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3>Edit Configuration</h3>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
-                            <input
-                                type="text"
-                                value={editedConfig.name}
-                                onChange={handleNameChange}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                        {/* Close button */}
+                        <button
+                            onClick={handleCancelEdit}
+                            style={{
+                                position: 'absolute',
+                                right: '10px',
+                                top: '10px',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <img
+                                src="/icons/cancel.png"
+                                alt="Close"
+                                style={{ width: '24px', height: '24px' }}
                             />
+                        </button>
+
+                        <h3>Edit Configuration</h3>
+                        <div style={{ overflowY: 'auto', flex: 1 }}>
+                            <div style={{ marginBottom: '10px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
+                                <input
+                                    type="text"
+                                    value={editedConfig.name}
+                                    onChange={handleNameChange}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                                />
+                            </div>
+                            <p><strong>Date:</strong> {format(new Date(selectedConfig.date), 'yyyy-MM-dd HH:mm')}</p>
+                            <h4>Parameters:</h4>
+                            <form>
+                                {Object.entries(editedConfig.parameters).map(([key, value]) => (
+                                    <div key={key} style={{ marginBottom: '10px' }}>
+                                        <label style={{ display: 'block', marginBottom: '5px' }}>{key}</label>
+                                        <input
+                                            type="text"
+                                            value={value}
+                                            onChange={(e) => handleParamChange(key, e.target.value)}
+                                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                                        />
+                                    </div>
+                                ))}
+                            </form>
                         </div>
-                        <p><strong>Date:</strong> {format(new Date(selectedConfig.date), 'yyyy-MM-dd HH:mm')}</p>
-                        <h4>Parameters:</h4>
-                        <form>
-                            {Object.entries(editedConfig.parameters).map(([key, value]) => (
-                                <div key={key} style={{ marginBottom: '10px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px' }}>{key}</label>
-                                    <input
-                                        type="text"
-                                        value={value}
-                                        onChange={(e) => handleParamChange(key, e.target.value)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                                    />
-                                </div>
-                            ))}
-                        </form>
-                        <button onClick={handleSaveEdit} style={{ marginTop: '10px', marginRight: '10px' }}>Save</button>
-                        <button onClick={handleCancelEdit} style={{ marginTop: '10px' }}>Cancel</button>
+
+                        {/* Save button with improved styling */}
+                        <div style={{ marginTop: '10px', textAlign: 'left' }}>
+                            <button
+                                onClick={handleSaveEdit}
+                                style={{
+                                    background: '#007BFF',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 15px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    transition: 'background 0.3s ease',
+                                }}
+                                onMouseOver={(e) => e.target.style.background = '#0056b3'}
+                                onMouseOut={(e) => e.target.style.background = '#007BFF'}
+                            >
+                                Save
+                            </button>
+                        </div>
                     </div>
+
                 </div>
             )}
         </div>

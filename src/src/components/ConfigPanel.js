@@ -120,7 +120,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
             }}
         >
             <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
-                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333' }}>
+                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                     Upload File:
                 </label>
                 <input
@@ -139,9 +139,14 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                 />
             </div>
 
+            {/* Add prompt text above the text boxes */}
+            <div style={{ width: '80%', textAlign: 'center', marginBottom: '20px', color: '#333', fontSize: '16px', fontWeight: 'bold' }}>
+                Please enter the following parameters:
+            </div>
+
             <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
-                <div style={{ marginBottom: '10px' }}>
-                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                         Deviation Limit:
                     </label>
                     <input
@@ -159,8 +164,8 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         }}
                     />
                 </div>
-                <div style={{ marginBottom: '10px' }}>
-                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                         Deviation Type:
                     </label>
                     <input
@@ -178,8 +183,8 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         }}
                     />
                 </div>
-                <div style={{ marginBottom: '10px' }}>
-                    <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                         Callback Filter:
                     </label>
                     <input
@@ -197,8 +202,8 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         }}
                     />
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="exceptionFilter" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="exceptionFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                         Exception Filter:
                     </label>
                     <input
@@ -218,28 +223,46 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                 </div>
             </div>
 
-            <div style={{ width: '80%' }}> {/* Adjust button width */}
+            <div style={{ width: '80%', textAlign: 'center' }}> {/* Center the button */}
                 <button
                     onClick={handleCompress}
                     style={{
                         display: 'block',
-                        width: '100%',
-                        padding: '10px',
+                        width: '30%',
+                        padding: '12px 20px', // Slightly larger padding
                         fontSize: '16px',
                         backgroundColor: '#28a745', // Green button background
                         color: 'white',
                         border: 'none',
-                        borderRadius: '5px',
-                        marginBottom: '10px',
+                        borderRadius: '8px', // More rounded corners
+                        margin: '0 auto', // Center the button
                         cursor: 'pointer',
+                        transition: 'background-color 0.3s ease, transform 0.2s ease', // Smooth transitions
+                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Subtle shadow
+                    }}
+                    onMouseOver={(e) => {
+                        e.target.style.backgroundColor = '#218838'; // Darker green on hover
+                        e.target.style.transform = 'scale(1.02)'; // Slight scale up
+                    }}
+                    onMouseOut={(e) => {
+                        e.target.style.backgroundColor = '#28a745'; // Restore original color
+                        e.target.style.transform = 'scale(1)'; // Restore original size
+                    }}
+                    onMouseDown={(e) => {
+                        e.target.style.backgroundColor = '#1e7e34'; // Even darker green on click
+                        e.target.style.transform = 'scale(0.98)'; // Slight scale down
+                    }}
+                    onMouseUp={(e) => {
+                        e.target.style.backgroundColor = '#218838'; // Restore hover color
+                        e.target.style.transform = 'scale(1.02)'; // Restore hover size
                     }}
                 >
                     Compress
                 </button>
             </div>
 
-            {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-            {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
+            {error && <p style={{ color: 'red', marginTop: '20px' }}>{error}</p>} {/* Increased marginTop */}
+            {message && <p style={{ color: 'green', marginTop: '20px' }}>{message}</p>} {/* Increased marginTop */}
         </div>
     );
 });

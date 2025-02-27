@@ -136,7 +136,10 @@ function App() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 minHeight: '100vh',
-                backgroundColor: '#f0f0f0', // Main background color set to light gray
+                backgroundImage: 'url(/icons/background.jpg)', // 使用public目录的图片
+                backgroundSize: 'cover',  // 让图片铺满整个页面
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 padding: '20px',
             }}
         >

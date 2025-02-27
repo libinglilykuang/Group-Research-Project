@@ -5,19 +5,12 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
     const [isSaveModalOpen, setSaveModalOpen] = useState(false);
     const [includeCSV, setIncludeCSV] = useState(false);
 
-    // Function to calculate metrics
     const calculateMetrics = (rawData, compressedData) => {
         const rawDataPoints = rawData.length;
         const compressedDataPoints = compressedData.length;
-
-        // Calculate compression ratio
         const compressionRatio = (rawDataPoints / compressedDataPoints).toFixed(2);
-
-        // Calculate storage size
-        const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
-        const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2); // MB
-
-        // Calculate error rate
+        const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2);
+        const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2);
         const rawSum = rawData.reduce((sum, value) => sum + value, 0);
         const compressedSum = compressedData.reduce((sum, value) => sum + value, 0);
         const errorRate = ((1 - compressedSum / rawSum) * 100).toFixed(2);
@@ -34,12 +27,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
 
     const metrics = calculateMetrics(rawData, compressedData);
 
-    // Handle save button click
-    const handleSave = () => {
-        setSaveModalOpen(true); // Open the modal
-    };
-
-    // Handle confirm save
+    const handleSave = () => setSaveModalOpen(true);
     const handleConfirmSave = () => {
         const config = {
             name: `Configuration ${new Date().toLocaleString()}`,
@@ -48,16 +36,12 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 acc[metric.name] = metric.value;
                 return acc;
             }, {}),
-            includeCSV, // Whether to include CSV file
+            includeCSV,
         };
-        onSave(config); // Pass the configuration object to the parent component
-        setSaveModalOpen(false); // Close the modal
+        onSave(config);
+        setSaveModalOpen(false);
     };
-
-    // Handle cancel save
-    const handleCancelSave = () => {
-        setSaveModalOpen(false); // Close the modal
-    };
+    const handleCancelSave = () => setSaveModalOpen(false);
 
     return (
         <div
@@ -73,55 +57,65 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             {metrics.length > 0 ? (
                 <table
                     role="table"
-                    style={{ width: '100%', borderCollapse: 'collapse' }}
+                    style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}
                 >
                     <thead>
                     <tr>
-                        <th data-testid="header-metric" style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>
-                            Metric
-                        </th>
-                        <th data-testid="header-value" style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>
-                            Value
-                        </th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Metric</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Value</th>
                     </tr>
                     </thead>
                     <tbody>
                     {metrics.map((item, index) => (
-                        <tr key={index} role="row">
-                            <td data-testid={`row-metric-${index}`} style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                {item.name}
-                            </td>
-                            <td data-testid={`row-value-${index}`} style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                {item.value}
-                            </td>
+                        <tr key={index}>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.name}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.value}</td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
             ) : (
-                <p
-                    data-testid="no-data-message"
-                    style={{ color: 'gray', fontStyle: 'italic', textAlign: 'center' }}
-                >
+                <p style={{ color: 'gray', fontStyle: 'italic', textAlign: 'center', marginBottom: '20px' }}>
                     No data available
                 </p>
             )}
+
             <button
                 onClick={handleSave}
                 style={{
-                    marginTop: '1rem',
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#007bff',
-                    color: '#fff',
+                    display: 'block',
+                    width: '30%',
+                    padding: '12px 20px',
+                    fontSize: '16px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '8px',
+                    margin: '20px auto 0',
                     cursor: 'pointer',
+                    transition: 'background-color 0.3s ease, transform 0.2s ease',
+                    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                }}
+                onMouseOver={(e) => {
+                    e.target.style.backgroundColor = '#218838';
+                    e.target.style.transform = 'scale(1.02)';
+                }}
+                onMouseOut={(e) => {
+                    e.target.style.backgroundColor = '#28a745';
+                    e.target.style.transform = 'scale(1)';
+                }}
+                onMouseDown={(e) => {
+                    e.target.style.backgroundColor = '#1e7e34';
+                    e.target.style.transform = 'scale(0.98)';
+                }}
+                onMouseUp={(e) => {
+                    e.target.style.backgroundColor = '#218838';
+                    e.target.style.transform = 'scale(1.02)';
                 }}
             >
                 Save Optimal Configuration
             </button>
 
-            {/* Save configuration modal */}
             {isSaveModalOpen && (
                 <div
                     style={{
@@ -157,12 +151,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                                 Include CSV File
                             </label>
                         </div>
-                        <button
-                            onClick={handleConfirmSave}
-                            style={{ marginRight: '10px' }}
-                        >
-                            Confirm
-                        </button>
+                        <button onClick={handleConfirmSave} style={{ marginRight: '10px' }}>Confirm</button>
                         <button onClick={handleCancelSave}>Cancel</button>
                     </div>
                 </div>

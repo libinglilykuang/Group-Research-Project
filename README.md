@@ -68,7 +68,8 @@
 | [Week 14 : Meeting 3](./meeting_notes/Week14Meeting3.md) | 14/2/25 | Lab work |
 | [Week 15 : Meeting 1](./meeting_notes/Week15Meeting1.md) | 17/2/25 | Work in subteams |
 | [Week 15 : Meeting 2](./meeting_notes/Week15Meeting2.md) | 21/2/25 | Lab work on UI and Compression |
-| [Week 16 : Meeting 1](./meeting_notes/Week16Meeting1.md) | 21/2/25 | Feedback from Industry |
+| [Week 16 : Meeting 1](./meeting_notes/Week16Meeting1.md) | 24/2/25 | Feedback from Industry |
+| [Week 16 : Meeting 2](./meeting_notes/Week16Meeting2.md) | 28/2/25 | Updating academic supervisor |
 
 
 

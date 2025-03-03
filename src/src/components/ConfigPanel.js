@@ -1,9 +1,12 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Papa from 'papaparse';
 
-const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels, setFile }, ref) => {
-    const [param1, setParam1] = useState('');
-    const [param2, setParam2] = useState('');
+const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels }, ref) => {
+    const [deviationLimit, setDeviationLimit] = useState('');
+    const [deviationType, setDeviationType] = useState('');
+    const [callbackFilter, setCallbackFilter] = useState('');
+    const [exceptionFilter, setExceptionFilter] = useState('');
+    const [file, setFile] = useState(null); // Add file state here
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
 
@@ -58,16 +61,6 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
         reader.readAsText(file);
     };
 
-    // Handle data selection
-    const handleSelectData = () => {
-        if (!file) {
-            setError('Please upload a file first');
-        } else {
-            setError('');
-            setMessage('Data selected');
-        }
-    };
-
     // Handle compression
     const handleCompress = () => {
         if (!file) {
@@ -90,16 +83,20 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
     useImperativeHandle(ref, () => ({
         reset: () => {
             setFile(null);
-            setParam1('');
-            setParam2('');
+            setDeviationLimit('');
+            setDeviationType('');
+            setCallbackFilter('');
+            setExceptionFilter('');
             setError('');
             setMessage('');
             setCompressionFactor(2); // Reset compression factor
         },
-        getParams: () => ({ param1, param2 }), // Expose current parameters
+        getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter }), // Expose current parameters
         setParams: (params) => {
-            setParam1(params.param1 || '');
-            setParam2(params.param2 || '');
+            setDeviationLimit(params.deviationLimit || '');
+            setDeviationType(params.deviationType || '');
+            setCallbackFilter(params.callbackFilter || '');
+            setExceptionFilter(params.exceptionFilter || '');
         },
         loadFile: (file) => {
             setFile(file);
@@ -123,7 +120,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
             }}
         >
             <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
-                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333' }}>
+                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                     Upload File:
                 </label>
                 <input
@@ -142,16 +139,21 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                 />
             </div>
 
+            {/* Add prompt text above the text boxes */}
+            <div style={{ width: '80%', textAlign: 'center', marginBottom: '20px', color: '#333', fontSize: '16px', fontWeight: 'bold' }}>
+                Please enter the following parameters:
+            </div>
+
             <div style={{ width: '80%' }}> {/* Adjust width of parameter text boxes */}
-                <div style={{ marginBottom: '10px' }}>
-                    <label htmlFor="param1" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
-                        Config Parameter 1:
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Deviation Limit:
                     </label>
                     <input
-                        id="param1"
+                        id="deviationLimit"
                         type="text"
-                        value={param1}
-                        onChange={(e) => setParam1(e.target.value)}
+                        value={deviationLimit}
+                        onChange={(e) => setDeviationLimit(e.target.value)}
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -162,15 +164,53 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         }}
                     />
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="param2" style={{ display: 'block', marginBottom: '5px', color: '#333' }}>
-                        Config Parameter 2:
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Deviation Type:
                     </label>
                     <input
-                        id="param2"
+                        id="deviationType"
                         type="text"
-                        value={param2}
-                        onChange={(e) => setParam2(e.target.value)}
+                        value={deviationType}
+                        onChange={(e) => setDeviationType(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50', // Dark green border
+                            backgroundColor: '#f0f0f0', // Input background color
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Callback Filter:
+                    </label>
+                    <input
+                        id="callbackFilter"
+                        type="text"
+                        value={callbackFilter}
+                        onChange={(e) => setCallbackFilter(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50', // Dark green border
+                            backgroundColor: '#f0f0f0', // Input background color
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}> {/* Increased marginBottom */}
+                    <label htmlFor="exceptionFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter:
+                    </label>
+                    <input
+                        id="exceptionFilter"
+                        type="text"
+                        value={exceptionFilter}
+                        onChange={(e) => setExceptionFilter(e.target.value)}
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -183,28 +223,46 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                 </div>
             </div>
 
-            <div style={{ width: '80%' }}> {/* Adjust button width */}
+            <div style={{ width: '80%', textAlign: 'center' }}> {/* Center the button */}
                 <button
                     onClick={handleCompress}
                     style={{
                         display: 'block',
-                        width: '100%',
-                        padding: '10px',
+                        width: '30%',
+                        padding: '12px 20px', // Slightly larger padding
                         fontSize: '16px',
                         backgroundColor: '#28a745', // Green button background
                         color: 'white',
                         border: 'none',
-                        borderRadius: '5px',
-                        marginBottom: '10px',
+                        borderRadius: '8px', // More rounded corners
+                        margin: '0 auto', // Center the button
                         cursor: 'pointer',
+                        transition: 'background-color 0.3s ease, transform 0.2s ease', // Smooth transitions
+                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Subtle shadow
+                    }}
+                    onMouseOver={(e) => {
+                        e.target.style.backgroundColor = '#218838'; // Darker green on hover
+                        e.target.style.transform = 'scale(1.02)'; // Slight scale up
+                    }}
+                    onMouseOut={(e) => {
+                        e.target.style.backgroundColor = '#28a745'; // Restore original color
+                        e.target.style.transform = 'scale(1)'; // Restore original size
+                    }}
+                    onMouseDown={(e) => {
+                        e.target.style.backgroundColor = '#1e7e34'; // Even darker green on click
+                        e.target.style.transform = 'scale(0.98)'; // Slight scale down
+                    }}
+                    onMouseUp={(e) => {
+                        e.target.style.backgroundColor = '#218838'; // Restore hover color
+                        e.target.style.transform = 'scale(1.02)'; // Restore hover size
                     }}
                 >
                     Compress
                 </button>
             </div>
 
-            {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-            {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
+            {error && <p style={{ color: 'red', marginTop: '20px' }}>{error}</p>} {/* Increased marginTop */}
+            {message && <p style={{ color: 'green', marginTop: '20px' }}>{message}</p>} {/* Increased marginTop */}
         </div>
     );
 });

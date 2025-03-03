@@ -1,9 +1,9 @@
-## Week 15
+## Week 16
 
-### 2nd Meeting: 21/02/25
+### 2nd Meeting: 28/02/25
 
 ### Attendance
-6/8 - Myukhi, Kasia, Frazer, Will, Brendan and Libing<br>
+6/8 - Mayukhi, Kasia, Frazer, Will, Brendan and Libing<br>
 Missing Lucas and Sai
 
 ### What happened?

@@ -70,8 +70,7 @@
 | [Week 15 : Meeting 2](./meeting_notes/Week15Meeting2.md) | 21/2/25 | Lab work on UI and Compression |
 | [Week 16 : Meeting 1](./meeting_notes/Week16Meeting1.md) | 24/2/25 | Feedback from Industry |
 | [Week 16 : Meeting 2](./meeting_notes/Week16Meeting2.md) | 28/2/25 | Updating academic supervisor |
-
-
+| [Week 17 : Meeting 1](./meeting_notes/Week17Meeting1.md) | 3/3/25 | Progress Discussion |
 
 
 

@@ -1,120 +1,213 @@
-// Import necessary modules and components from React and other files
-import React, { useRef, useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ConfigPanel from './components/ConfigPanel';
 import MetricsTable from './components/CompressionMatrixTable';
 import CompressionSidebarPanel from './components/CompressionSidebarPanel';
 import ZoomableChart from './components/Chart';
 
-// Main App component
 function App() {
-    // Raw data array that will be used for compression
-    const rawData = [10, 30, 20, 50, 40, 60, 80, 70, 90, 100, 85, 95, 75, 65, 55];
-
-    // State to manage the compression factor
-    const [compressionFactor, setCompressionFactor] = useState(2);
-
-    // State to manage the sidebar's open/close state
+    const [rawData, setRawData] = useState([]);
+    const [labels, setLabels] = useState([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [configurations, setConfigurations] = useState([]);
+    const [file, setFile] = useState(null); // Used to store the current CSV file
 
-    // Function to compress the raw data based on the compression factor
-    const compressData = (data, factor) => {
-        const compressedData = [];
-        for (let i = 0; i < data.length; i += factor) {
-            compressedData.push(data[i]); // Add every nth element to the compressed data array
-        }
-        return compressedData;
-    };
-
-    // Compressed data derived from the raw data and compression factor
-    const compressedData = compressData(rawData, compressionFactor);
-
-    // Sample configurations for the sidebar panel
-    const sampleConfigurations = [
-        { name: 'Config 1', date: '2025-01-30T12:00:00Z', parameters: { param1: 'value1', param2: 'value2' } },
-        { name: 'Config 2', date: '2025-01-29T15:30:00Z', parameters: { param1: 'value3', param2: 'value4' } },
-        { name: 'Config 3', date: '2025-01-28T09:00:00Z', parameters: { param1: 'value5', param2: 'value6' } },
-        { name: 'Config 4', date: '2025-01-28T13:45:00Z', parameters: { param1: 'value7', param2: 'value8' } },
-        { name: 'Config 5', date: '2025-01-27T10:00:00Z', parameters: { param1: 'value9', param2: 'value10' } }
-    ];
-
-    // Function to handle saving the optimal configuration
-    const handleSave = (data) => {
-        console.log('Saved data:', data); // Log the saved data
-        alert('Optimal configuration saved!'); // Show an alert to the user
-    };
-
-    // Ref to access the ConfigPanel component
     const configPanelRef = useRef(null);
 
-    // Function to handle creating a new configuration by resetting the ConfigPanel
-    const handleNewConfig = () => {
-        if (configPanelRef.current) {
-            configPanelRef.current.reset(); // Call the reset method of ConfigPanel
+    // Compress data based on the new parameters
+    const compressData = (data, labels, deviationLimit, deviationType, callbackFilter, exceptionFilter) => {
+        const compressedData = [];
+        const compressedLabels = [];
+
+        // Example compression logic based on the new parameters
+        for (let i = 0; i < data.length; i++) {
+            const value = data[i];
+            const label = labels[i];
+
+            // Apply deviation limit
+            if (deviationLimit && Math.abs(value) > deviationLimit) {
+                continue; // Skip values exceeding the deviation limit
+            }
+
+            // Apply deviation type (example: positive or negative deviations)
+            if (deviationType === 'positive' && value < 0) {
+                continue; // Skip negative values if deviationType is 'positive'
+            } else if (deviationType === 'negative' && value > 0) {
+                continue; // Skip positive values if deviationType is 'negative'
+            }
+
+            // Apply callback filter (example: custom filtering logic)
+            if (callbackFilter && !callbackFilter(value)) {
+                continue; // Skip values that don't pass the callback filter
+            }
+
+            // Apply exception filter (example: exclude specific values)
+            if (exceptionFilter && exceptionFilter(value)) {
+                continue; // Skip values that match the exception filter
+            }
+
+            // Add the value and label to the compressed data
+            compressedData.push(value);
+            compressedLabels.push(label);
         }
+
+        return { compressedData, compressedLabels };
     };
 
-    // Function to toggle the sidebar's open/close state
+    // Get the parameters from the ConfigPanel
+    const getCompressionParameters = () => {
+        if (configPanelRef.current) {
+            return configPanelRef.current.getParams();
+        }
+        return {
+            deviationLimit: null,
+            deviationType: null,
+            callbackFilter: null,
+            exceptionFilter: null,
+        };
+    };
+
+    // Compress the data using the current parameters
+    const { deviationLimit, deviationType, callbackFilter, exceptionFilter } = getCompressionParameters();
+    const { compressedData, compressedLabels } = compressData(
+        rawData,
+        labels,
+        deviationLimit,
+        deviationType,
+        callbackFilter,
+        exceptionFilter
+    );
+
+    // Handle saving configurations
+    const handleSave = (config) => {
+        const params = configPanelRef.current ? configPanelRef.current.getParams() : {
+            deviationLimit: null,
+            deviationType: null,
+            callbackFilter: null,
+            exceptionFilter: null,
+        };
+        const newConfig = {
+            ...config,
+            name: `Configuration ${configurations.length + 1}`, // Dynamically generate a name
+            date: new Date().toISOString(),
+            parameters: {
+                ...config.parameters,
+                ...params,
+            },
+            rawData: config.includeCSV ? rawData : null, // Save raw data if the user chooses to include the CSV file
+            labels: config.includeCSV ? labels : null,   // Save labels if the user chooses to include the CSV file
+            csvFile: config.includeCSV ? file : null,    // Save the CSV file if the user chooses to include it
+        };
+        setConfigurations((prevConfigs) => [...prevConfigs, newConfig]);
+        alert('Optimal configuration saved!');
+    };
+
+    // Handle creating a new configuration
+    const handleNewConfig = () => {
+        if (configPanelRef.current) {
+            configPanelRef.current.reset();
+        }
+        setFile(null); // Clear the current CSV file
+    };
+
+    // Toggle the sidebar open/close
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    // Main render method for the App component
+    // Load a configuration
+    const handleLoadConfig = (config) => {
+        // Load raw data into the Chart
+        setRawData(config.rawData || []);
+        setLabels(config.labels || []);
+        // Load parameters into the ConfigPanel
+        if (configPanelRef.current) {
+            configPanelRef.current.setParams(config.parameters);
+            if (config.csvFile) {
+                configPanelRef.current.loadFile(config.csvFile); // Load the CSV file if included
+            }
+        }
+    };
+
     return (
-        <div className="App" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
-            <h2>Intelligent Plant Compression Optimisation</h2>
+        <div
+            className="App"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                minHeight: '100vh',
+                backgroundImage: 'url(/icons/background.jpg)', // 使用public目录的图片
+                backgroundSize: 'cover',  // 让图片铺满整个页面
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                padding: '20px',
+            }}
+        >
+            <h2 style={{ color: '#333', marginBottom: '20px' }}>Intelligent Plant Compression Optimisation</h2>
             <div style={{ width: '80%' }}>
-                {/* Sidebar panel component */}
                 <CompressionSidebarPanel
-                    configurations={sampleConfigurations} // Pass sample configurations
-                    onNewConfig={handleNewConfig} // Pass the new config handler
-                    isOpen={isSidebarOpen} // Pass the sidebar's open/close state
-                    toggleSidebar={toggleSidebar} // Pass the toggle function
+                    configurations={configurations}
+                    onNewConfig={handleNewConfig}
+                    isOpen={isSidebarOpen}
+                    toggleSidebar={toggleSidebar}
+                    onLoadConfig={handleLoadConfig} // Pass the load configuration callback
                 />
             </div>
 
-            {/* Configuration panel */}
             <div
                 style={{
                     width: '80%',
                     marginBottom: '20px',
-                    marginLeft: isSidebarOpen ? '250px' : '0', // Adjust margin based on sidebar state
-                    transition: 'margin-left 0.3s ease', // Add transition effect
+                    marginLeft: isSidebarOpen ? '250px' : '0',
+                    transition: 'margin-left 0.3s ease',
                 }}
             >
                 <ConfigPanel
-                    ref={configPanelRef} // Pass the ref to ConfigPanel
-                    compressionFactor={compressionFactor} // Pass the compression factor
-                    setCompressionFactor={setCompressionFactor} // Pass the setter for compression factor
+                    ref={configPanelRef}
+                    setRawData={setRawData}
+                    setLabels={setLabels}
+                    setFile={setFile} // Pass the setFile function to update the current CSV file
                 />
             </div>
 
-            {/* Zoomable chart component */}
             <div
                 style={{
                     width: '80%',
                     flexGrow: 1,
                     marginBottom: '20px',
-                    marginLeft: isSidebarOpen ? '250px' : '0', // Adjust margin based on sidebar state
-                    transition: 'margin-left 0.3s ease', // Add transition effect
+                    marginLeft: isSidebarOpen ? '250px' : '0',
+                    transition: 'margin-left 0.3s ease',
+                    backgroundColor: '#ffffff', // Chart area background color set to white
+                    borderRadius: '8px', // Add rounded corners
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
+                    padding: '20px',
                 }}
             >
-                <ZoomableChart rawData={rawData} compressionFactor={compressionFactor} />
+                <ZoomableChart
+                    rawData={rawData}
+                    labels={labels}
+                    compressedData={compressedData}
+                    compressedLabels={compressedLabels}
+                />
             </div>
 
-            {/* Metrics table component */}
             <div
                 style={{
                     width: '80%',
                     flexShrink: 0,
                     marginBottom: '20px',
-                    marginLeft: isSidebarOpen ? '250px' : '0', // Adjust margin based on sidebar state
-                    transition: 'margin-left 0.3s ease', // Add transition effect
+                    marginLeft: isSidebarOpen ? '250px' : '0',
+                    transition: 'margin-left 0.3s ease',
+                    backgroundColor: '#ffffff', // Table area background color set to white
+                    borderRadius: '8px', // Add rounded corners
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
+                    padding: '20px',
                 }}
             >
                 <MetricsTable
-                    rawData={rawData} // Pass the raw data
-                    compressedData={compressedData} // Pass the compressed data
-                    onSave={handleSave} // Pass the save handler
+                    rawData={rawData}
+                    compressedData={compressedData}
+                    onSave={handleSave}
                 />
             </div>
         </div>

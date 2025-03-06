@@ -1,0 +1,116 @@
+/* LoginForm.css */
+
+/* Container for the login form, centers the form vertically and horizontally */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+    padding: 20px; /* Adds padding around the container */
+}
+
+/* Styling for the login box */
+.login-box {
+    background: white; /* White background */
+    padding: 40px; /* Inner spacing */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow effect */
+    text-align: center; /* Centers text horizontally */
+    max-width: 400px; /* Maximum width of the box */
+    width: 100%; /* Full width within the max-width constraint */
+}
+
+/* Header section of the login form */
+.login-header {
+    margin-bottom: 30px; /* Adds space below the header */
+}
+
+/* Title of the login form */
+.login-title {
+    font-size: 28px; /* Large font size */
+    font-weight: bold; /* Bold text */
+    margin-bottom: 10px; /* Adds space below the title */
+    color: #333; /* Dark gray color */
+}
+
+/* Subtitle of the login form */
+.login-subtitle {
+    font-size: 16px; /* Medium font size */
+    color: #666; /* Light gray color */
+}
+
+/* Group for input fields and icons */
+.input-group {
+    display: flex;
+    align-items: center; /* Aligns items vertically */
+    margin-bottom: 20px; /* Adds space below the input group */
+    border: 1px solid #ddd; /* Light gray border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px; /* Inner spacing */
+    transition: border-color 0.3s ease; /* Smooth transition for border color */
+}
+
+/* Changes border color on hover */
+.input-group:hover {
+    border-color: #6a11cb; /* Purple border color on hover */
+}
+
+/* Icon inside the input group */
+.input-icon {
+    margin-right: 10px; /* Adds space to the right of the icon */
+    color: #666; /* Light gray color */
+}
+
+/* Input field styling */
+.login-input {
+    flex: 1; /* Takes up remaining space */
+    border: none; /* Removes default border */
+    outline: none; /* Removes outline on focus */
+    font-size: 16px; /* Medium font size */
+    color: #333; /* Dark gray color */
+}
+
+/* Placeholder text styling */
+.login-input::placeholder {
+    color: #999; /* Light gray placeholder text */
+}
+
+/* Login button styling */
+.login-button {
+    width: 100%; /* Full width */
+    padding: 12px; /* Inner spacing */
+    border: none; /* Removes border */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Medium font size */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    background: #6a11cb; /* Purple background */
+    color: white; /* White text */
+    margin-bottom: 10px; /* Adds space below the button */
+}
+
+/* Changes button background and lifts it slightly on hover */
+.login-button:hover {
+    background: #2575fc; /* Blue background on hover */
+    transform: translateY(-2px); /* Moves button up slightly */
+}
+
+/* Footer section of the login form */
+.login-footer {
+    margin-top: 20px; /* Adds space above the footer */
+    font-size: 14px; /* Small font size */
+    color: #666; /* Light gray color */
+}
+
+/* Link in the footer */
+.footer-link {
+    color: #6a11cb; /* Purple color */
+    cursor: pointer; /* Pointer cursor on hover */
+    text-decoration: underline; /* Underlined text */
+}
+
+/* Changes link color on hover */
+.footer-link:hover {
+    color: #2575fc; /* Blue color on hover */
+}

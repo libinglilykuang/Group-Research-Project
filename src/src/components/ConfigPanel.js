@@ -2,15 +2,23 @@ import React, { useState, forwardRef, useImperativeHandle, useEffect } from 'rea
 import Papa from 'papaparse';
 
 const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels }, ref) => {
-    const [deviationLimit, setDeviationLimit] = useState('');
+    const [deviationLimit, setDeviationLimit] = useState(2);        // Industry suggestions
     const [deviationType, setDeviationType] = useState('');
-    const [callbackFilter, setCallbackFilter] = useState('');
-    const [exceptionFilter, setExceptionFilter] = useState('');
+    const [callbackFilter, setCallbackFilter] = useState(0);        // Industry suggestions
+    const [exceptionFilter1, setExceptionFilter1] = useState('');   // Industry suggestions
+    const [exceptionFilter2, setExceptionFilter2] = useState('');
+    const [exceptionFilter3, setExceptionFilter3] = useState('');
+    const [exceptionFilter4, setExceptionFilter4] = useState('');
+
     const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [tooltip, setTooltip] = useState({ show: false, content: '', position: { x: 0, y: 0 } });
+    const [minResampleLimit, setMinResampleLimit] = useState(0);    // Industry suggestions
+    const [maxResampleLimit, setMaxResampleLimit] = useState(5);    // Industry suggestions 
 
+
+      
     // Format time to display only the specific time (e.g., 12:34 PM)
     const formatTime = (timeString) => {
         const date = new Date(timeString);
@@ -116,7 +124,18 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
             setMessage('');
             setCompressionFactor(2);
         },
-        getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter }),
+        getParams: () => ({
+            deviationLimit,
+            deviationType,
+            callbackFilter,
+            exceptionFilter: {
+              currentSampleData: currentSampleData,     // provided from elsewhere
+              previousSampleData: previousSampleData,   // provided from elsewhere
+              minResampleLimit,
+              maxResampleLimit,
+            },
+          }),
+        //getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter }),
         setParams: (params) => {
             setDeviationLimit(params.deviationLimit || '');
             setDeviationType(params.deviationType || '');
@@ -248,8 +267,8 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="exceptionFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                        Exception Filter:
+                    <label htmlFor="exceptionFilter1" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter Value 1:
                         <img
                             src="/icons/question_mark.png"
                             alt="Info"
@@ -259,10 +278,140 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         />
                     </label>
                     <input
-                        id="exceptionFilter"
+                        id="exceptionFilter1"
                         type="text"
-                        value={exceptionFilter}
-                        onChange={(e) => setExceptionFilter(e.target.value)}
+                        value={exceptionFilter1}
+                        onChange={(e) => setExceptionFilter1(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="exceptionFilter2" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter Value 2:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
+                        />
+                    </label>
+                    <input
+                        id="exceptionFilter2"
+                        type="text"
+                        value={exceptionFilter2}
+                        onChange={(e) => setExceptionFilter2(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="exceptionFilter3" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter Value 3:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
+                        />
+                    </label>
+                    <input
+                        id="exceptionFilter3"
+                        type="text"
+                        value={exceptionFilter3}
+                        onChange={(e) => setExceptionFilter3(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="exceptionFilter4" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter Value 4:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
+                        />
+                    </label>
+                    <input
+                        id="exceptionFilter4"
+                        type="text"
+                        value={exceptionFilter4}
+                        onChange={(e) => setExceptionFilter4(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Minimum Resample Limit:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('For setting the minimum resample limit', e)}
+                        />
+                    </label>
+                    <input
+                        id="minResampleLimit"
+                        type="text"
+                        value={minResampleLimit}
+                        onChange={(e) => setMinResampleLimit(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="maxResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Maximum Resample Limit:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('For setting the maximum resample limit', e)}
+                        />
+                    </label>
+                    <input
+                        id="maxResampleLimit"
+                        type="text"
+                        value={maxResampleLimit}
+                        onChange={(e) => setMaxResampleLimit(e.target.value)}
                         style={{
                             width: '100%',
                             padding: '10px',

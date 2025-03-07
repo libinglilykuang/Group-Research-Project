@@ -47,6 +47,7 @@ def info():
 
 @route('/data_sources')
 def data_sources():
+    #once authorised, the data sources are retrieved from the API and stored in a list
     global client
     global list
     list = []
@@ -57,17 +58,21 @@ def data_sources():
         for k, v in sources[i].items():
             if k == 'Name':
                 list.append(v['QualifiedName'])
+        
     
-    redirect('/tags')
+    redirect('/get_data')
 
-@route('/tags')
-def tags():
-    
+@route('/get_data')
+def get_data():
+    #Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data, and a request to get the data from the API is sent
     global client
+    starttime = None
+    endtime = None
 
-    #the list item will be whatever data source the user chooses - needs to be gotten from the API
+    #the list item will be whatever data source the user chooses - needs to be retrieved from the UI
     tags = client.get_data_core_client().get_tags(list[0])
 
+    #iterating through the list of tags and getting data from the dicts as necessary
     for i in range(len(tags)):
         for k, v in tags[i].items():
             if k == 'Properties':
@@ -75,8 +80,16 @@ def tags():
                     if l == 'UTC Earliest Raw Sample Time':
                         for n,o in m.items():
                             if n == 'Value':
-                               return o
-                            
+                               starttime = o
+                    if l == 'UTC Latest Raw Sample Time':
+                        for j,k in m.items():
+                            if j == 'Value':
+                               endtime = k
+
+
+    #data = client.get_data_core_client().get_raw_data(tags[0], starttime, endtime, 0) # <- the one we want
+    data = client.get_data_core_client().get_data_at_times(tags[0], starttime)
+    print(data)
 
 @route('/refresh')
 def info():

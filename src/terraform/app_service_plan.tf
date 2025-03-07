@@ -5,6 +5,6 @@ resource "azurerm_app_service_plan" "IP_service_plan" {
 
   sku {
     tier = "Standard"
-    size = "S1"
+    size = "F1"
   }
 }

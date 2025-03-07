@@ -466,17 +466,69 @@ const CompressionSidebarPanel = ({
                             </p>
                             <h4>Parameters:</h4>
                             <form>
-                                {Object.entries(editedConfig.parameters).map(([key, value]) => (
-                                    <div key={key} style={{ marginBottom: "10px" }}>
-                                        <label style={{ display: "block", marginBottom: "5px" }}>{key}</label>
-                                        <input
-                                            type="text"
-                                            value={value}
-                                            onChange={(e) => handleParamChange(key, e.target.value)}
-                                            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
-                                        />
-                                    </div>
-                                ))}
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Deviation Limit</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.deviationLimit || ""}
+                                        onChange={(e) => handleParamChange("deviationLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Deviation Type</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.deviationType || ""}
+                                        onChange={(e) => handleParamChange("deviationType", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Callback Filter</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.callbackFilter || ""}
+                                        onChange={(e) => handleParamChange("callbackFilter", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 1</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.exceptionFilter1 || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilter1", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 2</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.exceptionFilter2 || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilter2", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Min Resample Limit</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.minResampleLimit || ""}
+                                        onChange={(e) => handleParamChange("minResampleLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Max Resample Limit</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.maxResampleLimit || ""}
+                                        onChange={(e) => handleParamChange("maxResampleLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
                             </form>
                         </div>
 

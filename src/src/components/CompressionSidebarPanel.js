@@ -27,6 +27,7 @@ const groupByDate = (configs) => {
 
 const CompressionSidebarPanel = ({
                                      configurations = [],
+                                     setConfigurations, // 接收 setConfigurations 作为 prop
                                      onNewConfig,
                                      isOpen,
                                      toggleSidebar,
@@ -49,13 +50,20 @@ const CompressionSidebarPanel = ({
     // 删除配置
     const handleDelete = useCallback(async (configId) => {
         try {
-            await deleteDoc(doc(db, "configurations", configId)); // 从 Firestore 删除
+            // 从 Firestore 删除
+            await deleteDoc(doc(db, "configurations", configId));
+
+            // 从本地状态中移除
+            setConfigurations((prevConfigs) =>
+                prevConfigs.filter((config) => config.id !== configId)
+            );
+
             alert("Configuration deleted successfully!");
         } catch (error) {
             console.error("Error deleting configuration:", error);
-            alert("Failed to delete configuration. Please try again.");
+            alert(`Failed to delete configuration: ${error.message}`);
         }
-    }, []);
+    }, [setConfigurations]);
 
     // 下载配置
     const handleDownload = (config) => {
@@ -500,6 +508,7 @@ const CompressionSidebarPanel = ({
     );
 };
 
+// Prop 类型检查
 CompressionSidebarPanel.propTypes = {
     configurations: PropTypes.arrayOf(
         PropTypes.shape({
@@ -508,7 +517,8 @@ CompressionSidebarPanel.propTypes = {
             date: PropTypes.string.isRequired,
             parameters: PropTypes.object.isRequired,
         })
-    ),
+    ).isRequired,
+    setConfigurations: PropTypes.func.isRequired, // 添加 setConfigurations
     onNewConfig: PropTypes.func,
     isOpen: PropTypes.bool.isRequired,
     toggleSidebar: PropTypes.func.isRequired,

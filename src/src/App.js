@@ -201,6 +201,7 @@ function App() {
                     <div style={{ width: "80%" }}>
                         <CompressionSidebarPanel
                             configurations={configurations}
+                            setConfigurations={setConfigurations} // Pass setConfigurations here
                             onNewConfig={handleNewConfig}
                             isOpen={isSidebarOpen}
                             toggleSidebar={toggleSidebar}

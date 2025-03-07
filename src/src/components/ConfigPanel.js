@@ -170,6 +170,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                marginTop: '80px',
             }}
         >
             <div style={{ width: '80%' }}>

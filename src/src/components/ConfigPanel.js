@@ -7,6 +7,11 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
     const [callbackFilter, setCallbackFilter] = useState(0);        // Industry suggestions
     const [exceptionFilter1, setExceptionFilter1] = useState('');   // Industry suggestions
     const [exceptionFilter2, setExceptionFilter2] = useState('');
+<<<<<<< HEAD
+=======
+    const [exceptionFilter3, setExceptionFilter3] = useState('');
+    const [exceptionFilter4, setExceptionFilter4] = useState('');
+>>>>>>> 24c5a198f315d8b6ffb2f2449add6ee870bc6971
 
     const [file, setFile] = useState(null);
     const [error, setError] = useState('');
@@ -133,8 +138,22 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
               maxResampleLimit,
             },
           }),
+<<<<<<< HEAD
         getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter1 }),
 
+=======
+        //getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter }),
+        setParams: (params) => {
+            setDeviationLimit(params.deviationLimit || '');
+            setDeviationType(params.deviationType || '');
+            setCallbackFilter(params.callbackFilter || '');
+            setExceptionFilter(params.exceptionFilter || '');
+        },
+        loadFile: (file) => {
+            setFile(file);
+            parseCSV(file);
+        },
+>>>>>>> 24c5a198f315d8b6ffb2f2449add6ee870bc6971
     }));
 
     return (
@@ -308,8 +327,65 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
+<<<<<<< HEAD
                     <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
                         Minimum Resample Limit (exception filter value 3):
+=======
+                    <label htmlFor="exceptionFilter3" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter Value 3:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
+                        />
+                    </label>
+                    <input
+                        id="exceptionFilter3"
+                        type="text"
+                        value={exceptionFilter3}
+                        onChange={(e) => setExceptionFilter3(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="exceptionFilter4" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Exception Filter Value 4:
+                        <img
+                            src="/icons/question_mark.png"
+                            alt="Info"
+                            className="tooltip-target"
+                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
+                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
+                        />
+                    </label>
+                    <input
+                        id="exceptionFilter4"
+                        type="text"
+                        value={exceptionFilter4}
+                        onChange={(e) => setExceptionFilter4(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '16px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                        Minimum Resample Limit:
+>>>>>>> 24c5a198f315d8b6ffb2f2449add6ee870bc6971
                         <img
                             src="/icons/question_mark.png"
                             alt="Info"
@@ -335,7 +411,11 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="maxResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+<<<<<<< HEAD
                         Maximum Resample Limit (exception value 4):
+=======
+                        Maximum Resample Limit:
+>>>>>>> 24c5a198f315d8b6ffb2f2449add6ee870bc6971
                         <img
                             src="/icons/question_mark.png"
                             alt="Info"

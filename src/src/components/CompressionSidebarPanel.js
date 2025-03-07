@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import PropTypes from "prop-types";
 import { format, isToday, isYesterday, isValid } from "date-fns";
 import { collection, doc, deleteDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase"; // 确保导入了 Firestore 实例
+import { db } from "../firebase"; // Ensure Firestore instance is imported
+import JSZip from "jszip"; // For generating zip files
+import { saveAs } from "file-saver"; // For triggering file downloads
 
 // Group by date
 const groupByDate = (configs) => {
@@ -27,33 +29,36 @@ const groupByDate = (configs) => {
 
 const CompressionSidebarPanel = ({
                                      configurations = [],
-                                     setConfigurations, // 接收 setConfigurations 作为 prop
+                                     setConfigurations, // Receive setConfigurations as a prop
                                      onNewConfig,
                                      isOpen,
                                      toggleSidebar,
                                      onLoadConfig,
+                                     compressedData, // Receive compressed data
                                  }) => {
     const [searchInput, setSearchInput] = useState("");
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
     const [isModalOpen, setModalOpen] = useState(false);
+    const [isDownloadModalOpen, setDownloadModalOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
     const [editedConfig, setEditedConfig] = useState(null);
+    const [selectedParameters, setSelectedParameters] = useState({});
     const menuRef = useRef(null);
 
-    // 过滤配置
+    // Filter configurations
     const filteredConfigurations = useMemo(() => groupByDate(
         configurations.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
         )
     ), [configurations, searchInput]);
 
-    // 删除配置
+    // Delete configuration
     const handleDelete = useCallback(async (configId) => {
         try {
-            // 从 Firestore 删除
+            // Delete from Firestore
             await deleteDoc(doc(db, "configurations", configId));
 
-            // 从本地状态中移除
+            // Remove from local state
             setConfigurations((prevConfigs) =>
                 prevConfigs.filter((config) => config.id !== configId)
             );
@@ -65,28 +70,86 @@ const CompressionSidebarPanel = ({
         }
     }, [setConfigurations]);
 
-    // 下载配置
+    // Download configuration
     const handleDownload = (config) => {
-        const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
-        const downloadUrl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = `${config.name}.json`;
-        link.click();
-        URL.revokeObjectURL(downloadUrl);
+        setSelectedConfig(config);
+        setDownloadModalOpen(true);
     };
 
-    // 编辑配置
+    // Handle parameter selection
+    const handleParameterSelection = (paramName, isChecked) => {
+        setSelectedParameters((prev) => ({
+            ...prev,
+            [paramName]: isChecked,
+        }));
+    };
+
+    // Confirm download
+    const handleConfirmDownload = () => {
+        if (!selectedConfig) return;
+
+        // Create zip file
+        const zip = new JSZip();
+
+        // Add compressed data
+        if (compressedData) {
+            const compressedDataBlob = new Blob([JSON.stringify(compressedData, null, 2)], {
+                type: "application/json",
+            });
+            zip.file("compressed-data.json", compressedDataBlob);
+        }
+
+        // Add selected parameters
+        const paramsToDownload = {
+            deviationLimit: selectedConfig.parameters.deviationLimit,
+            deviationType: selectedConfig.parameters.deviationType,
+            callbackFilter: selectedConfig.parameters.callbackFilter,
+            exceptionFilter1: selectedConfig.parameters.exceptionFilter1,
+            exceptionFilter2: selectedConfig.parameters.exceptionFilter2,
+            minResampleLimit: selectedConfig.parameters.minResampleLimit,
+            maxResampleLimit: selectedConfig.parameters.maxResampleLimit,
+        };
+
+        const paramsBlob = new Blob([JSON.stringify(paramsToDownload, null, 2)], {
+            type: "application/json",
+        });
+        zip.file("parameters.json", paramsBlob);
+
+        // Generate zip and trigger download
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, `${selectedConfig.name}-download.zip`);
+            setDownloadModalOpen(false);
+            alert("Download started!");
+        });
+    };
+
+    // Cancel download
+    const handleCancelDownload = () => {
+        setDownloadModalOpen(false);
+    };
+
+    // Edit configuration
     const handleEdit = (config) => {
         setSelectedConfig(config);
-        setEditedConfig({ ...config }); // 复制配置用于编辑
+        setEditedConfig({
+            ...config,
+            parameters: {
+                deviationLimit: config.parameters.deviationLimit || 2, // Default value
+                deviationType: config.parameters.deviationType || "percentage", // Default value
+                callbackFilter: config.parameters.callbackFilter || 0, // Default value
+                exceptionFilter1: config.parameters.exceptionFilter1 || "", // Default value
+                exceptionFilter2: config.parameters.exceptionFilter2 || "", // Default value
+                minResampleLimit: config.parameters.minResampleLimit || 0, // Default value
+                maxResampleLimit: config.parameters.maxResampleLimit || 5, // Default value
+            },
+        }); // Copy config for editing and ensure all parameters have default values
         setModalOpen(true);
     };
 
-    // 保存编辑后的配置
+    // Save edited configuration
     const handleSaveEdit = async () => {
         try {
-            await updateDoc(doc(db, "configurations", selectedConfig.id), editedConfig); // 更新 Firestore
+            await updateDoc(doc(db, "configurations", selectedConfig.id), editedConfig); // Update Firestore
             setModalOpen(false);
             alert("Configuration updated successfully!");
         } catch (error) {
@@ -95,12 +158,12 @@ const CompressionSidebarPanel = ({
         }
     };
 
-    // 取消编辑
+    // Cancel edit
     const handleCancelEdit = () => {
         setModalOpen(false);
     };
 
-    // 处理名称更改
+    // Handle name change
     const handleNameChange = (e) => {
         setEditedConfig((prevConfig) => ({
             ...prevConfig,
@@ -108,7 +171,7 @@ const CompressionSidebarPanel = ({
         }));
     };
 
-    // 处理参数更改
+    // Handle parameter change
     const handleParamChange = (paramName, value) => {
         setEditedConfig((prevConfig) => ({
             ...prevConfig,
@@ -119,7 +182,7 @@ const CompressionSidebarPanel = ({
         }));
     };
 
-    // 监听点击外部关闭菜单
+    // Listen for clicks outside to close menu
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -556,11 +619,107 @@ const CompressionSidebarPanel = ({
                     </div>
                 </div>
             )}
+
+            {/* Download modal */}
+            {isDownloadModalOpen && selectedConfig && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 1000,
+                    }}
+                    onClick={handleCancelDownload}
+                >
+                    <div
+                        style={{
+                            background: "#fff",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            width: "400px",
+                            maxHeight: "80vh",
+                            boxShadow: "0px 0px 10px rgba(0,0,0,0.2)",
+                            display: "flex",
+                            flexDirection: "column",
+                            position: "relative",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={handleCancelDownload}
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "10px",
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img src="/icons/cancel.png" alt="Close" style={{ width: "24px", height: "24px" }} />
+                        </button>
+
+                        <h3>Download Configuration</h3>
+                        <div style={{ overflowY: "auto", flex: 1 }}>
+                            <p>Select parameters to include in the download:</p>
+                            {[
+                                "deviationLimit",
+                                "deviationType",
+                                "callbackFilter",
+                                "exceptionFilter1",
+                                "exceptionFilter2",
+                                "minResampleLimit",
+                                "maxResampleLimit",
+                            ].map((param) => (
+                                <div key={param} style={{ marginBottom: "10px" }}>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedParameters[param] || false}
+                                            onChange={(e) => handleParameterSelection(param, e.target.checked)}
+                                        />
+                                        {param}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Confirm button */}
+                        <div style={{ marginTop: "10px", textAlign: "left" }}>
+                            <button
+                                onClick={handleConfirmDownload}
+                                style={{
+                                    background: "#007BFF",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "10px 15px",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    transition: "background 0.3s ease",
+                                }}
+                                onMouseOver={(e) => (e.target.style.background = "#0056b3")}
+                                onMouseOut={(e) => (e.target.style.background = "#007BFF")}
+                            >
+                                Confirm Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-// Prop 类型检查
+// Prop type checking
 CompressionSidebarPanel.propTypes = {
     configurations: PropTypes.arrayOf(
         PropTypes.shape({
@@ -570,11 +729,12 @@ CompressionSidebarPanel.propTypes = {
             parameters: PropTypes.object.isRequired,
         })
     ).isRequired,
-    setConfigurations: PropTypes.func.isRequired, // 添加 setConfigurations
+    setConfigurations: PropTypes.func.isRequired, // Add setConfigurations
     onNewConfig: PropTypes.func,
     isOpen: PropTypes.bool.isRequired,
     toggleSidebar: PropTypes.func.isRequired,
     onLoadConfig: PropTypes.func.isRequired,
+    compressedData: PropTypes.arrayOf(PropTypes.number), // Receive compressed data
 };
 
 export default CompressionSidebarPanel;

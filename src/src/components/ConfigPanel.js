@@ -1,23 +1,27 @@
 import React, { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import Papa from 'papaparse';
 
-const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRawData, setLabels }, ref) => {
-    const [deviationLimit, setDeviationLimit] = useState(2);        // Industry suggestions
-    const [deviationType, setDeviationType] = useState('');
-    const [callbackFilter, setCallbackFilter] = useState(0);        // Industry suggestions
-    const [exceptionFilter1, setExceptionFilter1] = useState('');   // Industry suggestions
-    const [exceptionFilter2, setExceptionFilter2] = useState('');
-
-
+const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
+    // State variables
+    const [deviationLimit, setDeviationLimit] = useState(''); // Default: 2
+    const [deviationType, setDeviationType] = useState(''); // Default: percentage
+    const [callbackFilter, setCallbackFilter] = useState(''); // Default: 0
+    const [exceptionFilter1, setExceptionFilter1] = useState(''); // Default: ''
+    const [exceptionFilter2, setExceptionFilter2] = useState(''); // Default: ''
+    const [minResampleLimit, setMinResampleLimit] = useState(''); // Default: 0
+    const [maxResampleLimit, setMaxResampleLimit] = useState(''); // Default: 5
     const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [tooltip, setTooltip] = useState({ show: false, content: '', position: { x: 0, y: 0 } });
-    const [minResampleLimit, setMinResampleLimit] = useState(0);    // Industry suggestions
-    const [maxResampleLimit, setMaxResampleLimit] = useState(5);    // Industry suggestions 
 
+    // Default values
+    const DEFAULT_DEVIATION_LIMIT = 2;
+    const DEFAULT_DEVIATION_TYPE = 'percentage';
+    const DEFAULT_CALLBACK_FILTER = 0;
+    const DEFAULT_MIN_RESAMPLE_LIMIT = 0;
+    const DEFAULT_MAX_RESAMPLE_LIMIT = 5;
 
-      
     // Format time to display only the specific time (e.g., 12:34 PM)
     const formatTime = (timeString) => {
         const date = new Date(timeString);
@@ -118,32 +122,34 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
             setDeviationLimit('');
             setDeviationType('');
             setCallbackFilter('');
-            setExceptionFilter('');
+            setExceptionFilter1('');
+            setExceptionFilter2('');
+            setMinResampleLimit('');
+            setMaxResampleLimit('');
             setError('');
             setMessage('');
-            setCompressionFactor(2);
+            setRawData([]); // Clear raw data
+            setLabels([]); // Clear labels
         },
         getParams: () => ({
-            deviationLimit,
-            deviationType,
-            callbackFilter,
+            deviationLimit: deviationLimit || DEFAULT_DEVIATION_LIMIT,
+            deviationType: deviationType || DEFAULT_DEVIATION_TYPE,
+            callbackFilter: callbackFilter || DEFAULT_CALLBACK_FILTER,
             exceptionFilter: {
-              currentSampleData: currentSampleData,     // provided from elsewhere
-              previousSampleData: previousSampleData,   // provided from elsewhere
-              minResampleLimit,
-              maxResampleLimit,
+                exceptionFilter1: exceptionFilter1 || '',
+                exceptionFilter2: exceptionFilter2 || '',
+                minResampleLimit: minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT,
+                maxResampleLimit: maxResampleLimit || DEFAULT_MAX_RESAMPLE_LIMIT,
             },
-          }),
-
-        getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter1 }),
-
-
-        //getParams: () => ({ deviationLimit, deviationType, callbackFilter, exceptionFilter }),
+        }),
         setParams: (params) => {
             setDeviationLimit(params.deviationLimit || '');
             setDeviationType(params.deviationType || '');
             setCallbackFilter(params.callbackFilter || '');
-            setExceptionFilter(params.exceptionFilter || '');
+            setExceptionFilter1(params.exceptionFilter?.exceptionFilter1 || '');
+            setExceptionFilter2(params.exceptionFilter?.exceptionFilter2 || '');
+            setMinResampleLimit(params.exceptionFilter?.minResampleLimit || '');
+            setMaxResampleLimit(params.exceptionFilter?.maxResampleLimit || '');
         },
         loadFile: (file) => {
             setFile(file);
@@ -207,6 +213,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={deviationLimit}
                         onChange={(e) => setDeviationLimit(e.target.value)}
+                        placeholder="2" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -214,6 +221,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: deviationLimit ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>
@@ -233,6 +241,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={deviationType}
                         onChange={(e) => setDeviationType(e.target.value)}
+                        placeholder="percentage" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -240,6 +249,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: deviationType ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>
@@ -259,6 +269,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={callbackFilter}
                         onChange={(e) => setCallbackFilter(e.target.value)}
+                        placeholder="0" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -266,6 +277,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: callbackFilter ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>
@@ -285,6 +297,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={exceptionFilter1}
                         onChange={(e) => setExceptionFilter1(e.target.value)}
+                        placeholder="" // No default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -292,6 +305,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: exceptionFilter1 ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>
@@ -311,6 +325,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={exceptionFilter2}
                         onChange={(e) => setExceptionFilter2(e.target.value)}
+                        placeholder="" // No default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -318,18 +333,19 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: exceptionFilter2 ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                        Minimum Resample Limit (exception filter value 3):
+                        Minimum Resample Limit:
                         <img
                             src="/icons/question_mark.png"
                             alt="Info"
                             className="tooltip-target"
                             style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('For setting the minimum resample limit', e)}
+                            onClick={(e) => showTooltip('For setting the minimum resample limit.', e)}
                         />
                     </label>
                     <input
@@ -337,6 +353,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={minResampleLimit}
                         onChange={(e) => setMinResampleLimit(e.target.value)}
+                        placeholder="0" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -344,18 +361,19 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: minResampleLimit ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="maxResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                    Maximum Resample Limit (exception value 4):
+                        Maximum Resample Limit:
                         <img
                             src="/icons/question_mark.png"
                             alt="Info"
                             className="tooltip-target"
                             style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('For setting the maximum resample limit', e)}
+                            onClick={(e) => showTooltip('For setting the maximum resample limit.', e)}
                         />
                     </label>
                     <input
@@ -363,6 +381,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                         type="text"
                         value={maxResampleLimit}
                         onChange={(e) => setMaxResampleLimit(e.target.value)}
+                        placeholder="5" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -370,6 +389,7 @@ const ConfigPanel = forwardRef(({ compressionFactor, setCompressionFactor, setRa
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
+                            color: maxResampleLimit ? '#333' : '#999', // Grey if empty
                         }}
                     />
                 </div>

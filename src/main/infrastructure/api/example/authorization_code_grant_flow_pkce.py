@@ -37,7 +37,8 @@ def auth():
 
     client = app_store.complete_authorization_code_grant_flow(auth_code, app_id, app_secret, "http://localhost:8080/auth", code_verifier=code_verifier, base_url=base_url)
 
-    print(client.refresh_token)
+    print("CLIENT REFRESH TOKEM", client.refresh_token)
+    print("oh yeah ooh yeah gonna redirect")
 
     redirect('/info')
 

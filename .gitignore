@@ -42,3 +42,4 @@ packages/react-devtools-timeline/dist
 
 #azure
 src/main/infrastructure/api/config.json
+src/main/infrastructure/api/test_data.json

@@ -1,33 +1,26 @@
+### THIS IS authorization_code_grant_flow_pkce.py !!!
+
 import json
-import urllib
-import matplotlib.pyplot as plt
-import pandas as pd
-from datetime import datetime, timedelta
+import pkce
 
 from bottle import route, run, request, redirect
 
-import pkce
-
 import intelligent_plant.app_store_client as app_store
-import intelligent_plant.utility as utility
+import intelligent_plant.data_core_client as data_core
 
-'''app_id = None
+app_id = None
 app_secret = None
-base_url = None'''
-
-app_id = 0
-app_secret = 0
-base_url = 0
+base_url = None
 
 #in the real world a new client would need to be instanced per user
-client = 0
-code_verifier = 0
+client = None
+code_verifier = None
 
 #load the json config file with the app information
 with open('config.json') as json_config_file:
     config = json.load(json_config_file)
 
-    #print(config)
+    print(config)
 
     app_id = config['app']['id']
     app_secret = config['app']['secret']
@@ -43,13 +36,47 @@ def auth():
 
     print(client.refresh_token)
 
-    redirect('/info')
+    redirect('/data_sources')
 
 @route('/info')
 def info():
     """Once authorized the user is redirected here which displays there app store user info"""
     data = client.get_user_info()
+    print("info")
     return str(data)
+
+@route('/data_sources')
+def data_sources():
+    global client
+    global list
+    list = []
+
+    sources = client.get_data_core_client().get_data_sources()
+
+    for i in range(len(sources)):
+        for k, v in sources[i].items():
+            if k == 'Name':
+                list.append(v['QualifiedName'])
+    
+    redirect('/tags')
+
+@route('/tags')
+def tags():
+    
+    global client
+
+    #the list item will be whatever data source the user chooses - needs to be gotten from the API
+    tags = client.get_data_core_client().get_tags(list[0])
+
+    for i in range(len(tags)):
+        for k, v in tags[i].items():
+            if k == 'Properties':
+                for l,m in v.items():
+                    if l == 'UTC Earliest Raw Sample Time':
+                        for n,o in m.items():
+                            if n == 'Value':
+                               return o
+                            
 
 @route('/refresh')
 def info():
@@ -68,14 +95,4 @@ def index():
     url = app_store.get_authorization_code_grant_flow_url(app_id, "http://localhost:8080/auth", ["UserInfo", "DataRead"], code_challenge=code_challenge, code_challenge_method='S256', access_type='offline', base_url=base_url)
     redirect(url)
 
-def app_store_queries():
-    """
-    Tests the app store queries.
-    :param app_store: An app store client instance.
-    """
-    #get the current users app store info
-
-app_store.get_user_info()
-
 run(host='localhost', port=8080, debug = True)
-

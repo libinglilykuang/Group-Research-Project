@@ -62,7 +62,7 @@
 | ----------------- | -----    | -----------            |
 | [Week 12 : Meeting 1](./meeting_notes/Week12Meeting1.md) | 28/1/25 | First meeting back of term |
 | [Week 12 : Meeting 2](./meeting_notes/Week12Meeting2.md) | 31/1/25 | Lab work in subteams |
-| [Week 13 : Meeting 1](./meeting_notes/Week13Meeting1.md) | 7/2/25 | Lab work in subteams |
+| [Week 13 : Meeting 1](./meeting_notes/Week13Meeting1.md) | 07/2/25 | Lab work in subteams |
 | [Week 14 : Meeting 1](./meeting_notes/Week14Meeting1.md) | 10/2/25 | Industry Meeting |
 | [Week 14 : Meeting 2](./meeting_notes/Week14Meeting2.md) | 13/2/25 | Check-in with academic supervisor |
 | [Week 14 : Meeting 3](./meeting_notes/Week14Meeting3.md) | 14/2/25 | Lab work |
@@ -70,7 +70,10 @@
 | [Week 15 : Meeting 2](./meeting_notes/Week15Meeting2.md) | 21/2/25 | Lab work on UI and Compression |
 | [Week 16 : Meeting 1](./meeting_notes/Week16Meeting1.md) | 24/2/25 | Feedback from Industry |
 | [Week 16 : Meeting 2](./meeting_notes/Week16Meeting2.md) | 28/2/25 | Updating academic supervisor |
-| [Week 17 : Meeting 1](./meeting_notes/Week17Meeting1.md) | 3/3/25 | Progress Discussion |
+| [Week 17 : Meeting 1](./meeting_notes/Week17Meeting1.md) | 03/3/25 | Progress Discussion |
+| [Week 17 : Meeting 2](./meeting_notes/Week17Meeting2.md) | 07/3/25 | Prep for industry meeting |
+| [Week 18 : Meeting 1](./meeting_notes/Week18Meeting1.md) | 10/3/25 | Feedback from industry |
+
 
 
 

@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
-import { format, isToday, isYesterday, isValid } from 'date-fns';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import PropTypes from "prop-types";
+import { format, isToday, isYesterday, isValid } from "date-fns";
+import { collection, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase"; // Ensure Firestore instance is imported
+import JSZip from "jszip"; // For generating zip files
+import { saveAs } from "file-saver"; // For triggering file downloads
 
 // Group by date
 const groupByDate = (configs) => {
@@ -13,9 +17,9 @@ const groupByDate = (configs) => {
             return acc; // Skip invalid dates
         }
 
-        let label = format(date, 'yyyy-MM-dd');
-        if (isToday(date)) label = 'Today';
-        else if (isYesterday(date)) label = 'Yesterday';
+        let label = format(date, "yyyy-MM-dd");
+        if (isToday(date)) label = "Today";
+        else if (isYesterday(date)) label = "Yesterday";
 
         acc[label] = acc[label] || [];
         acc[label].push(config);
@@ -23,96 +27,138 @@ const groupByDate = (configs) => {
     }, {});
 };
 
-const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, toggleSidebar, onLoadConfig }) => {
-    const [searchInput, setSearchInput] = useState('');
+const CompressionSidebarPanel = ({
+                                     configurations = [],
+                                     setConfigurations, // Receive setConfigurations as a prop
+                                     onNewConfig,
+                                     isOpen,
+                                     toggleSidebar,
+                                     onLoadConfig,
+                                     compressedData, // Receive compressed data
+                                 }) => {
+    const [searchInput, setSearchInput] = useState("");
     const [activeMenuIndex, setActiveMenuIndex] = useState(null);
-    const [configurationsState, setConfigurationsState] = useState(configurations);
     const [isModalOpen, setModalOpen] = useState(false);
+    const [isDownloadModalOpen, setDownloadModalOpen] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState(null);
     const [editedConfig, setEditedConfig] = useState(null);
+    const [selectedParameters, setSelectedParameters] = useState({});
     const menuRef = useRef(null);
-
-    // Update configurationsState when the configurations prop changes
-    useEffect(() => {
-        setConfigurationsState(configurations);
-    }, [configurations]);
-
-    // Handle creating a new configuration
-    const handleNewConfig = () => {
-        if (onNewConfig) {
-            onNewConfig(); // Call the callback function passed from the parent component
-        }
-    };
 
     // Filter configurations
     const filteredConfigurations = useMemo(() => groupByDate(
-        configurationsState.filter((config) =>
+        configurations.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
         )
-    ), [configurationsState, searchInput]);
+    ), [configurations, searchInput]);
 
-    // Delete a configuration
-    const handleDelete = useCallback((configName) => {
-        setConfigurationsState((prevConfigs) => {
-            const newConfigs = prevConfigs.filter((config) => config.name !== configName);
-            return newConfigs;
-        });
-        setActiveMenuIndex(null);
-    }, []);
+    // Delete configuration
+    const handleDelete = useCallback(async (configId) => {
+        try {
+            // Delete from Firestore
+            await deleteDoc(doc(db, "configurations", configId));
 
-    // Download a configuration
-    const handleDownload = (configName) => {
-        const config = configurationsState.find((cfg) => cfg.name === configName);
+            // Remove from local state
+            setConfigurations((prevConfigs) =>
+                prevConfigs.filter((config) => config.id !== configId)
+            );
 
-        if (config) {
-            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
-            const downloadUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = `${configName}.json`;
-            link.click();
-            URL.revokeObjectURL(downloadUrl);
+            alert("Configuration deleted successfully!");
+        } catch (error) {
+            console.error("Error deleting configuration:", error);
+            alert(`Failed to delete configuration: ${error.message}`);
         }
-    };
+    }, [setConfigurations]);
 
-    // Toggle the menu
-    const handleMenuToggle = (configName) => {
-        setActiveMenuIndex(activeMenuIndex === configName ? null : configName);
-    };
-
-    // Close the menu when clicking outside
-    const handleClickOutside = (event) => {
-        if (
-            menuRef.current &&
-            !menuRef.current.contains(event.target) &&
-            !event.target.closest('button[data-action="edit"]') &&
-            !event.target.closest('button[data-action="download"]') &&
-            !event.target.closest('button[data-action="delete"]')
-        ) {
-            setActiveMenuIndex(null);
-        }
-    };
-
-    // Edit a configuration
-    const handleEdit = (configName, index) => {
-        const config = configurationsState.find((cfg) => cfg.name === configName);
+    // Download configuration
+    const handleDownload = (config) => {
         setSelectedConfig(config);
-        setEditedConfig({ ...config }); // Copy the configuration for editing
+        setDownloadModalOpen(true);
+    };
+
+    // Handle parameter selection
+    const handleParameterSelection = (paramName, isChecked) => {
+        setSelectedParameters((prev) => ({
+            ...prev,
+            [paramName]: isChecked,
+        }));
+    };
+
+    // Confirm download
+    const handleConfirmDownload = () => {
+        if (!selectedConfig) return;
+
+        // Create zip file
+        const zip = new JSZip();
+
+        // Add compressed data
+        if (compressedData) {
+            const compressedDataBlob = new Blob([JSON.stringify(compressedData, null, 2)], {
+                type: "application/json",
+            });
+            zip.file("compressed-data.json", compressedDataBlob);
+        }
+
+        // Add selected parameters
+        const paramsToDownload = {
+            deviationLimit: selectedConfig.parameters.deviationLimit,
+            deviationType: selectedConfig.parameters.deviationType,
+            callbackFilter: selectedConfig.parameters.callbackFilter,
+            exceptionFilter1: selectedConfig.parameters.exceptionFilter1,
+            exceptionFilter2: selectedConfig.parameters.exceptionFilter2,
+            minResampleLimit: selectedConfig.parameters.minResampleLimit,
+            maxResampleLimit: selectedConfig.parameters.maxResampleLimit,
+        };
+
+        const paramsBlob = new Blob([JSON.stringify(paramsToDownload, null, 2)], {
+            type: "application/json",
+        });
+        zip.file("parameters.json", paramsBlob);
+
+        // Generate zip and trigger download
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, `${selectedConfig.name}-download.zip`);
+            setDownloadModalOpen(false);
+            alert("Download started!");
+        });
+    };
+
+    // Cancel download
+    const handleCancelDownload = () => {
+        setDownloadModalOpen(false);
+    };
+
+    // Edit configuration
+    const handleEdit = (config) => {
+        setSelectedConfig(config);
+        setEditedConfig({
+            ...config,
+            parameters: {
+                deviationLimit: config.parameters.deviationLimit || 2, // Default value
+                deviationType: config.parameters.deviationType || "percentage", // Default value
+                callbackFilter: config.parameters.callbackFilter || 0, // Default value
+                exceptionFilter1: config.parameters.exceptionFilter1 || "", // Default value
+                exceptionFilter2: config.parameters.exceptionFilter2 || "", // Default value
+                minResampleLimit: config.parameters.minResampleLimit || 0, // Default value
+                maxResampleLimit: config.parameters.maxResampleLimit || 5, // Default value
+            },
+        }); // Copy config for editing and ensure all parameters have default values
         setModalOpen(true);
     };
 
-    // Save the edited configuration
-    const handleSaveEdit = () => {
-        setConfigurationsState((prevConfigs) => {
-            const updatedConfigs = prevConfigs.map((config) =>
-                config.name === selectedConfig.name ? editedConfig : config
-            );
-            return updatedConfigs;
-        });
-        setModalOpen(false);
+    // Save edited configuration
+    const handleSaveEdit = async () => {
+        try {
+            await updateDoc(doc(db, "configurations", selectedConfig.id), editedConfig); // Update Firestore
+            setModalOpen(false);
+            alert("Configuration updated successfully!");
+        } catch (error) {
+            console.error("Error updating configuration:", error);
+            alert("Failed to update configuration. Please try again.");
+        }
     };
 
-    // Cancel editing
+    // Cancel edit
     const handleCancelEdit = () => {
         setModalOpen(false);
     };
@@ -136,18 +182,23 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
         }));
     };
 
-    // Load a configuration
-    const handleLoadConfig = (config) => {
-        if (onLoadConfig) {
-            onLoadConfig(config); // Call the callback function passed from the parent component
-        }
-    };
-
-    // Listen for clicks outside the menu
+    // Listen for clicks outside to close menu
     useEffect(() => {
-        document.addEventListener('mousedown', handleClickOutside);
+        const handleClickOutside = (event) => {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target) &&
+                !event.target.closest('button[data-action="edit"]') &&
+                !event.target.closest('button[data-action="download"]') &&
+                !event.target.closest('button[data-action="delete"]')
+            ) {
+                setActiveMenuIndex(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
 
@@ -157,276 +208,510 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
             {!isOpen && (
                 <button
                     onClick={toggleSidebar}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', position: 'fixed', top: '10px', left: '10px', zIndex: 1000 }}
+                    style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        position: "fixed",
+                        top: "10px",
+                        left: "10px",
+                        zIndex: 1000,
+                    }}
                 >
-                    <img src="/icons/open-sidebar.png" alt="Menu" style={{ width: '30px', height: '30px' }} />
+                    <img src="/icons/open-sidebar.png" alt="Menu" style={{ width: "30px", height: "30px" }} />
                 </button>
             )}
+
+            {/* Sidebar content */}
             <div
-                className={`sidebar ${isOpen ? 'expanded' : 'collapsed'}`}
+                className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}
                 style={{
-                    position: 'fixed',
+                    position: "fixed",
                     left: 0,
                     top: 0,
-                    height: '100vh',
-                    width: isOpen ? '250px' : '0',
-                    transition: 'width 0.3s',
-                    overflow: 'hidden',
-                    background: '#ffffff', // Pure white background
-                    padding: isOpen ? '10px' : '0',
+                    height: "100vh",
+                    width: isOpen ? "250px" : "0",
+                    transition: "width 0.3s",
+                    overflow: "hidden",
+                    background: "#ffffff",
+                    padding: isOpen ? "10px" : "0",
                     zIndex: 999,
-                    color: '#333', // Dark text
-                    boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // Light shadow
+                    color: "#333",
+                    boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
                 }}
             >
                 {isOpen && (
-                    <button
-                        onClick={toggleSidebar}
-                        style={{ position: 'absolute', right: 10, top: 10, background: 'transparent', border: 'none', cursor: 'pointer' }}
-                    >
-                        <img
-                            src="/icons/close.png"
-                            alt="Close"
-                            style={{ width: '36px', height: '36px' }}
-                        />
-                    </button>
-                )}
-                {/* Search bar */}
-                <div className="search-bar" style={{ marginBottom: '15px' }}>
-                    <input
-                        type="text"
-                        placeholder="Search configurations"
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        style={{ width: 'calc(100% - 60px)', padding: '6px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px', background: '#f0f0f0', color: '#333' }} // Search bar styling
-                    />
-                </div>
-                <div className="sidebar-content">
-                    {/* Button to start a new configuration */}
-                    <button
-                        onClick={handleNewConfig}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            marginBottom: '15px',
-                            padding: '5px',
-                            width: '100%',
-                            textAlign: 'left',
-                            color: '#333', // Dark text
-                            transition: 'background 0.2s', // Hover transition effect
-                            ':hover': { background: '#f0f0f0' }, // Hover background color
-                        }}
-                    >
-                        <img
-                            src="/icons/start-new-config.png"
-                            alt="New Config"
-                            style={{ width: '20px', height: '20px', marginRight: '10px' }}
-                        />
-                        <span>Start New Configuration</span>
-                    </button>
+                    <>
+                        {/* Close button */}
+                        <button
+                            onClick={toggleSidebar}
+                            style={{
+                                position: "absolute",
+                                right: 10,
+                                top: 10,
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img src="/icons/close.png" alt="Close" style={{ width: "36px", height: "36px" }} />
+                        </button>
 
-                    {/* Configuration list */}
-                    {Object.keys(filteredConfigurations).length > 0 ? (
-                        <div>
-                            {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
-                                <div key={dateLabel}>
-                                    <h4 style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '16px', color: '#333' }}>{dateLabel}</h4> {/* Dark text */}
-                                    <ul style={{ paddingLeft: '10px' }}>
-                                        {configs.map((config, index) => (
-                                            <li key={config.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', color: '#333' }}> {/* Dark text */}
-                                                <span>{config.name}</span> {/* Display the updated name */}
-                                                <div style={{ position: 'relative' }} ref={menuRef}>
-                                                    <button onClick={() => handleMenuToggle(config.name)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#333' }}> {/* Dark text */}
-                                                        ...
-                                                    </button>
-                                                    {activeMenuIndex === config.name && (
-                                                        <div
-                                                            className="menu"
+                        {/* Search bar */}
+                        <div className="search-bar" style={{ marginBottom: "15px" }}>
+                            <input
+                                type="text"
+                                placeholder="Search configurations"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                style={{
+                                    width: "calc(100% - 60px)",
+                                    padding: "6px",
+                                    fontSize: "14px",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "4px",
+                                    background: "#f0f0f0",
+                                    color: "#333",
+                                }}
+                            />
+                        </div>
+
+                        {/* New configuration button */}
+                        <button
+                            onClick={onNewConfig}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                marginBottom: "15px",
+                                padding: "5px",
+                                width: "100%",
+                                textAlign: "left",
+                                color: "#333",
+                                transition: "background 0.2s",
+                                ":hover": { background: "#f0f0f0" },
+                            }}
+                        >
+                            <img
+                                src="/icons/start-new-config.png"
+                                alt="New Config"
+                                style={{ width: "20px", height: "20px", marginRight: "10px" }}
+                            />
+                            <span>Start New Configuration</span>
+                        </button>
+
+                        {/* Configuration list */}
+                        {Object.keys(filteredConfigurations).length > 0 ? (
+                            <div>
+                                {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
+                                    <div key={dateLabel}>
+                                        <h4 style={{ marginTop: "10px", fontWeight: "bold", fontSize: "16px", color: "#333" }}>
+                                            {dateLabel}
+                                        </h4>
+                                        <ul style={{ paddingLeft: "10px" }}>
+                                            {configs.map((config) => (
+                                                <li
+                                                    key={config.id}
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        padding: "5px 0",
+                                                        color: "#333",
+                                                    }}
+                                                >
+                                                    <span>{config.name}</span>
+                                                    <div style={{ position: "relative" }} ref={menuRef}>
+                                                        <button
+                                                            onClick={() => setActiveMenuIndex(config.id)}
                                                             style={{
-                                                                position: 'absolute',
-                                                                right: '-20px', // Offset 20px to the right, outside the sidebar boundary
-                                                                top: '100%',
-                                                                background: '#ffffff', // White background
-                                                                border: '1px solid #ddd', // Add border
-                                                                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow
-                                                                padding: '5px',
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                zIndex: 1000, // Ensure the menu is above the sidebar
-                                                                borderRadius: '4px', // Rounded corners
+                                                                background: "transparent",
+                                                                border: "none",
+                                                                cursor: "pointer",
+                                                                color: "#333",
                                                             }}
                                                         >
-                                                            <button
-                                                                data-action="edit"
-                                                                onClick={() => handleEdit(config.name, index)}
+                                                            ...
+                                                        </button>
+                                                        {activeMenuIndex === config.id && (
+                                                            <div
+                                                                className="menu"
                                                                 style={{
-                                                                    background: '#ffffff', // White background
-                                                                    border: 'none',
-                                                                    cursor: 'pointer',
-                                                                    color: '#333', // Dark text
-                                                                    padding: '8px 12px', // Increase padding
-                                                                    textAlign: 'left',
-                                                                    transition: 'background 0.2s', // Hover transition effect
-                                                                    borderRadius: '4px', // Rounded corners
-                                                                    marginBottom: '4px', // Button spacing
-                                                                    display: 'flex', // Use flex layout
-                                                                    alignItems: 'center', // Vertically center
-                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
+                                                                    position: "absolute",
+                                                                    right: "-20px",
+                                                                    top: "100%",
+                                                                    background: "#ffffff",
+                                                                    border: "1px solid #ddd",
+                                                                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                                                                    padding: "5px",
+                                                                    display: "flex",
+                                                                    flexDirection: "column",
+                                                                    zIndex: 1000,
+                                                                    borderRadius: "4px",
                                                                 }}
                                                             >
-                                                                <img
-                                                                    src="/icons/edit.png"
-                                                                    alt="Edit"
-                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
-                                                                />
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                data-action="download"
-                                                                onClick={() => handleDownload(config.name)}
-                                                                style={{
-                                                                    background: '#ffffff', // White background
-                                                                    border: 'none',
-                                                                    cursor: 'pointer',
-                                                                    color: '#333', // Dark text
-                                                                    padding: '8px 12px', // Increase padding
-                                                                    textAlign: 'left',
-                                                                    transition: 'background 0.2s', // Hover transition effect
-                                                                    borderRadius: '4px', // Rounded corners
-                                                                    marginBottom: '4px', // Button spacing
-                                                                    display: 'flex', // Use flex layout
-                                                                    alignItems: 'center', // Vertically center
-                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
-                                                                }}
-                                                            >
-                                                                <img
-                                                                    src="/icons/download.png"
-                                                                    alt="Download"
-                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
-                                                                />
-                                                                Download
-                                                            </button>
-                                                            <button
-                                                                data-action="delete"
-                                                                onClick={() => handleDelete(config.name)}
-                                                                style={{
-                                                                    background: '#ffffff', // White background
-                                                                    border: 'none',
-                                                                    cursor: 'pointer',
-                                                                    color: '#333', // Dark text
-                                                                    padding: '8px 12px', // Increase padding
-                                                                    textAlign: 'left',
-                                                                    transition: 'background 0.2s', // Hover transition effect
-                                                                    borderRadius: '4px', // Rounded corners
-                                                                    marginBottom: '4px', // Button spacing
-                                                                    display: 'flex', // Use flex layout
-                                                                    alignItems: 'center', // Vertically center
-                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
-                                                                }}
-                                                            >
-                                                                <img
-                                                                    src="/icons/delete.png"
-                                                                    alt="Delete"
-                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
-                                                                />
-                                                                Delete
-                                                            </button>
-                                                            <button
-                                                                data-action="load"
-                                                                onClick={() => handleLoadConfig(config)}
-                                                                style={{
-                                                                    background: '#ffffff', // White background
-                                                                    border: 'none',
-                                                                    cursor: 'pointer',
-                                                                    color: '#333', // Dark text
-                                                                    padding: '8px 12px', // Increase padding
-                                                                    textAlign: 'left',
-                                                                    transition: 'background 0.2s', // Hover transition effect
-                                                                    borderRadius: '4px', // Rounded corners
-                                                                    display: 'flex', // Use flex layout
-                                                                    alignItems: 'center', // Vertically center
-                                                                    ':hover': { background: '#f0f0f0' }, // Hover background color
-                                                                }}
-                                                            >
-                                                                <img
-                                                                    src="/icons/load.png"
-                                                                    alt="Load"
-                                                                    style={{ width: '16px', height: '16px', marginRight: '8px' }} // Icon styling
-                                                                />
-                                                                Load
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div style={{ color: 'gray', fontStyle: 'italic' }}>No configurations available</div>
-                    )}
-                </div>
+                                                                <button
+                                                                    data-action="edit"
+                                                                    onClick={() => handleEdit(config)}
+                                                                    style={{
+                                                                        background: "#ffffff",
+                                                                        border: "none",
+                                                                        cursor: "pointer",
+                                                                        color: "#333",
+                                                                        padding: "8px 12px",
+                                                                        textAlign: "left",
+                                                                        transition: "background 0.2s",
+                                                                        borderRadius: "4px",
+                                                                        marginBottom: "4px",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        ":hover": { background: "#f0f0f0" },
+                                                                    }}
+                                                                >
+                                                                    <img
+                                                                        src="/icons/edit.png"
+                                                                        alt="Edit"
+                                                                        style={{ width: "16px", height: "16px", marginRight: "8px" }}
+                                                                    />
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    data-action="download"
+                                                                    onClick={() => handleDownload(config)}
+                                                                    style={{
+                                                                        background: "#ffffff",
+                                                                        border: "none",
+                                                                        cursor: "pointer",
+                                                                        color: "#333",
+                                                                        padding: "8px 12px",
+                                                                        textAlign: "left",
+                                                                        transition: "background 0.2s",
+                                                                        borderRadius: "4px",
+                                                                        marginBottom: "4px",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        ":hover": { background: "#f0f0f0" },
+                                                                    }}
+                                                                >
+                                                                    <img
+                                                                        src="/icons/download.png"
+                                                                        alt="Download"
+                                                                        style={{ width: "16px", height: "16px", marginRight: "8px" }}
+                                                                    />
+                                                                    Download
+                                                                </button>
+                                                                <button
+                                                                    data-action="delete"
+                                                                    onClick={() => handleDelete(config.id)}
+                                                                    style={{
+                                                                        background: "#ffffff",
+                                                                        border: "none",
+                                                                        cursor: "pointer",
+                                                                        color: "#333",
+                                                                        padding: "8px 12px",
+                                                                        textAlign: "left",
+                                                                        transition: "background 0.2s",
+                                                                        borderRadius: "4px",
+                                                                        marginBottom: "4px",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        ":hover": { background: "#f0f0f0" },
+                                                                    }}
+                                                                >
+                                                                    <img
+                                                                        src="/icons/delete.png"
+                                                                        alt="Delete"
+                                                                        style={{ width: "16px", height: "16px", marginRight: "8px" }}
+                                                                    />
+                                                                    Delete
+                                                                </button>
+                                                                <button
+                                                                    data-action="load"
+                                                                    onClick={() => onLoadConfig(config)}
+                                                                    style={{
+                                                                        background: "#ffffff",
+                                                                        border: "none",
+                                                                        cursor: "pointer",
+                                                                        color: "#333",
+                                                                        padding: "8px 12px",
+                                                                        textAlign: "left",
+                                                                        transition: "background 0.2s",
+                                                                        borderRadius: "4px",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        ":hover": { background: "#f0f0f0" },
+                                                                    }}
+                                                                >
+                                                                    <img
+                                                                        src="/icons/load.png"
+                                                                        alt="Load"
+                                                                        style={{ width: "16px", height: "16px", marginRight: "8px" }}
+                                                                    />
+                                                                    Load
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ color: "gray", fontStyle: "italic" }}>No configurations available</div>
+                        )}
+                    </>
+                )}
             </div>
 
             {/* Edit modal */}
             {isModalOpen && selectedConfig && (
                 <div
                     style={{
-                        position: 'fixed',
+                        position: "fixed",
                         top: 0,
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                         zIndex: 1000,
                     }}
                     onClick={handleCancelEdit}
                 >
                     <div
                         style={{
-                            background: '#fff',
-                            padding: '20px',
-                            borderRadius: '8px',
-                            width: '400px',
-                            boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
+                            background: "#fff",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            width: "400px",
+                            maxHeight: "80vh",
+                            boxShadow: "0px 0px 10px rgba(0,0,0,0.2)",
+                            display: "flex",
+                            flexDirection: "column",
+                            position: "relative",
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* Close button */}
+                        <button
+                            onClick={handleCancelEdit}
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "10px",
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img src="/icons/cancel.png" alt="Close" style={{ width: "24px", height: "24px" }} />
+                        </button>
+
                         <h3>Edit Configuration</h3>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
-                            <input
-                                type="text"
-                                value={editedConfig.name}
-                                onChange={handleNameChange}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                            />
-                        </div>
-                        <p><strong>Date:</strong> {format(new Date(selectedConfig.date), 'yyyy-MM-dd HH:mm')}</p>
-                        <h4>Parameters:</h4>
-                        <form>
-                            {Object.entries(editedConfig.parameters).map(([key, value]) => (
-                                <div key={key} style={{ marginBottom: '10px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px' }}>{key}</label>
+                        <div style={{ overflowY: "auto", flex: 1 }}>
+                            <div style={{ marginBottom: "10px" }}>
+                                <label style={{ display: "block", marginBottom: "5px" }}>Name</label>
+                                <input
+                                    type="text"
+                                    value={editedConfig.name}
+                                    onChange={handleNameChange}
+                                    style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                />
+                            </div>
+                            <p>
+                                <strong>Date:</strong> {format(new Date(selectedConfig.date), "yyyy-MM-dd HH:mm")}
+                            </p>
+                            <h4>Parameters:</h4>
+                            <form>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Deviation Limit</label>
                                     <input
                                         type="text"
-                                        value={value}
-                                        onChange={(e) => handleParamChange(key, e.target.value)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                                        value={editedConfig.parameters.deviationLimit || ""}
+                                        onChange={(e) => handleParamChange("deviationLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                                     />
                                 </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Deviation Type</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.deviationType || ""}
+                                        onChange={(e) => handleParamChange("deviationType", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Callback Filter</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.callbackFilter || ""}
+                                        onChange={(e) => handleParamChange("callbackFilter", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 1</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.exceptionFilter1 || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilter1", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 2</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.exceptionFilter2 || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilter2", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Min Resample Limit</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.minResampleLimit || ""}
+                                        onChange={(e) => handleParamChange("minResampleLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Max Resample Limit</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.maxResampleLimit || ""}
+                                        onChange={(e) => handleParamChange("maxResampleLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* Save button */}
+                        <div style={{ marginTop: "10px", textAlign: "left" }}>
+                            <button
+                                onClick={handleSaveEdit}
+                                style={{
+                                    background: "#007BFF",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "10px 15px",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    transition: "background 0.3s ease",
+                                }}
+                                onMouseOver={(e) => (e.target.style.background = "#0056b3")}
+                                onMouseOut={(e) => (e.target.style.background = "#007BFF")}
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Download modal */}
+            {isDownloadModalOpen && selectedConfig && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 1000,
+                    }}
+                    onClick={handleCancelDownload}
+                >
+                    <div
+                        style={{
+                            background: "#fff",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            width: "400px",
+                            maxHeight: "80vh",
+                            boxShadow: "0px 0px 10px rgba(0,0,0,0.2)",
+                            display: "flex",
+                            flexDirection: "column",
+                            position: "relative",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={handleCancelDownload}
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "10px",
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img src="/icons/cancel.png" alt="Close" style={{ width: "24px", height: "24px" }} />
+                        </button>
+
+                        <h3>Download Configuration</h3>
+                        <div style={{ overflowY: "auto", flex: 1 }}>
+                            <p>Select parameters to include in the download:</p>
+                            {[
+                                "deviationLimit",
+                                "deviationType",
+                                "callbackFilter",
+                                "exceptionFilter1",
+                                "exceptionFilter2",
+                                "minResampleLimit",
+                                "maxResampleLimit",
+                            ].map((param) => (
+                                <div key={param} style={{ marginBottom: "10px" }}>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedParameters[param] || false}
+                                            onChange={(e) => handleParameterSelection(param, e.target.checked)}
+                                        />
+                                        {param}
+                                    </label>
+                                </div>
                             ))}
-                        </form>
-                        <button onClick={handleSaveEdit} style={{ marginTop: '10px', marginRight: '10px' }}>Save</button>
-                        <button onClick={handleCancelEdit} style={{ marginTop: '10px' }}>Cancel</button>
+                        </div>
+
+                        {/* Confirm button */}
+                        <div style={{ marginTop: "10px", textAlign: "left" }}>
+                            <button
+                                onClick={handleConfirmDownload}
+                                style={{
+                                    background: "#007BFF",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "10px 15px",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    transition: "background 0.3s ease",
+                                }}
+                                onMouseOver={(e) => (e.target.style.background = "#0056b3")}
+                                onMouseOut={(e) => (e.target.style.background = "#007BFF")}
+                            >
+                                Confirm Download
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -434,18 +719,22 @@ const CompressionSidebarPanel = ({ configurations = [], onNewConfig, isOpen, tog
     );
 };
 
+// Prop type checking
 CompressionSidebarPanel.propTypes = {
     configurations: PropTypes.arrayOf(
         PropTypes.shape({
+            id: PropTypes.string.isRequired,
             name: PropTypes.string.isRequired,
             date: PropTypes.string.isRequired,
             parameters: PropTypes.object.isRequired,
         })
-    ),
+    ).isRequired,
+    setConfigurations: PropTypes.func.isRequired, // Add setConfigurations
     onNewConfig: PropTypes.func,
     isOpen: PropTypes.bool.isRequired,
     toggleSidebar: PropTypes.func.isRequired,
     onLoadConfig: PropTypes.func.isRequired,
+    compressedData: PropTypes.arrayOf(PropTypes.number), // Receive compressed data
 };
 
 export default CompressionSidebarPanel;

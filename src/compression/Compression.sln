@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelligentPlant.Compression", "IntelligentPlant.Compression\IntelligentPlant.Compression.csproj", "{28223556-1538-46EF-9CDF-512CF721C1C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compression.Example", "Compression.Example\Compression.Example.csproj", "{2ABC7ADB-DDB1-4F47-BEFE-74A2B6D45807}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{28223556-1538-46EF-9CDF-512CF721C1C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28223556-1538-46EF-9CDF-512CF721C1C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28223556-1538-46EF-9CDF-512CF721C1C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28223556-1538-46EF-9CDF-512CF721C1C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ABC7ADB-DDB1-4F47-BEFE-74A2B6D45807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ABC7ADB-DDB1-4F47-BEFE-74A2B6D45807}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ABC7ADB-DDB1-4F47-BEFE-74A2B6D45807}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ABC7ADB-DDB1-4F47-BEFE-74A2B6D45807}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {835886AA-E1D3-4FA1-8529-F1B830AE6BEE}
+	EndGlobalSection
+EndGlobal

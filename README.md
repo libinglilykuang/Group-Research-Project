@@ -73,6 +73,7 @@
 | [Week 17 : Meeting 1](./meeting_notes/Week17Meeting1.md) | 03/3/25 | Progress Discussion |
 | [Week 17 : Meeting 2](./meeting_notes/Week17Meeting2.md) | 07/3/25 | Prep for industry meeting |
 | [Week 18 : Meeting 1](./meeting_notes/Week18Meeting1.md) | 10/3/25 | Feedback from industry |
+| [Week 18 : Meeting 2](./meeting_notes/Week18Meeting2.md) | 11/3/25 | Progress update with academic supervisor |
 
 
 

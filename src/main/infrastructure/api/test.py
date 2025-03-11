@@ -2,6 +2,7 @@
 
 import json
 import pkce
+import datetime
 
 from bottle import route, run, request, redirect
 
@@ -20,7 +21,7 @@ code_verifier = None
 with open('config.json') as json_config_file:
     config = json.load(json_config_file)
 
-    print(config)
+    #print(config)
 
     app_id = config['app']['id']
     app_secret = config['app']['secret']
@@ -34,7 +35,7 @@ def auth():
 
     client = app_store.complete_authorization_code_grant_flow(auth_code, app_id, app_secret, "http://localhost:8080/auth", code_verifier=code_verifier, base_url=base_url)
 
-    print(client.refresh_token)
+    #print(client.refresh_token)
 
     redirect('/data_sources')
 
@@ -47,31 +48,41 @@ def info():
 
 @route('/data_sources')
 def data_sources():
-    #once authorised, the data sources are retrieved from the API and stored in a list
+    #once authorised, the data sources names are retrieved from the API and stored in a list
     global client
-    global list
-    list = []
+    global qualifiedNames
+    qualifiedNames = [] #list of qualified names
+    names = {} #dictionary where keys are qualified names and values are plain text names
 
     sources = client.get_data_core_client().get_data_sources()
 
     for i in range(len(sources)):
         for k, v in sources[i].items():
             if k == 'Name':
-                list.append(v['QualifiedName'])
-        
+                qualifiedNames.append(v['QualifiedName'])
+                names[v['Name']] = v['QualifiedName']
     
+
     redirect('/get_data')
 
 @route('/get_data')
 def get_data():
     #Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data, and a request to get the data from the API is sent
     global client
-    starttime = None
-    endtime = None
+    global starttime #earliest sample time
+    global endtime #latest sample time
 
-    #the list item will be whatever data source the user chooses - needs to be retrieved from the UI
-    tags = client.get_data_core_client().get_tags(list[0])
+    global dsn
 
+    #!!!! NOTICE!!!!
+    #FOR NOW, THIS FUNCTION IS HARDCODED TO GET DATA FROM THE 'NOISY SIN WAVE' DATA SOURCE.
+    #IT NEEDS TO BE UPDATED TO NOT DO THIS.
+    # - FROM WILL
+    #!!!!!!!!!!!!!!
+    dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - needs to be retrieved from the UI
+    
+    tags = client.get_data_core_client().get_tags(dsn)
+    
     #iterating through the list of tags and getting data from the dicts as necessary
     for i in range(len(tags)):
         for k, v in tags[i].items():
@@ -80,16 +91,20 @@ def get_data():
                     if l == 'UTC Earliest Raw Sample Time':
                         for n,o in m.items():
                             if n == 'Value':
-                               starttime = o
+                                starttime = o
                     if l == 'UTC Latest Raw Sample Time':
                         for j,k in m.items():
                             if j == 'Value':
-                               endtime = k
+                                endtime = k
 
+    try:
+        data = client.get_data_core_client().get_raw_data({dsn:['NoisySINWave']},datetime.datetime(2025,3,9),datetime.datetime(2025,3,11),0)
+        print("API Request Complete!")
+    except:
+        print("API Request Failed.")
+    
 
-    #data = client.get_data_core_client().get_raw_data(tags[0], starttime, endtime, 0) # <- the one we want
-    data = client.get_data_core_client().get_data_at_times(tags[0], starttime)
-    print(data)
+    return data
 
 @route('/refresh')
 def info():

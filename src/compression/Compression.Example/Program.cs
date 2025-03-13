@@ -25,6 +25,7 @@ var pipeline = new PipelineBuilder()
         MaximumResampleLimit = new TimeSpan(0, 0, 5) // Maximum resample limit of 5 seconds
     }).WithCallbackFilter(value =>
     {
+        // add code here!
         // do something with the value here.
         // any values which have got here must have passed all of the filters.
         // so we now want to write them to a data structure.

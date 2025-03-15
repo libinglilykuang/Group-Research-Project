@@ -22,7 +22,10 @@ var pipeline = new PipelineBuilder()
     }).WithValueChangeFilter(new ValueChangeFilterSettings()
     {
         MinimumResampleLimit = TimeSpan.Zero, // No resample limit
-        MaximumResampleLimit = new TimeSpan(0, 0, 5) // Maximum resample limit of 5 seconds
+        MaximumResampleLimit = new TimeSpan(0, 0, 10) // Ensures a sample is taken at least every 10 seconds
+        // takes in a max and min resample limit (max ensures that at least one sample is taken in that period of time)
+        // option to add change threshold -> i.e. amount by which the sample must have changed by??? (need to add to value change filter settings file)
+
     }).WithCallbackFilter(value =>
     {
         // add code here!

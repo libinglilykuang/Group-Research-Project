@@ -4,9 +4,21 @@ import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
 import LoginForm from "./components/LoginForm"; // Import LoginForm component
+import { uploadCSV } from "./azureBlob";
+
 
 import { auth, db } from "./firebase"; // Import Firebase instances
 import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+
+// Example usage
+async function handleSaveConfig(configData) {
+  try {
+    // configData is an array of objects,
+    await uploadCSV(configData, "user-config");
+  } catch (error) {
+    console.error("Upload failed:", error);
+  }
+}
 
 function App() {
     // State variables

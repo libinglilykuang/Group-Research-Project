@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "vW4VEbAC2ow=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Kasia\\Documents\\UNI-STUFF\\UNI-YEAR-2\\COMP2002-PROJECT\\team6_project\\src\\Compression\\IntelligentPlant.Compression\\IntelligentPlant.Compression.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Kasia\\.nuget\\packages\\nito.asyncex.coordination\\5.1.2\\nito.asyncex.coordination.5.1.2.nupkg.sha512",
+    "C:\\Users\\Kasia\\.nuget\\packages\\nito.asyncex.tasks\\5.1.2\\nito.asyncex.tasks.5.1.2.nupkg.sha512",
+    "C:\\Users\\Kasia\\.nuget\\packages\\nito.collections.deque\\1.1.1\\nito.collections.deque.1.1.1.nupkg.sha512",
+    "C:\\Users\\Kasia\\.nuget\\packages\\nito.disposables\\2.2.1\\nito.disposables.2.2.1.nupkg.sha512",
+    "C:\\Users\\Kasia\\.nuget\\packages\\system.collections.immutable\\1.7.1\\system.collections.immutable.1.7.1.nupkg.sha512"
+  ],
+  "logs": []
+}

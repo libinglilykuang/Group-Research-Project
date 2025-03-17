@@ -4,7 +4,43 @@ import sklearn.model_selection
 
 import optuna
 
+"""
+parameters:
+- deviation type: absolute or percentage
+- deviation limit: integer
+- minimum resample limit: hours, minutes, seconds
+- maximum resample limit: hours, minutes, seconds
+"""
 
+"""
+measures:
+- smallest file size
+- minimal deviation - need to calculate in objective function:
+    - get raw data + results of compression as data points (from infrastructure)
+    - work out mse and use as part of 'score' of optimisation
+    - e.g. mse = mean_squared_error(raw_data, compressed_data)
+    
+objective: decrease file size, decrease mse
+return 4 best parameters
+"""
+
+
+def objective(trial):
+    x = trial.suggest_float('x', -10, 10)
+    y = trial.suggest_float('y', -10, 10)
+    return (x - 5) ** 2
+
+
+study = optuna.create_study()
+study.optimize(objective, n_trials=100)
+
+trial = study.best_trial  # E.g. {'x': 2.002108042}
+
+print("Accuracy: {}".format(trial.values))
+print("Best hyperparameters: {}".format(trial.params))
+
+
+"""
 def objective(trial):
     iris = sklearn.datasets.load_iris()
 
@@ -24,23 +60,5 @@ study.optimize(objective, n_trials=100)
 trial = study.best_trial
 
 print("Accuracy: {}".format(trial.value))
-print("Best hyperparameters: {}".format(trial.params))
-
-
-"""
-import optuna
-
-
-def objective(trial):
-    x = trial.suggest_float('x', -10, 10)
-    return (x - 2) ** 2
-
-
-study = optuna.create_study()
-study.optimize(objective, n_trials=100)
-
-trial = study.best_trial  # E.g. {'x': 2.002108042}
-
-print("Accuracy: {}".format(trial.values))
 print("Best hyperparameters: {}".format(trial.params))
 """

@@ -14,6 +14,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [tooltip, setTooltip] = useState({ show: false, content: '', position: { x: 0, y: 0 } });
+    const [showDeviationTypeOptions, setShowDeviationTypeOptions] = useState(false);  // Deviation type
+
 
     // Default values
     const DEFAULT_DEVIATION_LIMIT = 2;
@@ -242,7 +244,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         type="text"
                         value={deviationType}
                         onChange={(e) => setDeviationType(e.target.value)}
-                        placeholder="percentage" // Default value
+                        placeholder="" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -253,6 +255,65 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             color: deviationType ? '#333' : '#999', // Grey if empty
                         }}
                     />
+                     <div style={{ marginTop: '10px' }}>
+                        <button
+                            type="button"
+                            onClick={() => setShowDeviationTypeOptions(!showDeviationTypeOptions)}
+                            style={{
+                                padding: '10px 20px',
+                                fontSize: '16px',
+                                borderRadius: '5px',
+                                border: 'none',
+                                backgroundColor: '#4CAF50',
+                                color: '#fff',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Select type
+                        </button>
+                        {showDeviationTypeOptions && (
+                            <div style={{ marginTop: '10px' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDeviationType('Absolute');
+                                        setShowDeviationTypeOptions(false);
+                                    }}
+                                    style={{
+                                        padding: '10px 20px',
+                                        marginRight: '10px',
+                                        fontSize: '16px',
+                                        borderRadius: '5px',
+                                        border: 'none',
+                                        backgroundColor: '#4CAF50',
+                                        color: '#fff',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Absolute
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDeviationType('Percentage');
+                                        setShowDeviationTypeOptions(false);
+                                    }}
+                                    style={{
+                                        padding: '10px 20px',
+                                        fontSize: '16px',
+                                        borderRadius: '5px',
+                                        border: 'none',
+                                        backgroundColor: '#4CAF50',
+                                        color: '#fff',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                  Percentage
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
@@ -280,6 +341,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             backgroundColor: '#f0f0f0',
                             color: callbackFilter ? '#333' : '#999', // Grey if empty
                         }}
+                        
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
@@ -309,6 +371,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             color: exceptionFilter1 ? '#333' : '#999', // Grey if empty
                         }}
                     />
+                    
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="exceptionFilter2" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>

@@ -84,17 +84,17 @@
 
 |         #                                                    | Date            | Description            |
 | -----------------                                            | -----           | -----------            |
-| [Personas](./documentation/personas.md)                      |   14/11/24      |           #            |
-| [User Stories](./documentation/user_stories.md)              |   14/11/24      |           #            |
-| [Use Case Diagram](./documentation/use_case_diagram.png)     |   14/11/24      |           #            |
-| [Activity Diagram](./documentation/activity_diagram.png)     |   14/11/24      |           #            |
+| [Personas](./documentation/personas.md)                      |   14/11/24      |  Description of potential users of the system      |
+| [User Stories](./documentation/user_stories.md)              |   14/11/24      |  Defined usages of the system      |
+| [Use Case Diagram](./documentation/use_case_diagram.png)     |   14/11/24      |  Usages of system shown diagramatically      |
+| [Activity Diagram](./documentation/activity_diagram.png)     |   14/11/24      |  Diagram showing the break-down of the system   |
 
 
 #### Reports & Notes
 
 |           #                                                    |               Date            |       Description         |
 | -----------------                                              |               -----           | -----------               |
-| [Interim Report Notes](./documentation/Interim_Report_Notes.md)|               25/11/24        |          #                |
+| [Interim Report Notes](./documentation/Interim_Report_Notes.md)|               25/11/24        |   Notes for interim report       |
 
 
 

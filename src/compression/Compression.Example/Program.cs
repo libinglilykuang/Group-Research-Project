@@ -11,6 +11,8 @@ using IntelligentPlant.Compression.Models;
 
 var pipeline = new PipelineBuilder()
     .WithIdentifier("PipeLineId")
+
+
     .WithCompressionFilter(new CompressionFilterSettings()
     {
         DeviationLimit = 2,
@@ -21,14 +23,10 @@ var pipeline = new PipelineBuilder()
         DeviationType = DeviationType.Percentage
     }).WithValueChangeFilter(new ValueChangeFilterSettings()
     {
-        MinimumResampleLimit = TimeSpan.Zero, // No resample limit
-        MaximumResampleLimit = new TimeSpan(0, 0, 10) // Ensures a sample is taken at least every 10 seconds
-        // takes in a max and min resample limit (max ensures that at least one sample is taken in that period of time)
-        // option to add change threshold -> i.e. amount by which the sample must have changed by??? (need to add to value change filter settings file)
-
+        MinimumResampleLimit = new TimeSpan(0, 0, 2), // Minimum resample limit of 2 seconds
+        MaximumResampleLimit = new TimeSpan(0, 0, 5) // Maximum resample limit of 10 seconds (must be at least one sample within 10 seconds)
     }).WithCallbackFilter(value =>
     {
-        // add code here!
         // do something with the value here.
         // any values which have got here must have passed all of the filters.
         // so we now want to write them to a data structure.

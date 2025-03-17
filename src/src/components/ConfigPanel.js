@@ -5,7 +5,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     // State variables
     const [deviationLimit, setDeviationLimit] = useState(''); // Default: 2
     const [deviationType, setDeviationType] = useState(''); // Default: percentage
-    const [callbackFilter, setCallbackFilter] = useState(''); // Default: 0
     const [exceptionFilter1, setExceptionFilter1] = useState(''); // Default: ''
     const [exceptionFilter2, setExceptionFilter2] = useState(''); // Default: ''
     const [minResampleLimit, setMinResampleLimit] = useState(''); // Default: 0
@@ -123,7 +122,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             setFile(null);
             setDeviationLimit('');
             setDeviationType('');
-            setCallbackFilter('');
             setExceptionFilter1('');
             setExceptionFilter2('');
             setMinResampleLimit('');
@@ -136,7 +134,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         getParams: () => ({
             deviationLimit: deviationLimit || DEFAULT_DEVIATION_LIMIT,
             deviationType: deviationType || DEFAULT_DEVIATION_TYPE,
-            callbackFilter: callbackFilter || DEFAULT_CALLBACK_FILTER,
             exceptionFilter: {
                 exceptionFilter1: exceptionFilter1 || '',
                 exceptionFilter2: exceptionFilter2 || '',
@@ -313,36 +310,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             </div>
                         )}
                     </div>
-
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                        Callback Filter:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('A filter to apply to callback functions.', e)}
-                        />
-                    </label>
-                    <input
-                        id="callbackFilter"
-                        type="text"
-                        value={callbackFilter}
-                        onChange={(e) => setCallbackFilter(e.target.value)}
-                        placeholder="0" // Default value
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            fontSize: '16px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: callbackFilter ? '#333' : '#999', // Grey if empty
-                        }}
-                        
-                    />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="exceptionFilter1" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>

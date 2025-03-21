@@ -87,7 +87,14 @@ function App() {
     };
 
     // Function to compress data based on parameters
-    const compressData = (data, labels, deviationLimit, deviationType, callbackFilter, exceptionFilter) => {
+    const compressData = (
+        data,
+        labels,
+        compressionDeviationLimit,
+        compressionDeviationType,
+        exceptionFilterDeviationLimit,
+        exceptionFilterDeviationType
+    ) => {
         const compressedData = [];
         const compressedLabels = [];
 
@@ -96,26 +103,40 @@ function App() {
             const value = data[i];
             const label = labels[i];
 
-            // Apply deviation limit
-            if (deviationLimit && Math.abs(value) > deviationLimit) {
+            // Apply compression deviation limit
+            if (compressionDeviationLimit && Math.abs(value) > compressionDeviationLimit) {
                 continue; // Skip values exceeding the limit
             }
 
-            // Apply deviation type
-            if (deviationType === "positive" && value < 0) {
-                continue; // Skip negative values
-            } else if (deviationType === "negative" && value > 0) {
-                continue; // Skip positive values
+            // Apply compression deviation type
+            if (compressionDeviationType === "percentage") {
+                // Example: Skip values that are within a percentage range
+                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < compressionDeviationLimit) {
+                    continue;
+                }
+            } else if (compressionDeviationType === "absolute") {
+                // Example: Skip values that are within an absolute range
+                if (i > 0 && Math.abs(value - data[i - 1]) < compressionDeviationLimit) {
+                    continue;
+                }
             }
 
-            // Apply callback filter
-            if (callbackFilter && !callbackFilter(value)) {
-                continue; // Skip values that don't pass the filter
+            // Apply exception filter deviation limit
+            if (exceptionFilterDeviationLimit && Math.abs(value) > exceptionFilterDeviationLimit) {
+                continue; // Skip values exceeding the exception filter limit
             }
 
-            // Apply exception filter
-            if (exceptionFilter && exceptionFilter(value)) {
-                continue; // Skip values that match the exception filter
+            // Apply exception filter deviation type
+            if (exceptionFilterDeviationType === "percentage") {
+                // Example: Skip values that are within a percentage range
+                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < exceptionFilterDeviationLimit) {
+                    continue;
+                }
+            } else if (exceptionFilterDeviationType === "absolute") {
+                // Example: Skip values that are within an absolute range
+                if (i > 0 && Math.abs(value - data[i - 1]) < exceptionFilterDeviationLimit) {
+                    continue;
+                }
             }
 
             // Add the value and label to the compressed data
@@ -132,22 +153,28 @@ function App() {
             return configPanelRef.current.getParams();
         }
         return {
-            deviationLimit: null,
-            deviationType: null,
-            callbackFilter: null,
-            exceptionFilter: null,
+            compressionDeviationLimit: null,
+            compressionDeviationType: null,
+            exceptionFilterDeviationLimit: null,
+            exceptionFilterDeviationType: null,
         };
     };
 
     // Get parameters and compress the data
-    const { deviationLimit, deviationType, callbackFilter, exceptionFilter } = getCompressionParameters();
+    const {
+        compressionDeviationLimit,
+        compressionDeviationType,
+        exceptionFilterDeviationLimit,
+        exceptionFilterDeviationType,
+    } = getCompressionParameters();
+
     const { compressedData, compressedLabels } = compressData(
         rawData,
         labels,
-        deviationLimit,
-        deviationType,
-        callbackFilter,
-        exceptionFilter
+        compressionDeviationLimit,
+        compressionDeviationType,
+        exceptionFilterDeviationLimit,
+        exceptionFilterDeviationType
     );
 
     return (

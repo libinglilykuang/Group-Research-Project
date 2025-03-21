@@ -3,8 +3,8 @@
 ### 2nd Meeting: 21/03/25
 
 ### Attendance
-3/8 - Mayukhi, Frazer, and Kasia<br>
-Missing Will, Libing, Lucas, Sai and Brendan
+5/8 - Mayukhi, Frazer, Kasia, Libing and Lucas <br>
+Missing Will, Sai and Brendan
 
 ### What happened?
 1. Continued documentation in preparation for final report

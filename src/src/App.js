@@ -4,6 +4,8 @@ import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
 
+// TODO: Remove Firebase imports and replace with Azure SDK
+// Example: import { BlobServiceClient } from "@azure/storage-blob";
 import { db } from "./firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 
@@ -17,6 +19,10 @@ function App() {
 
     const configPanelRef = useRef(null); // Reference to the ConfigPanel component
 
+    // TODO: Initialize Azure Blob Storage or Cosmos DB client here
+    // Example: const blobServiceClient = BlobServiceClient.fromConnectionString("<Your-Azure-Connection-String>");
+    // Example: const containerClient = blobServiceClient.getContainerClient("<Your-Container-Name>");
+
     // Effect to load configurations on component mount
     useEffect(() => {
         loadConfigurations(); // Load configurations directly
@@ -25,6 +31,8 @@ function App() {
     // Function to load configurations from Firestore
     const loadConfigurations = async () => {
         try {
+            // TODO: Replace Firebase Firestore logic with Azure storage logic
+            // Example: Load configurations from Azure Blob Storage or Cosmos DB
             const querySnapshot = await getDocs(collection(db, "configurations")); // Load all configurations
             const configs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setConfigurations(configs); // Update state with loaded configurations
@@ -48,7 +56,8 @@ function App() {
         };
 
         try {
-            // Save the configuration to Firestore
+            // TODO: Replace Firebase Firestore logic with Azure storage logic
+            // Example: Save configuration to Azure Blob Storage or Cosmos DB
             const docRef = await addDoc(collection(db, "configurations"), newConfig);
             console.log("Document written with ID:", docRef.id);
 
@@ -98,7 +107,12 @@ function App() {
         const compressedData = [];
         const compressedLabels = [];
 
-        // Example compression logic
+        // TODO: Replace local compression logic with a call to the backend compression API
+        // Example: Call a backend API endpoint to perform compression
+        // Example: const response = await fetch("/api/compress", { method: "POST", body: JSON.stringify({ data, labels, ... }) });
+        // Example: const { compressedData, compressedLabels } = await response.json();
+
+        // Example compression logic (to be replaced)
         for (let i = 0; i < data.length; i++) {
             const value = data[i];
             const label = labels[i];

@@ -3,8 +3,10 @@ from sklearn.metrics import make_scorer
 
 """
 parameters:
-- deviation type: absolute or percentage
-- deviation limit: integer
+- compression filter deviation type: absolute or percentage
+- compression filter deviation limit: integer
+- exception filter deviation type: absolute or percentage
+- exception filter deviation limit: integer
 - minimum resample limit: hours, minutes, seconds
 - maximum resample limit: hours, minutes, seconds
 """
@@ -15,7 +17,7 @@ measures:
 - smallest compression ratio (minimum number of points lost)
 
 objective: decrease file size, decrease compression ratio
-return 4 best parameters
+return 6 best parameters
 """
 
 

@@ -3,8 +3,10 @@ import Papa from 'papaparse';
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     // State variables
-    const [deviationLimit, setDeviationLimit] = useState(''); // Default: 2
-    const [deviationType, setDeviationType] = useState(''); // Default: percentage
+    const [compressionDeviationLimit, setCompressionDeviationLimit] = useState(''); // Default: 2
+    const [compressionDeviationType, setCompressionDeviationType] = useState(''); // Default: percentage
+    const [exceptionFilterDeviationLimit, setExceptionFilterDeviationLimit] = useState(''); // Default: 1
+    const [exceptionFilterDeviationType, setExceptionFilterDeviationType] = useState(''); // Default: absolute
     const [minResampleLimit, setMinResampleLimit] = useState(''); // Default: 0
     const [maxResampleLimit, setMaxResampleLimit] = useState(''); // Default: 5
     const [file, setFile] = useState(null);
@@ -12,8 +14,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const [message, setMessage] = useState('');
 
     // Default values
-    const DEFAULT_DEVIATION_LIMIT = 2;
-    const DEFAULT_DEVIATION_TYPE = 'percentage';
+    const DEFAULT_COMPRESSION_DEVIATION_LIMIT = 2;
+    const DEFAULT_COMPRESSION_DEVIATION_TYPE = 'percentage';
+    const DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT = 1;
+    const DEFAULT_EXCEPTION_FILTER_DEVIATION_TYPE = 'absolute';
     const DEFAULT_MIN_RESAMPLE_LIMIT = 0;
     const DEFAULT_MAX_RESAMPLE_LIMIT = 5;
 
@@ -86,8 +90,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     useImperativeHandle(ref, () => ({
         reset: () => {
             setFile(null);
-            setDeviationLimit('');
-            setDeviationType('');
+            setCompressionDeviationLimit('');
+            setCompressionDeviationType('');
+            setExceptionFilterDeviationLimit('');
+            setExceptionFilterDeviationType('');
             setMinResampleLimit('');
             setMaxResampleLimit('');
             setError('');
@@ -96,14 +102,18 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             setLabels([]); // Clear labels
         },
         getParams: () => ({
-            deviationLimit: deviationLimit || DEFAULT_DEVIATION_LIMIT,
-            deviationType: deviationType || DEFAULT_DEVIATION_TYPE,
+            compressionDeviationLimit: compressionDeviationLimit || DEFAULT_COMPRESSION_DEVIATION_LIMIT,
+            compressionDeviationType: compressionDeviationType || DEFAULT_COMPRESSION_DEVIATION_TYPE,
+            exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT,
+            exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_EXCEPTION_FILTER_DEVIATION_TYPE,
             minResampleLimit: minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT,
             maxResampleLimit: maxResampleLimit || DEFAULT_MAX_RESAMPLE_LIMIT,
         }),
         setParams: (params) => {
-            setDeviationLimit(params.deviationLimit || '');
-            setDeviationType(params.deviationType || '');
+            setCompressionDeviationLimit(params.compressionDeviationLimit || '');
+            setCompressionDeviationType(params.compressionDeviationType || '');
+            setExceptionFilterDeviationLimit(params.exceptionFilterDeviationLimit || '');
+            setExceptionFilterDeviationType(params.exceptionFilterDeviationType || '');
             setMinResampleLimit(params.minResampleLimit || '');
             setMaxResampleLimit(params.maxResampleLimit || '');
         },
@@ -157,20 +167,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 Please enter the following parameters:
             </div>
 
+            {/* Data Compression Parameters */}
             <div style={{ width: '80%' }}>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                        Deviation Limit:
+                    <label htmlFor="compressionDeviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
+                        Compression Deviation Limit:
                     </label>
                     <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The maximum allowed deviation from the expected value. Enter a positive integer.
+                        The maximum allowed deviation for data compression. Enter a positive integer.
                     </p>
                     <input
-                        id="deviationLimit"
+                        id="compressionDeviationLimit"
                         type="number"
                         min="1"
-                        value={deviationLimit}
-                        onChange={(e) => setDeviationLimit(e.target.value)}
+                        value={compressionDeviationLimit}
+                        onChange={(e) => setCompressionDeviationLimit(e.target.value)}
                         placeholder="2"
                         style={{
                             width: '97%',
@@ -179,21 +190,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
-                            color: deviationLimit ? '#333' : '#999',
+                            color: compressionDeviationLimit ? '#333' : '#999',
                         }}
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                        Deviation Type:
+                    <label htmlFor="compressionDeviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
+                        Compression Deviation Type:
                     </label>
                     <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The type of deviation to be considered. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
+                        The type of deviation for data compression. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
                     </p>
                     <select
-                        id="deviationType"
-                        value={deviationType}
-                        onChange={(e) => setDeviationType(e.target.value)}
+                        id="compressionDeviationType"
+                        value={compressionDeviationType}
+                        onChange={(e) => setCompressionDeviationType(e.target.value)}
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -201,7 +212,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
-                            color: deviationType ? '#333' : '#999',
+                            color: compressionDeviationType ? '#333' : '#999',
                             appearance: 'none',
                             WebkitAppearance: 'none',
                             MozAppearance: 'none',
@@ -212,6 +223,74 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         <option value="absolute">Absolute</option>
                     </select>
                 </div>
+            </div>
+
+            {/* Divider between Compression and Exception Filter Parameters */}
+            <div style={{ width: '80%', borderBottom: '1px solid #ccc', marginBottom: '20px' }}></div>
+
+            {/* Exception Filter Parameters */}
+            <div style={{ width: '80%' }}>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="exceptionFilterDeviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
+                        Exception Filter Deviation Limit:
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                        The maximum allowed deviation for filtering out anomalies. Enter a positive integer.
+                    </p>
+                    <input
+                        id="exceptionFilterDeviationLimit"
+                        type="number"
+                        min="1"
+                        value={exceptionFilterDeviationLimit}
+                        onChange={(e) => setExceptionFilterDeviationLimit(e.target.value)}
+                        placeholder="1"
+                        style={{
+                            width: '97%',
+                            padding: '10px',
+                            fontSize: '14px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                            color: exceptionFilterDeviationLimit ? '#333' : '#999',
+                        }}
+                    />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                    <label htmlFor="exceptionFilterDeviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
+                        Exception Filter Deviation Type:
+                    </label>
+                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                        The type of deviation for filtering out anomalies. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
+                    </p>
+                    <select
+                        id="exceptionFilterDeviationType"
+                        value={exceptionFilterDeviationType}
+                        onChange={(e) => setExceptionFilterDeviationType(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '14px',
+                            borderRadius: '5px',
+                            border: '1px solid #4CAF50',
+                            backgroundColor: '#f0f0f0',
+                            color: exceptionFilterDeviationType ? '#333' : '#999',
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
+                        }}
+                    >
+                        <option value="">Select Deviation Type</option>
+                        <option value="percentage">Percentage</option>
+                        <option value="absolute">Absolute</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Divider between Exception Filter and Resample Parameters */}
+            <div style={{ width: '80%', borderBottom: '1px solid #ccc', marginBottom: '20px' }}></div>
+
+            {/* Resample Parameters */}
+            <div style={{ width: '80%' }}>
                 <div style={{ marginBottom: '20px' }}>
                     <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
                         Minimum Resample Limit:

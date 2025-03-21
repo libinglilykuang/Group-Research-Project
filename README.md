@@ -76,6 +76,7 @@
 | [Week 18 : Meeting 2](./meeting_notes/Week18Meeting2.md) | 11/3/25 | Progress update with academic supervisor |
 | [Week 18 : Meeting 3](./meeting_notes/Week18Meeting3.md) | 14/3/25 | Start of new sprint |
 | [Week 19 : Meeting 1](./meeting_notes/Week19Meeting1.md) | 17/3/25 | Progress with compression & UI |
+| [Week 19 : Meeting 2](./meeting_notes/Week19Meeting2.md) | 21/3/25 | Progress with compression & UI |
 
 
 

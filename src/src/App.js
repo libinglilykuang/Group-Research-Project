@@ -3,10 +3,9 @@ import ConfigPanel from "./components/ConfigPanel";
 import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
-import LoginForm from "./components/LoginForm"; // Import LoginForm component
 
-import { auth, db } from "./firebase"; // Import Firebase instances
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { db } from "./firebase";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 function App() {
     // State variables
@@ -15,28 +14,18 @@ function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls sidebar visibility
     const [configurations, setConfigurations] = useState([]); // Stores user configurations
     const [file, setFile] = useState(null); // Stores the current CSV file
-    const [user, setUser] = useState(null); // Stores the currently logged-in user
 
     const configPanelRef = useRef(null); // Reference to the ConfigPanel component
 
-    // Effect to listen for authentication state changes
+    // Effect to load configurations on component mount
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-                setUser(user); // Set the user if logged in
-                loadConfigurations(user.uid); // Load configurations for the user
-            } else {
-                setUser(null); // Clear the user if logged out
-            }
-        });
-        return () => unsubscribe(); // Cleanup the listener on unmount
+        loadConfigurations(); // Load configurations directly
     }, []);
 
     // Function to load configurations from Firestore
-    const loadConfigurations = async (userId) => {
+    const loadConfigurations = async () => {
         try {
-            const q = query(collection(db, "configurations"), where("userId", "==", userId));
-            const querySnapshot = await getDocs(q);
+            const querySnapshot = await getDocs(collection(db, "configurations")); // Load all configurations
             const configs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setConfigurations(configs); // Update state with loaded configurations
         } catch (error) {
@@ -46,28 +35,13 @@ function App() {
 
     // Function to save a configuration to Firestore
     const handleSave = async (config) => {
-        if (!user) {
-            alert("Please log in to save configurations.");
-            return;
-        }
-
-        // Get parameters from the ConfigPanel
-        const params = configPanelRef.current ? configPanelRef.current.getParams() : {
-            deviationLimit: null,
-            deviationType: null,
-            callbackFilter: null,
-            exceptionFilter: null,
-        };
-
         // Create a new configuration object
         const newConfig = {
             ...config,
-            userId: user.uid, // Associate with the current user
             name: `Configuration ${configurations.length + 1}`, // Generate a dynamic name
             date: new Date().toISOString(), // Add the current timestamp
             parameters: {
                 ...config.parameters,
-                ...params,
             },
             rawData: config.includeCSV ? rawData.join("\n") : null, // Store CSV content if included
             labels: config.includeCSV ? labels : null, // Store labels if included
@@ -191,82 +165,75 @@ function App() {
                 padding: "20px",
             }}
         >
-            {/* Login form (shown if no user is logged in) */}
-            {!user && <LoginForm onLoginSuccess={() => setUser(auth.currentUser)} />}
+            {/* Main interface */}
+            <h2 style={{ color: "#333", marginBottom: "20px" }}>Intelligent Plant Compression Optimisation</h2>
+            <div style={{ width: "80%" }}>
+                <CompressionSidebarPanel
+                    configurations={configurations}
+                    setConfigurations={setConfigurations} // Pass setConfigurations here
+                    onNewConfig={handleNewConfig}
+                    isOpen={isSidebarOpen}
+                    toggleSidebar={toggleSidebar}
+                    onLoadConfig={handleLoadConfig}
+                />
+            </div>
 
-            {/* Main interface (shown if a user is logged in) */}
-            {user && (
-                <>
-                    <h2 style={{ color: "#333", marginBottom: "20px" }}>Intelligent Plant Compression Optimisation</h2>
-                    <div style={{ width: "80%" }}>
-                        <CompressionSidebarPanel
-                            configurations={configurations}
-                            setConfigurations={setConfigurations} // Pass setConfigurations here
-                            onNewConfig={handleNewConfig}
-                            isOpen={isSidebarOpen}
-                            toggleSidebar={toggleSidebar}
-                            onLoadConfig={handleLoadConfig}
-                        />
-                    </div>
+            <div
+                style={{
+                    width: "80%",
+                    marginBottom: "20px",
+                    marginLeft: isSidebarOpen ? "250px" : "0",
+                    transition: "margin-left 0.3s ease",
+                }}
+            >
+                <ConfigPanel
+                    ref={configPanelRef}
+                    setRawData={setRawData}
+                    setLabels={setLabels}
+                    setFile={setFile}
+                />
+            </div>
 
-                    <div
-                        style={{
-                            width: "80%",
-                            marginBottom: "20px",
-                            marginLeft: isSidebarOpen ? "250px" : "0",
-                            transition: "margin-left 0.3s ease",
-                        }}
-                    >
-                        <ConfigPanel
-                            ref={configPanelRef}
-                            setRawData={setRawData}
-                            setLabels={setLabels}
-                            setFile={setFile}
-                        />
-                    </div>
+            <div
+                style={{
+                    width: "80%",
+                    flexGrow: 1,
+                    marginBottom: "20px",
+                    marginLeft: isSidebarOpen ? "250px" : "0",
+                    transition: "margin-left 0.3s ease",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                    padding: "20px",
+                }}
+            >
+                <ZoomableChart
+                    rawData={rawData}
+                    labels={labels}
+                    compressedData={compressedData}
+                    compressedLabels={compressedLabels}
+                />
+            </div>
 
-                    <div
-                        style={{
-                            width: "80%",
-                            flexGrow: 1,
-                            marginBottom: "20px",
-                            marginLeft: isSidebarOpen ? "250px" : "0",
-                            transition: "margin-left 0.3s ease",
-                            backgroundColor: "#ffffff",
-                            borderRadius: "8px",
-                            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                            padding: "20px",
-                        }}
-                    >
-                        <ZoomableChart
-                            rawData={rawData}
-                            labels={labels}
-                            compressedData={compressedData}
-                            compressedLabels={compressedLabels}
-                        />
-                    </div>
-
-                    <div
-                        style={{
-                            width: "80%",
-                            flexShrink: 0,
-                            marginBottom: "20px",
-                            marginLeft: isSidebarOpen ? "250px" : "0",
-                            transition: "margin-left 0.3s ease",
-                            backgroundColor: "#ffffff",
-                            borderRadius: "8px",
-                            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                            padding: "20px",
-                        }}
-                    >
-                        <MetricsTable
-                            rawData={rawData}
-                            compressedData={compressedData}
-                            onSave={handleSave}
-                        />
-                    </div>
-                </>
-            )}
+            <div
+                style={{
+                    width: "80%",
+                    flexShrink: 0,
+                    marginBottom: "20px",
+                    marginLeft: isSidebarOpen ? "250px" : "0",
+                    transition: "margin-left 0.3s ease",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                    padding: "20px",
+                }}
+            >
+                <MetricsTable
+                    rawData={rawData}
+                    compressedData={compressedData}
+                    onSave={handleSave}
+                />
+            </div>
         </div>
     );
 }

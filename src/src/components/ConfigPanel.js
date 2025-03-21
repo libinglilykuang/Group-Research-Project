@@ -5,20 +5,15 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     // State variables
     const [deviationLimit, setDeviationLimit] = useState(''); // Default: 2
     const [deviationType, setDeviationType] = useState(''); // Default: percentage
-    const [callbackFilter, setCallbackFilter] = useState(''); // Default: 0
-    const [exceptionFilter1, setExceptionFilter1] = useState(''); // Default: ''
-    const [exceptionFilter2, setExceptionFilter2] = useState(''); // Default: ''
     const [minResampleLimit, setMinResampleLimit] = useState(''); // Default: 0
     const [maxResampleLimit, setMaxResampleLimit] = useState(''); // Default: 5
     const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
-    const [tooltip, setTooltip] = useState({ show: false, content: '', position: { x: 0, y: 0 } });
 
     // Default values
     const DEFAULT_DEVIATION_LIMIT = 2;
     const DEFAULT_DEVIATION_TYPE = 'percentage';
-    const DEFAULT_CALLBACK_FILTER = 0;
     const DEFAULT_MIN_RESAMPLE_LIMIT = 0;
     const DEFAULT_MAX_RESAMPLE_LIMIT = 5;
 
@@ -87,43 +82,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         }
     };
 
-    // Show tooltip
-    const showTooltip = (content, event) => {
-        setTooltip({
-            show: true,
-            content,
-            position: { x: event.clientX, y: event.clientY },
-        });
-    };
-
-    // Hide tooltip
-    const hideTooltip = () => {
-        setTooltip({ show: false, content: '', position: { x: 0, y: 0 } });
-    };
-
-    // Handle click outside tooltip
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (tooltip.show && !event.target.closest('.tooltip-target')) {
-                hideTooltip();
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [tooltip.show]);
-
     // Expose reset method and parameters
     useImperativeHandle(ref, () => ({
         reset: () => {
             setFile(null);
             setDeviationLimit('');
             setDeviationType('');
-            setCallbackFilter('');
-            setExceptionFilter1('');
-            setExceptionFilter2('');
             setMinResampleLimit('');
             setMaxResampleLimit('');
             setError('');
@@ -134,22 +98,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         getParams: () => ({
             deviationLimit: deviationLimit || DEFAULT_DEVIATION_LIMIT,
             deviationType: deviationType || DEFAULT_DEVIATION_TYPE,
-            callbackFilter: callbackFilter || DEFAULT_CALLBACK_FILTER,
-            exceptionFilter: {
-                exceptionFilter1: exceptionFilter1 || '',
-                exceptionFilter2: exceptionFilter2 || '',
-                minResampleLimit: minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT,
-                maxResampleLimit: maxResampleLimit || DEFAULT_MAX_RESAMPLE_LIMIT,
-            },
+            minResampleLimit: minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT,
+            maxResampleLimit: maxResampleLimit || DEFAULT_MAX_RESAMPLE_LIMIT,
         }),
         setParams: (params) => {
             setDeviationLimit(params.deviationLimit || '');
             setDeviationType(params.deviationType || '');
-            setCallbackFilter(params.callbackFilter || '');
-            setExceptionFilter1(params.exceptionFilter?.exceptionFilter1 || '');
-            setExceptionFilter2(params.exceptionFilter?.exceptionFilter2 || '');
-            setMinResampleLimit(params.exceptionFilter?.minResampleLimit || '');
-            setMaxResampleLimit(params.exceptionFilter?.maxResampleLimit || '');
+            setMinResampleLimit(params.minResampleLimit || '');
+            setMaxResampleLimit(params.maxResampleLimit || '');
         },
         loadFile: (file) => {
             setFile(file);
@@ -174,9 +130,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             }}
         >
             <div style={{ width: '80%' }}>
-                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
                     Upload File:
                 </label>
+                <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                    Upload a CSV file containing the data to be processed. Only .csv files are accepted.
+                </p>
                 <input
                     id="file-input"
                     type="file"
@@ -188,232 +147,122 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         backgroundColor: '#f0f0f0',
                         border: '1px solid #4CAF50',
                         borderRadius: '5px',
-                        width: '100%',
+                        width: '97%',
+                        fontSize: '14px',
                     }}
                 />
             </div>
 
-            <div style={{ width: '80%', textAlign: 'center', marginBottom: '20px', color: '#333', fontSize: '16px', fontWeight: 'bold' }}>
+            <div style={{ width: '80%', textAlign: 'center', marginBottom: '20px', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
                 Please enter the following parameters:
             </div>
 
             <div style={{ width: '80%' }}>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
                         Deviation Limit:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('The maximum allowed deviation from the expected value.', e)}
-                        />
                     </label>
+                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                        The maximum allowed deviation from the expected value. Enter a positive integer.
+                    </p>
                     <input
                         id="deviationLimit"
-                        type="text"
+                        type="number"
+                        min="1"
                         value={deviationLimit}
                         onChange={(e) => setDeviationLimit(e.target.value)}
-                        placeholder="2" // Default value
+                        placeholder="2"
                         style={{
-                            width: '100%',
+                            width: '97%',
                             padding: '10px',
-                            fontSize: '16px',
+                            fontSize: '14px',
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
-                            color: deviationLimit ? '#333' : '#999', // Grey if empty
+                            color: deviationLimit ? '#333' : '#999',
                         }}
                     />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
                         Deviation Type:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('The type of deviation to be considered (e.g., absolute, relative).', e)}
-                        />
                     </label>
-                    <input
+                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                        The type of deviation to be considered. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
+                    </p>
+                    <select
                         id="deviationType"
-                        type="text"
                         value={deviationType}
                         onChange={(e) => setDeviationType(e.target.value)}
-                        placeholder="percentage" // Default value
                         style={{
                             width: '100%',
                             padding: '10px',
-                            fontSize: '16px',
+                            fontSize: '14px',
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
-                            color: deviationType ? '#333' : '#999', // Grey if empty
+                            color: deviationType ? '#333' : '#999',
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
                         }}
-                    />
+                    >
+                        <option value="">Select Deviation Type</option>
+                        <option value="percentage">Percentage</option>
+                        <option value="absolute">Absolute</option>
+                    </select>
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="callbackFilter" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                        Callback Filter:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('A filter to apply to callback functions.', e)}
-                        />
-                    </label>
-                    <input
-                        id="callbackFilter"
-                        type="text"
-                        value={callbackFilter}
-                        onChange={(e) => setCallbackFilter(e.target.value)}
-                        placeholder="0" // Default value
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            fontSize: '16px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: callbackFilter ? '#333' : '#999', // Grey if empty
-                        }}
-                    />
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="exceptionFilter1" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                        Exception Filter Value 1:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
-                        />
-                    </label>
-                    <input
-                        id="exceptionFilter1"
-                        type="text"
-                        value={exceptionFilter1}
-                        onChange={(e) => setExceptionFilter1(e.target.value)}
-                        placeholder="" // No default value
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            fontSize: '16px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: exceptionFilter1 ? '#333' : '#999', // Grey if empty
-                        }}
-                    />
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="exceptionFilter2" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
-                        Exception Filter Value 2:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('A filter to apply to exceptions.', e)}
-                        />
-                    </label>
-                    <input
-                        id="exceptionFilter2"
-                        type="text"
-                        value={exceptionFilter2}
-                        onChange={(e) => setExceptionFilter2(e.target.value)}
-                        placeholder="" // No default value
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            fontSize: '16px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: exceptionFilter2 ? '#333' : '#999', // Grey if empty
-                        }}
-                    />
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                    <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
                         Minimum Resample Limit:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('For setting the minimum resample limit.', e)}
-                        />
                     </label>
+                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                        The minimum time interval (in seconds) between resamples. Enter a positive integer.
+                    </p>
                     <input
                         id="minResampleLimit"
-                        type="text"
+                        type="number"
+                        min="0"
                         value={minResampleLimit}
                         onChange={(e) => setMinResampleLimit(e.target.value)}
-                        placeholder="0" // Default value
+                        placeholder="0"
                         style={{
-                            width: '100%',
+                            width: '97%',
                             padding: '10px',
-                            fontSize: '16px',
+                            fontSize: '14px',
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
-                            color: minResampleLimit ? '#333' : '#999', // Grey if empty
+                            color: minResampleLimit ? '#333' : '#999',
                         }}
                     />
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="maxResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '14px' }}>
+                <div style={{ marginBottom: '25px' }}>
+                    <label htmlFor="maxResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
                         Maximum Resample Limit:
-                        <img
-                            src="/icons/question_mark.png"
-                            alt="Info"
-                            className="tooltip-target"
-                            style={{ marginLeft: '5px', cursor: 'pointer', width: '16px', height: '16px' }}
-                            onClick={(e) => showTooltip('For setting the maximum resample limit.', e)}
-                        />
                     </label>
+                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                        The maximum time interval (in seconds) between resamples. Enter a positive integer greater than the minimum resample limit.
+                    </p>
                     <input
                         id="maxResampleLimit"
-                        type="text"
+                        type="number"
+                        min={minResampleLimit ? parseInt(minResampleLimit) + 1 : 0}
                         value={maxResampleLimit}
                         onChange={(e) => setMaxResampleLimit(e.target.value)}
-                        placeholder="5" // Default value
+                        placeholder="5"
                         style={{
-                            width: '100%',
+                            width: '97%',
                             padding: '10px',
-                            fontSize: '16px',
+                            fontSize: '14px',
                             borderRadius: '5px',
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
-                            color: maxResampleLimit ? '#333' : '#999', // Grey if empty
+                            color: maxResampleLimit ? '#333' : '#999',
                         }}
                     />
                 </div>
             </div>
-
-            {/* Tooltip */}
-            {tooltip.show && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: tooltip.position.y + 10,
-                        left: tooltip.position.x + 10,
-                        backgroundColor: '#333',
-                        color: '#fff',
-                        padding: '8px',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        zIndex: 1000,
-                    }}
-                >
-                    {tooltip.content}
-                </div>
-            )}
 
             <div style={{ width: '80%', textAlign: 'center' }}>
                 <button
@@ -453,8 +302,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </button>
             </div>
 
-            {error && <p style={{ color: 'red', marginTop: '20px' }}>{error}</p>}
-            {message && <p style={{ color: 'green', marginTop: '20px' }}>{message}</p>}
+            {error && <p style={{ color: 'red', marginTop: '20px', fontSize: '14px' }}>{error}</p>}
+            {message && <p style={{ color: 'green', marginTop: '20px', fontSize: '14px' }}>{message}</p>}
         </div>
     );
 });

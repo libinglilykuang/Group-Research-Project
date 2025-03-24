@@ -1,9 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using IntelligentPlant.Compression.DataFilters;
 using IntelligentPlant.Compression.Models;
-using System.Diagnostics;
-using System.Threading;
-
 
 // Need to:
 // 1. Initialise the pipeline (already done for us)
@@ -16,26 +13,21 @@ var compressedValues = new List<DataCoreTagValue>();
 var pipeline = new PipelineBuilder()
     .WithIdentifier("PipeLineId")
 
-    .WithCompressionFilter(new CompressionFilterSettings()
-    {
+    .WithCompressionFilter(new CompressionFilterSettings() {
         DeviationLimit = 15,
         DeviationType = DeviationType.Percentage
-    }).WithExceptionFilter(new ExceptionFilterSettings()
-    {
+    }) .WithExceptionFilter(new ExceptionFilterSettings() {
         DeviationLimit = 5,
         DeviationType = DeviationType.Percentage
-    }).WithValueChangeFilter(new ValueChangeFilterSettings()
-    {
+    }) .WithValueChangeFilter(new ValueChangeFilterSettings() {
         MinimumResampleLimit = TimeSpan.FromMinutes(1), // Minimum resample limit of 2 seconds
         MaximumResampleLimit = TimeSpan.FromMinutes(3) // Maximum resample limit of 10 seconds (must be at least one sample within 10 seconds)
         // currently hardcoded but need to be modifiable by the user
-    }).WithCallbackFilter(value =>
-    {
+    }) .WithCallbackFilter(value => {
         compressedValues.Add(value);
         return true;
-    }).Build();
+    }) .Build();
 
-    
 List<double> testValues = [];
 
     // DATA VALUES
@@ -50,12 +42,10 @@ List<double> testValues = [];
     testValues.Add(1.8);
     testValues.Add(1.8);
 
-
 var now = DateTime.Now;
 var parsedValues = new List<DataCoreTagValue>();
 
 //var tagValueToWrite = new DataCoreTagValue("Tag Name", DateTime.UtcNow, 100);
-
 
 for (int i = 0; i < testValues.Count; i++) {
     var timeStamp = now.AddMinutes((testValues.Count-i) * -2);

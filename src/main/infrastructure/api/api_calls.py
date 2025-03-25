@@ -1,5 +1,3 @@
-### THIS IS authorization_code_grant_flow_pkce.py !!!
-
 import json
 import pkce
 import datetime
@@ -8,6 +6,8 @@ from bottle import route, run, request, redirect
 
 import intelligent_plant.app_store_client as app_store
 import intelligent_plant.data_core_client as data_core
+
+import sqlite3
 
 app_id = None
 app_secret = None
@@ -62,6 +62,7 @@ def data_sources():
                 qualifiedNames.append(v['QualifiedName'])
                 names[v['Name']] = v['QualifiedName']
     
+    print(names)
 
     redirect('/get_data')
 
@@ -72,7 +73,8 @@ def get_data():
     global starttime #earliest sample time
     global endtime #latest sample time
 
-    global dsn
+    dsn = ''
+    returnData = {}
 
     #!!!! NOTICE!!!!
     #FOR NOW, THIS FUNCTION IS HARDCODED TO GET DATA FROM THE 'NOISY SIN WAVE' DATA SOURCE.
@@ -98,11 +100,31 @@ def get_data():
                                 endtime = k
 
     try:
-        data = client.get_data_core_client().get_raw_data({dsn:['NoisySINWave']},datetime.datetime(2025,3,9),datetime.datetime(2025,3,11),0)
+        data = client.get_data_core_client().get_raw_data({dsn:['NoisySINWave']},datetime.datetime(2025,3,9),datetime.datetime(2025,3,10),50)
         print("API Request Complete!")
     except:
         print("API Request Failed.")
-    
+
+    values = []
+
+    for i, j in data.items():
+        for k in j:
+            print("k:",k,"l:",l,"\n\n\n\n\n\n")
+            for n, o in j.items():
+                print(n,"\n\n\n", o)
+                for p in o:
+                    print(p,"\n")
+                    for q in p:
+                        print(q)
+                ## I HAVE GONE AS DEEP AS I CAN GO DOWN THIS ROAD
+                ## THIS FOR LOOP OUTPUTS 
+                ## V
+                ## a
+                ## l
+                ## u
+                ## e
+                ## s
+                ## SO I HAVE TO REFACTOR IT TO BE SENSIBLE :(
 
     return data
 

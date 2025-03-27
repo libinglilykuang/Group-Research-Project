@@ -67,7 +67,10 @@ def get_data():
     global client
 
     dsn = '' #data source name
+    startDate = datetime.datetime(2025,3,9)
+    endDate = datetime.datetime(2025,3,10)
     pointCount = 0 # number of data points to return - if this is set to 0, the max will be returned (5000)
+
     returnData = [] #2d array to return to the compression team where items are [time,value]
 
     dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - HARDCODED FOR 'NOISYSINAVE', NEEDS TO BE UPDATED BASED ON UI
@@ -78,7 +81,7 @@ def get_data():
 
     #attempt to query the API
     try:
-        data = client.get_data_core_client().get_raw_data({dsn:[id]},datetime.datetime(2025,3,9),datetime.datetime(2025,3,10),pointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
+        data = client.get_data_core_client().get_raw_data({dsn:[id]},startDate,endDate,pointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
         print("API Request Complete!")
     except:
         print("API Request Failed.")

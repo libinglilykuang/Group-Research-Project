@@ -7,8 +7,6 @@ from bottle import route, run, request, redirect
 import intelligent_plant.app_store_client as app_store
 import intelligent_plant.data_core_client as data_core
 
-import sqlite3
-
 app_id = None
 app_secret = None
 base_url = None
@@ -20,8 +18,6 @@ code_verifier = None
 #load the json config file with the app information
 with open('config.json') as json_config_file:
     config = json.load(json_config_file)
-
-    #print(config)
 
     app_id = config['app']['id']
     app_secret = config['app']['secret']
@@ -51,8 +47,9 @@ def data_sources():
     #once authorised, the data sources names are retrieved from the API and stored in a list
     global client
     global qualifiedNames
+    global dsnNames
     qualifiedNames = [] #list of qualified names
-    names = {} #dictionary where keys are qualified names and values are plain text names
+    dsnNames = {} #dictionary where keys are qualified names and values are plain text names
 
     sources = client.get_data_core_client().get_data_sources()
 
@@ -60,9 +57,7 @@ def data_sources():
         for k, v in sources[i].items():
             if k == 'Name':
                 qualifiedNames.append(v['QualifiedName'])
-                names[v['Name']] = v['QualifiedName']
-    
-    print(names)
+                dsnNames[v['QualifiedName']] = v['Name']
 
     redirect('/get_data')
 
@@ -70,67 +65,38 @@ def data_sources():
 def get_data():
     #Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data, and a request to get the data from the API is sent
     global client
-    global starttime #earliest sample time
-    global endtime #latest sample time
 
-    dsn = ''
-    returnData = {}
+    dsn = '' #data source name
+    pointCount = 0 # number of data points to return - if this is set to 0, the max will be returned (5000)
+    returnData = [] #2d array to return to the compression team where items are [time,value]
 
-    #!!!! NOTICE!!!!
-    #FOR NOW, THIS FUNCTION IS HARDCODED TO GET DATA FROM THE 'NOISY SIN WAVE' DATA SOURCE.
-    #IT NEEDS TO BE UPDATED TO NOT DO THIS.
-    # - FROM WILL
-    #!!!!!!!!!!!!!!
-    dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - needs to be retrieved from the UI
+    dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - HARDCODED FOR 'NOISYSINAVE', NEEDS TO BE UPDATED BASED ON UI
     
-    tags = client.get_data_core_client().get_tags(dsn)
-    
-    #iterating through the list of tags and getting data from the dicts as necessary
-    for i in range(len(tags)):
-        for k, v in tags[i].items():
-            if k == 'Properties':
-                for l,m in v.items():
-                    if l == 'UTC Earliest Raw Sample Time':
-                        for n,o in m.items():
-                            if n == 'Value':
-                                starttime = o
-                    if l == 'UTC Latest Raw Sample Time':
-                        for j,k in m.items():
-                            if j == 'Value':
-                                endtime = k
+    #retrieving tag data for the data source - this is needed for the API compression data query
+    tags = client.get_data_core_client().get_tags(dsn) #getting the dict from the API
+    id = tags[0]["Id"] #getting data from the dict
 
+    #attempt to query the API
     try:
-        data = client.get_data_core_client().get_raw_data({dsn:['NoisySINWave']},datetime.datetime(2025,3,9),datetime.datetime(2025,3,10),50)
+        data = client.get_data_core_client().get_raw_data({dsn:[id]},datetime.datetime(2025,3,9),datetime.datetime(2025,3,10),pointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
         print("API Request Complete!")
     except:
         print("API Request Failed.")
 
-    values = []
+    #add data point time and value to the array 'returnData'
+    if pointCount == 0:
+        for i in range(5000):
+            returnData.append([data[dsn][id]['Values'][i]['UtcSampleTime'],data[dsn][id]['Values'][i]['NumericValue']])
+    else:
+        for i in range(pointCount):
+            returnData.append([data[dsn][id]['Values'][i]['UtcSampleTime'],data[dsn][id]['Values'][i]['NumericValue']])
 
-    for i, j in data.items():
-        for k in j:
-            print("k:",k,"l:",l,"\n\n\n\n\n\n")
-            for n, o in j.items():
-                print(n,"\n\n\n", o)
-                for p in o:
-                    print(p,"\n")
-                    for q in p:
-                        print(q)
-                ## I HAVE GONE AS DEEP AS I CAN GO DOWN THIS ROAD
-                ## THIS FOR LOOP OUTPUTS 
-                ## V
-                ## a
-                ## l
-                ## u
-                ## e
-                ## s
-                ## SO I HAVE TO REFACTOR IT TO BE SENSIBLE :(
-
-    return data
+    #return the array as a string
+    return str(returnData)
 
 @route('/refresh')
 def info():
-    """Refresh teh client session using the refresh token"""
+    """Refresh the client session using the refresh token"""
     global client
     print("Old access token: ", client.access_token)
     client = client.refresh_session(app_id, app_secret)

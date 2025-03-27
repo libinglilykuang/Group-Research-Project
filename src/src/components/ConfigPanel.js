@@ -2,17 +2,11 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Papa from 'papaparse';
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
-<<<<<<< HEAD
-    // State variables
-    const [deviationLimit, setDeviationLimit] = useState(''); // Default: 2
-    const [deviationType, setDeviationType] = useState(''); // Default: percentage
-=======
     // Configuration parameters state
     const [compressionDeviationLimit, setCompressionDeviationLimit] = useState(''); // Default: 2
     const [compressionDeviationType, setCompressionDeviationType] = useState(''); // Default: percentage
     const [exceptionFilterDeviationLimit, setExceptionFilterDeviationLimit] = useState(''); // Default: 1
     const [exceptionFilterDeviationType, setExceptionFilterDeviationType] = useState(''); // Default: absolute
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
     const [minResampleLimit, setMinResampleLimit] = useState(''); // Default: 0
     const [maxResampleLimit, setMaxResampleLimit] = useState(''); // Default: 5
 
@@ -20,12 +14,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
-<<<<<<< HEAD
-
-    // Default values
-    const DEFAULT_DEVIATION_LIMIT = 2;
-    const DEFAULT_DEVIATION_TYPE = 'percentage';
-=======
 
     // Time range selection states
     const [showTimeRangeModal, setShowTimeRangeModal] = useState(false);
@@ -40,7 +28,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const DEFAULT_COMPRESSION_DEVIATION_TYPE = 'percentage';
     const DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT = 1;
     const DEFAULT_EXCEPTION_FILTER_DEVIATION_TYPE = 'absolute';
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
     const DEFAULT_MIN_RESAMPLE_LIMIT = 0;
     const DEFAULT_MAX_RESAMPLE_LIMIT = 5;
 
@@ -178,14 +165,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         }, 1000);
     };
 
-<<<<<<< HEAD
-    // Expose reset method and parameters
-    useImperativeHandle(ref, () => ({
-        reset: () => {
-            setFile(null);
-            setDeviationLimit('');
-            setDeviationType('');
-=======
     // Expose component methods via ref
     useImperativeHandle(ref, () => ({
         reset: () => {
@@ -194,7 +173,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             setCompressionDeviationType('');
             setExceptionFilterDeviationLimit('');
             setExceptionFilterDeviationType('');
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
             setMinResampleLimit('');
             setMaxResampleLimit('');
             setError('');
@@ -209,25 +187,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             setFullLabels([]);
         },
         getParams: () => ({
-<<<<<<< HEAD
-            deviationLimit: deviationLimit || DEFAULT_DEVIATION_LIMIT,
-            deviationType: deviationType || DEFAULT_DEVIATION_TYPE,
-=======
             compressionDeviationLimit: compressionDeviationLimit || DEFAULT_COMPRESSION_DEVIATION_LIMIT,
             compressionDeviationType: compressionDeviationType || DEFAULT_COMPRESSION_DEVIATION_TYPE,
             exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT,
             exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_EXCEPTION_FILTER_DEVIATION_TYPE,
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
             minResampleLimit: minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT,
             maxResampleLimit: maxResampleLimit || DEFAULT_MAX_RESAMPLE_LIMIT,
         }),
         setParams: (params) => {
-<<<<<<< HEAD
-            setDeviationLimit(params.deviationLimit || '');
-            setDeviationType(params.deviationType || '');
-            setMinResampleLimit(params.minResampleLimit || '');
-            setMaxResampleLimit(params.maxResampleLimit || '');
-=======
             if (params.compressionDeviationLimit !== undefined)
                 setCompressionDeviationLimit(params.compressionDeviationLimit);
             if (params.compressionDeviationType !== undefined)
@@ -240,7 +207,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 setMinResampleLimit(params.minResampleLimit);
             if (params.maxResampleLimit !== undefined)
                 setMaxResampleLimit(params.maxResampleLimit);
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
         },
         loadFile: (file) => {
             setFile(file);
@@ -269,67 +235,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 width: '90%',
                 maxWidth: '600px',
                 boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-<<<<<<< HEAD
-                border: '1px solid #ccc',
-                minHeight: '400px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                marginTop: '80px',
-            }}
-        >
-            <div style={{ width: '80%' }}>
-                <label htmlFor="file-input" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                    Upload File:
-                </label>
-                <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                    Upload a CSV file containing the data to be processed. Only .csv files are accepted.
-                </p>
-                <input
-                    id="file-input"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    style={{
-                        marginBottom: '20px',
-                        padding: '10px',
-                        backgroundColor: '#f0f0f0',
-                        border: '1px solid #4CAF50',
-                        borderRadius: '5px',
-                        width: '97%',
-                        fontSize: '14px',
-                    }}
-                />
-            </div>
-
-            <div style={{ width: '80%', textAlign: 'center', marginBottom: '20px', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
-                Please enter the following parameters:
-            </div>
-
-            <div style={{ width: '80%' }}>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="deviationLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                        Deviation Limit:
-                    </label>
-                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The maximum allowed deviation from the expected value. Enter a positive integer.
-                    </p>
-                    <input
-                        id="deviationLimit"
-                        type="number"
-                        min="1"
-                        value={deviationLimit}
-                        onChange={(e) => setDeviationLimit(e.target.value)}
-                        placeholder="2"
-                        style={{
-                            width: '97%',
-                            padding: '10px',
-                            fontSize: '14px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: deviationLimit ? '#333' : '#999',
-=======
                 border: '1px solid #ccc'
             }}>
                 <h3 style={{
@@ -377,7 +282,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f8f9fa',
                             appearance: 'none',
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
                         }}
                     >
                         {allTimes.map((time, index) => (
@@ -387,90 +291,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         ))}
                     </select>
                 </div>
-<<<<<<< HEAD
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="deviationType" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                        Deviation Type:
-                    </label>
-                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The type of deviation to be considered. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
-                    </p>
-                    <select
-                        id="deviationType"
-                        value={deviationType}
-                        onChange={(e) => setDeviationType(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            fontSize: '14px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: deviationType ? '#333' : '#999',
-                            appearance: 'none',
-                            WebkitAppearance: 'none',
-                            MozAppearance: 'none',
-                        }}
-                    >
-                        <option value="">Select Deviation Type</option>
-                        <option value="percentage">Percentage</option>
-                        <option value="absolute">Absolute</option>
-                    </select>
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="minResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                        Minimum Resample Limit:
-                    </label>
-                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The minimum time interval (in seconds) between resamples. Enter a positive integer.
-                    </p>
-                    <input
-                        id="minResampleLimit"
-                        type="number"
-                        min="0"
-                        value={minResampleLimit}
-                        onChange={(e) => setMinResampleLimit(e.target.value)}
-                        placeholder="0"
-                        style={{
-                            width: '97%',
-                            padding: '10px',
-                            fontSize: '14px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: minResampleLimit ? '#333' : '#999',
-                        }}
-                    />
-                </div>
-                <div style={{ marginBottom: '25px' }}>
-                    <label htmlFor="maxResampleLimit" style={{ display: 'block', marginBottom: '10px', color: '#333', fontWeight: 'bold', fontSize: '16px' }}>
-                        Maximum Resample Limit:
-                    </label>
-                    <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The maximum time interval (in seconds) between resamples. Enter a positive integer greater than the minimum resample limit.
-                    </p>
-                    <input
-                        id="maxResampleLimit"
-                        type="number"
-                        min={minResampleLimit ? parseInt(minResampleLimit) + 1 : 0}
-                        value={maxResampleLimit}
-                        onChange={(e) => setMaxResampleLimit(e.target.value)}
-                        placeholder="5"
-                        style={{
-                            width: '97%',
-                            padding: '10px',
-                            fontSize: '14px',
-                            borderRadius: '5px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f0f0f0',
-                            color: maxResampleLimit ? '#333' : '#999',
-                        }}
-                    />
-                </div>
-            </div>
-
-            <div style={{ width: '80%', textAlign: 'center' }}>
-=======
 
                 <div style={{ marginBottom: '30px' }}>
                     <label style={{
@@ -967,7 +787,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 marginTop: '10px',
                 marginBottom: '20px'
             }}>
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
                 <button
                     style={{
                         padding: '14px 28px',
@@ -986,13 +805,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </button>
             </div>
 
-<<<<<<< HEAD
-            {error && <p style={{ color: 'red', marginTop: '20px', fontSize: '14px' }}>{error}</p>}
-            {message && <p style={{ color: 'green', marginTop: '20px', fontSize: '14px' }}>{message}</p>}
-=======
             {/* Time Range Modal */}
             {showTimeRangeModal && <TimeRangeModal />}
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
         </div>
     );
 });

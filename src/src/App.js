@@ -4,11 +4,8 @@ import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
 
-<<<<<<< HEAD
-=======
 // TODO: Remove Firebase imports and replace with Azure SDK
 // Example: import { BlobServiceClient } from "@azure/storage-blob";
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
 import { db } from "./firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 
@@ -22,13 +19,8 @@ function App() {
 
     const configPanelRef = useRef(null); // Reference to the ConfigPanel component
 
-<<<<<<< HEAD
-=======
     // TODO: Initialize Azure Blob Storage or Cosmos DB client here
-    // Example: const blobServiceClient = BlobServiceClient.fromConnectionString("<Your-Azure-Connection-String>");
-    // Example: const containerClient = blobServiceClient.getContainerClient("<Your-Container-Name>");
 
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
     // Effect to load configurations on component mount
     useEffect(() => {
         loadConfigurations(); // Load configurations directly
@@ -37,11 +29,8 @@ function App() {
     // Function to load configurations from Firestore
     const loadConfigurations = async () => {
         try {
-<<<<<<< HEAD
-=======
             // TODO: Replace Firebase Firestore logic with Azure storage logic
             // Example: Load configurations from Azure Blob Storage or Cosmos DB
->>>>>>> origin/190-SCRUM-55-UI-Development-Styling-1
             const querySnapshot = await getDocs(collection(db, "configurations")); // Load all configurations
             const configs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setConfigurations(configs); // Update state with loaded configurations
@@ -117,55 +106,6 @@ function App() {
         const compressedLabels = [];
 
         // TODO: Replace local compression logic with a call to the backend compression API
-        // Example: Call a backend API endpoint to perform compression
-        // Example: const response = await fetch("/api/compress", { method: "POST", body: JSON.stringify({ data, labels, ... }) });
-        // Example: const { compressedData, compressedLabels } = await response.json();
-
-        // Example compression logic (to be replaced)
-        for (let i = 0; i < data.length; i++) {
-            const value = data[i];
-            const label = labels[i];
-
-            // Apply compression deviation limit
-            if (compressionDeviationLimit && Math.abs(value) > compressionDeviationLimit) {
-                continue; // Skip values exceeding the limit
-            }
-
-            // Apply compression deviation type
-            if (compressionDeviationType === "percentage") {
-                // Example: Skip values that are within a percentage range
-                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < compressionDeviationLimit) {
-                    continue;
-                }
-            } else if (compressionDeviationType === "absolute") {
-                // Example: Skip values that are within an absolute range
-                if (i > 0 && Math.abs(value - data[i - 1]) < compressionDeviationLimit) {
-                    continue;
-                }
-            }
-
-            // Apply exception filter deviation limit
-            if (exceptionFilterDeviationLimit && Math.abs(value) > exceptionFilterDeviationLimit) {
-                continue; // Skip values exceeding the exception filter limit
-            }
-
-            // Apply exception filter deviation type
-            if (exceptionFilterDeviationType === "percentage") {
-                // Example: Skip values that are within a percentage range
-                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < exceptionFilterDeviationLimit) {
-                    continue;
-                }
-            } else if (exceptionFilterDeviationType === "absolute") {
-                // Example: Skip values that are within an absolute range
-                if (i > 0 && Math.abs(value - data[i - 1]) < exceptionFilterDeviationLimit) {
-                    continue;
-                }
-            }
-
-            // Add the value and label to the compressed data
-            compressedData.push(value);
-            compressedLabels.push(label);
-        }
 
         return { compressedData, compressedLabels };
     };

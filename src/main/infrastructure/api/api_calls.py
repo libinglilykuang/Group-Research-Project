@@ -73,6 +73,7 @@ def get_data():
 
     returnData = [] #2d array to return to the compression team where items are [time,value]
 
+    #choose the data source to get data from
     dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - HARDCODED FOR 'NOISYSINAVE', NEEDS TO BE UPDATED BASED ON UI
     
     #retrieving tag data for the data source - this is needed for the API compression data query

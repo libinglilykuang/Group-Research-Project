@@ -7,7 +7,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <NoWarn>$(NoWarn);CS8618;CS8625</NoWarn>
   </PropertyGroup>
 
   <!-- Define Release Configuration -->
@@ -23,6 +22,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IntelligentPlant.Compression\IntelligentPlant.Compression.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.9.3" />
   </ItemGroup>
 
 </Project>

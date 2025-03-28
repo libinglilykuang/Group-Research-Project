@@ -67,9 +67,10 @@ def get_data():
     global client
 
     dsn = '' #data source name
-    startDate = datetime.datetime(2025,3,9)
-    endDate = datetime.datetime(2025,3,10)
-    pointCount = 0 # number of data points to return - if this is set to 0, the max will be returned (5000)
+    id = '' #data source ID
+    totalPointCount = 0 #total number of points in the data set
+    currentPointCount = 0 #number of data points retrieved so far
+    maxPointCount = 0 # number of data points to return - if this is set to 0, the max will be returned (5000)
 
     returnData = [] #2d array to return to the compression team where items are [time,value]
 
@@ -78,24 +79,31 @@ def get_data():
     
     #retrieving tag data for the data source - this is needed for the API compression data query
     tags = client.get_data_core_client().get_tags(dsn) #getting the dict from the API
+
     id = tags[0]["Id"] #getting data from the dict
+    totalPointCount = tags[0]["Properties"]['Raw Sample Count']['Value'] #getting total data points
+
     startDate = tags[0]["Properties"]['UTC Earliest Raw Sample Time']['Value'] #getting start datetime
-    endDate = tags[0]["Properties"]['UTC Latest Raw Sample Time']['Value'] #getting end datetime
+    endDate = tags[0]["Properties"]['UTC Latest Raw Sample Time']['Value'] #getting end datetime - these give errors, i dont know why because the code runs fine :(
 
-    #attempt to query the API
-    try:
-        data = client.get_data_core_client().get_raw_data({dsn:[id]},startDate,endDate,pointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
-        print("API Request Complete!")
-    except:
-        print("API Request Failed.")
+    print(totalPointCount)
+    print(maxPointCount)
 
-    #add data point time and value to the array 'returnData'
-    if pointCount == 0:
-        for i in range(5000):
+    while currentPointCount < totalPointCount: #while there are still points to be retrieved
+
+        #attempt to query the API
+        try:
+            data = client.get_data_core_client().get_raw_data({dsn:[id]},startDate,endDate,maxPointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
+            print("API Request Complete!")
+        except:
+            print("API Request Failed.")
+
+        #add data point time and value to the array 'returnData'
+        for i in range(len(data[dsn][id]['Values'])):
             returnData.append([data[dsn][id]['Values'][i]['UtcSampleTime'],data[dsn][id]['Values'][i]['NumericValue']])
-    else:
-        for i in range(pointCount):
-            returnData.append([data[dsn][id]['Values'][i]['UtcSampleTime'],data[dsn][id]['Values'][i]['NumericValue']])
+            
+            currentPointCount += 1
+        startDate = returnData[len(data[dsn][id]['Values'])-1][0]
 
     #return the array as a string
     return str(returnData)

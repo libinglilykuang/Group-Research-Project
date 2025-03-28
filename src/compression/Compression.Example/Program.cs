@@ -9,6 +9,7 @@ using IntelligentPlant.Compression.Models;
 // 4. Process data as it flows through the pipeline (already done for us)
 
 public class Algorithm {
+
     private readonly List<DataCoreTagValue> compressedValues = new();
 
     public async Task<List<DataCoreTagValue>> ProcessDataAsync(
@@ -52,13 +53,10 @@ To run program:
 4. dotnet run --configuration Release
 */
 
-class Program
-{
-    static async Task Main(string[] args)
-    {
+class Program {
+    static async Task Main(string[] args) {
         // Sample Data
-        List<double> testValues = new()
-        {
+        List<double> testValues = new() {
             0.0, 1.0, 1.3, 1.2, 2.1, 2.1, 2.3, 1.9, 1.8, 1.8
         };
 
@@ -73,14 +71,12 @@ class Program
 
         // Output Results
         Console.WriteLine($"\nNumber of Original Points: {testValues.Count}");
-        foreach (var (val, i) in testValues.Select((v, i) => (v, i)))
-        {
+        foreach (var (val, i) in testValues.Select((v, i) => (v, i))) {
             Console.WriteLine($" {i} : {val}");
         }
 
         Console.WriteLine($"Number of Compressed Points: {compressedValues.Count}");
-        foreach (var (val, i) in compressedValues.Select((v, i) => (v.NumericValue, i)))
-        {
+        foreach (var (val, i) in compressedValues.Select((v, i) => (v.NumericValue, i))) {
             Console.WriteLine($" {i} : {val}");
         }
 

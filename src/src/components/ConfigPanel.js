@@ -41,6 +41,9 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const [fullData, setFullData] = useState([]);
     const [fullLabels, setFullLabels] = useState([]);
 
+    // Optimization state
+    const [isOptimizing, setIsOptimizing] = useState(false);
+
     // Parameter validation function
     const validateParameter = (value, paramName) => {
         if (value === '') return true;
@@ -257,6 +260,32 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             URL.revokeObjectURL(url);
             setMessage('Compressed file downloaded');
         }, 1000);
+    };
+
+    // Handle optimization operation
+    const handleOptimize = () => {
+        if (!file) {
+            setError('Please upload a file first');
+            return;
+        }
+
+        setIsOptimizing(true);
+        setError('');
+        setMessage('Optimizing parameters...');
+
+        // Simulate optimization process (2 seconds delay)
+        setTimeout(() => {
+            setIsOptimizing(false);
+            setMessage('Optimization complete! Parameters have been updated.');
+
+            // Set some example optimized parameters
+            setCompressionDeviationLimit('1.5');
+            setCompressionDeviationType('percentage');
+            setExceptionFilterDeviationLimit('0.8');
+            setExceptionFilterDeviationType('absolute');
+            setMinResampleLimit('1');
+            setMaxResampleLimit('8');
+        }, 2000);
     };
 
     // Time range selection modal component
@@ -882,10 +911,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </div>
             )}
 
-            {/* Compression button */}
+            {/* Action buttons */}
             <div style={{
                 width: '95%',
-                textAlign: 'center',
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '20px',
                 marginTop: '10px',
                 marginBottom: '20px'
             }}>
@@ -898,12 +929,33 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         borderRadius: '6px',
                         fontSize: '17px',
                         fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        cursor: isOptimizing ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s',
+                        opacity: isOptimizing ? 0.7 : 1
                     }}
                     onClick={handleCompress}
+                    disabled={isOptimizing}
                 >
                     Compress Data
+                </button>
+
+                <button
+                    style={{
+                        padding: '14px 28px',
+                        backgroundColor: '#2196F3',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '17px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        opacity: isOptimizing ? 0.7 : 1
+                    }}
+                    onClick={handleOptimize}
+                    disabled={isOptimizing}
+                >
+                    {isOptimizing ? 'Optimizing...' : 'Optimize Parameters'}
                 </button>
             </div>
 

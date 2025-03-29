@@ -1,9 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using IntelligentPlant.Compression.DataFilters;
 using IntelligentPlant.Compression.Models;
-using System.Diagnostics;
-using System.Threading;
-
 
 // Need to:
 // 1. Initialise the pipeline (already done for us)
@@ -11,65 +8,78 @@ using System.Threading;
 // 3. Send each sample into the pipeline using write async function (done(?))
 // 4. Process data as it flows through the pipeline (already done for us)
 
-var compressedValues = new List<DataCoreTagValue>();
+public class Algorithm {
 
-var pipeline = new PipelineBuilder()
-    .WithIdentifier("PipeLineId")
+    private readonly List<DataCoreTagValue> compressedValues = new();
 
-    .WithCompressionFilter(new CompressionFilterSettings()
-    {
-        DeviationLimit = 15,
-        DeviationType = DeviationType.Percentage
-    }).WithExceptionFilter(new ExceptionFilterSettings()
-    {
-        DeviationLimit = 15,
-        DeviationType = DeviationType.Percentage
-    }).WithValueChangeFilter(new ValueChangeFilterSettings()
-    {
-        MinimumResampleLimit = TimeSpan.FromSeconds(10), // Ignores samples less than 
-        MaximumResampleLimit = TimeSpan.FromMinutes(3) // Checks at least one sample has been taken in this time period
-    }).WithCallbackFilter(value =>
-    {
-        compressedValues.Add(value);    // adds accepted values to a list
-        return true;
-    }).Build();
+    public async Task<List<DataCoreTagValue>> ProcessDataAsync(
+        List<double> inputValues, double deviationLimit,
+        TimeSpan minResample, TimeSpan maxResample) {
 
-    
-List<double> testValues = [];
+        var pipeline = new PipelineBuilder()
+            .WithIdentifier("PipeLineId")
+            .WithCompressionFilter(new CompressionFilterSettings() {
+                DeviationLimit = deviationLimit,
+                DeviationType = DeviationType.Percentage
+            }) .WithExceptionFilter(new ExceptionFilterSettings() {
+                DeviationLimit = 5,
+                DeviationType = DeviationType.Percentage
+            }) .WithValueChangeFilter(new ValueChangeFilterSettings() {
+                MinimumResampleLimit = minResample,
+                MaximumResampleLimit = maxResample
+            }) .WithCallbackFilter(value => {
+                compressedValues.Add(value);
+                return true;
+            })
+            
+            .Build();
 
-    // DATA VALUES
-    testValues.Add(0.0);
-    testValues.Add(1.0);
-    testValues.Add(1.3);
-    testValues.Add(1.2);
-    testValues.Add(2.1);
-    testValues.Add(2.1);
-    testValues.Add(2.3);
-    testValues.Add(1.9);
-    testValues.Add(1.8);
-    testValues.Add(1.8);
+        var now = DateTime.Now;
 
-
-var now = DateTime.Now;
-var parsedValues = new List<DataCoreTagValue>();
-
-for (int i = 0; i < testValues.Count; i++) {
-    var timeStamp = now.AddMinutes((testValues.Count-i) * -2);
-    parsedValues.Add(new DataCoreTagValue("tag1", timeStamp, testValues[i]));
+        foreach (var value in inputValues.Select(
+            (val, i) => new DataCoreTagValue("tag1", now.AddMinutes(-2 * (inputValues.Count - i)), val))) {
+            await pipeline.WriteAsync(value);
+        }
+        
+        return compressedValues;
+    }
 }
 
-for (int i = 0; i < parsedValues.Count; i++) {
-    await pipeline.WriteAsync(parsedValues[i]);
-}
+/*
+To run program: 
+1. dotnet clean
+2. dotnet restore
+3. dotnet build --configuration Release
+4. dotnet run --configuration Release
+*/
 
-Console.WriteLine($"\nNumber of Original Points: {testValues.Count}");
-for (int i = 0; i < testValues.Count; i++) {
-    Console.WriteLine($" {i} : {testValues[i]}");
-}
+class Program {
+    static async Task Main(string[] args) {
+        // Sample Data
+        List<double> testValues = new() {
+            0.0, 1.0, 1.3, 1.2, 2.1, 2.1, 2.3, 1.9, 1.8, 1.8
+        };
 
-Console.WriteLine($"Number of Compressed Points: {compressedValues.Count}");
-for (int i = 0; i < compressedValues.Count; i++) {
-    Console.WriteLine($" {i} : {compressedValues[i].NumericValue}");
-}
+        // Configure Parameters
+        double deviationLimit = 15;
+        TimeSpan minResample = TimeSpan.FromMinutes(1);
+        TimeSpan maxResample = TimeSpan.FromMinutes(3);
 
-Console.WriteLine($"Compression Ratio: {((double)compressedValues.Count / testValues.Count):P2}");
+        // Process Data
+        var compression = new Algorithm();
+        var compressedValues = await compression.ProcessDataAsync(testValues, deviationLimit, minResample, maxResample);
+
+        // Output Results
+        Console.WriteLine($"\nNumber of Original Points: {testValues.Count}");
+        foreach (var (val, i) in testValues.Select((v, i) => (v, i))) {
+            Console.WriteLine($" {i} : {val}");
+        }
+
+        Console.WriteLine($"Number of Compressed Points: {compressedValues.Count}");
+        foreach (var (val, i) in compressedValues.Select((v, i) => (v.NumericValue, i))) {
+            Console.WriteLine($" {i} : {val}");
+        }
+
+        Console.WriteLine($"Compression Ratio: {((double)compressedValues.Count / testValues.Count):P2}");
+    }
+}

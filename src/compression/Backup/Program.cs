@@ -1,9 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using IntelligentPlant.Compression.DataFilters;
 using IntelligentPlant.Compression.Models;
-using System.Diagnostics;
-using System.Threading;
-
 
 // Need to:
 // 1. Initialise the pipeline (already done for us)
@@ -13,68 +10,57 @@ using System.Threading;
 
 var compressedValues = new List<DataCoreTagValue>();
 
+// Configure Parameters
+double deviationLimit = 15;
+TimeSpan minResample = TimeSpan.FromMinutes(1);
+TimeSpan maxResample = TimeSpan.FromMinutes(3);
+
 var pipeline = new PipelineBuilder()
     .WithIdentifier("PipeLineId")
-
-    .WithCompressionFilter(new CompressionFilterSettings()
-    {
-        DeviationLimit = 15,
+    .WithCompressionFilter(new CompressionFilterSettings() {
+        DeviationLimit = deviationLimit,
         DeviationType = DeviationType.Percentage
-    }).WithExceptionFilter(new ExceptionFilterSettings()
-    {
+    }) .WithExceptionFilter(new ExceptionFilterSettings() {
         DeviationLimit = 5,
         DeviationType = DeviationType.Percentage
-    }).WithValueChangeFilter(new ValueChangeFilterSettings()
-    {
-        MinimumResampleLimit = TimeSpan.FromMinutes(1), // Minimum resample limit of 2 seconds
-        MaximumResampleLimit = TimeSpan.FromMinutes(3) // Maximum resample limit of 10 seconds (must be at least one sample within 10 seconds)
-        // currently hardcoded but need to be modifiable by the user
-    }).WithCallbackFilter(value =>
-    {
+    }) .WithValueChangeFilter(new ValueChangeFilterSettings() {
+        MinimumResampleLimit = minResample, // Minimum resample limit of 2 seconds
+        MaximumResampleLimit = maxResample // Maximum resample limit of 10 seconds (must be at least one sample within 10 seconds)
+    // Currently hardcoded but need to be modifiable by the user
+    }) .WithCallbackFilter(value => {
         compressedValues.Add(value);
         return true;
-    }).Build();
+    }) .Build();
 
-    
-List<double> testValues = [];
+/*
+To properly run program: 
+1. dotnet clean
+2. dotnet restore
+3. dotnet build --configuration Release
+4. dotnet run --configuration Release
+*/
 
-    // DATA VALUES
-    testValues.Add(0.0);
-    testValues.Add(1.0);
-    testValues.Add(1.3);
-    testValues.Add(1.2);
-    testValues.Add(2.1);
-    testValues.Add(2.1);
-    testValues.Add(2.3);
-    testValues.Add(1.9);
-    testValues.Add(1.8);
-    testValues.Add(1.8);
-
+// Sample Data
+List<double> testValues = new() {
+    0.0, 1.0, 1.3, 1.2, 2.1, 2.1, 2.3, 1.9, 1.8, 1.8
+};
 
 var now = DateTime.Now;
-var parsedValues = new List<DataCoreTagValue>();
 
-//var tagValueToWrite = new DataCoreTagValue("Tag Name", DateTime.UtcNow, 100);
-
-
-for (int i = 0; i < testValues.Count; i++) {
-    var timeStamp = now.AddMinutes((testValues.Count-i) * -2);
-    parsedValues.Add(new DataCoreTagValue("tag1", timeStamp, testValues[i]));
+// Process Data
+foreach (var value in testValues.Select((val, i) => new DataCoreTagValue("tag1", now.AddMinutes(-2 * (testValues.Count - i)), val))) {
+    await pipeline.WriteAsync(value);
 }
 
-for (int i = 0; i < parsedValues.Count; i++) {
-    await pipeline.WriteAsync(parsedValues[i]);
-
-}
-
+// Output Results
 Console.WriteLine($"\nNumber of Original Points: {testValues.Count}");
-for (int i = 0; i < testValues.Count; i++) {
-    Console.WriteLine($" {i} : {testValues[i]}");
+foreach (var (val, i) in testValues.Select((v, i) => (v, i))) {
+    Console.WriteLine($" {i} : {val}");
 }
 
 Console.WriteLine($"Number of Compressed Points: {compressedValues.Count}");
-for (int i = 0; i < compressedValues.Count; i++) {
-    Console.WriteLine($" {i} : {compressedValues[i].NumericValue}");
+foreach (var (val, i) in compressedValues.Select((v, i) => (v.NumericValue, i))) {
+    Console.WriteLine($" {i} : {val}");
 }
 
 Console.WriteLine($"Compression Ratio: {((double)compressedValues.Count / testValues.Count):P2}");

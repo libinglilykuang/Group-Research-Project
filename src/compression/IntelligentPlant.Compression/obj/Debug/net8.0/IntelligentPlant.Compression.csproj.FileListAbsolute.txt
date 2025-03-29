@@ -1,0 +1,12 @@
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\bin\Debug\net8.0\IntelligentPlant.Compression.deps.json
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\bin\Debug\net8.0\IntelligentPlant.Compression.dll
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\bin\Debug\net8.0\IntelligentPlant.Compression.pdb
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.csproj.AssemblyReference.cache
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.AssemblyInfoInputs.cache
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.AssemblyInfo.cs
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.csproj.CoreCompileInputs.cache
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.dll
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\refint\IntelligentPlant.Compression.dll
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\IntelligentPlant.Compression.pdb
+C:\Users\Kasia\Documents\UNI-STUFF\UNI-YEAR-2\COMP2002-PROJECT\team6_project\src\compression\IntelligentPlant.Compression\obj\Debug\net8.0\ref\IntelligentPlant.Compression.dll

@@ -2,15 +2,33 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Papa from 'papaparse';
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
-    // Configuration parameters state
-    const [compressionDeviationLimit, setCompressionDeviationLimit] = useState(''); // Default: 2
-    const [compressionDeviationType, setCompressionDeviationType] = useState(''); // Default: percentage
-    const [exceptionFilterDeviationLimit, setExceptionFilterDeviationLimit] = useState(''); // Default: 1
-    const [exceptionFilterDeviationType, setExceptionFilterDeviationType] = useState(''); // Default: absolute
-    const [minResampleLimit, setMinResampleLimit] = useState(''); // Default: 0
-    const [maxResampleLimit, setMaxResampleLimit] = useState(''); // Default: 5
+    // Parameter validation ranges
+    const VALIDATION_RANGES = {
+        compressionDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
+        exceptionFilterDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
+        minResampleLimit: { min: 0, max: 3600, unit: 'seconds', step: 1 },
+        maxResampleLimit: { min: 0, max: 86400, unit: 'seconds', step: 1 }
+    };
 
-    // File and data states
+    // Default parameter values
+    const DEFAULT_VALUES = {
+        compressionDeviationLimit: 2,
+        compressionDeviationType: 'percentage',
+        exceptionFilterDeviationLimit: 1,
+        exceptionFilterDeviationType: 'absolute',
+        minResampleLimit: 0,
+        maxResampleLimit: 5
+    };
+
+    // Configuration parameter states
+    const [compressionDeviationLimit, setCompressionDeviationLimit] = useState('');
+    const [compressionDeviationType, setCompressionDeviationType] = useState('');
+    const [exceptionFilterDeviationLimit, setExceptionFilterDeviationLimit] = useState('');
+    const [exceptionFilterDeviationType, setExceptionFilterDeviationType] = useState('');
+    const [minResampleLimit, setMinResampleLimit] = useState('');
+    const [maxResampleLimit, setMaxResampleLimit] = useState('');
+
+    // File and data processing states
     const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
@@ -23,20 +41,88 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const [fullData, setFullData] = useState([]);
     const [fullLabels, setFullLabels] = useState([]);
 
-    // Default values
-    const DEFAULT_COMPRESSION_DEVIATION_LIMIT = 2;
-    const DEFAULT_COMPRESSION_DEVIATION_TYPE = 'percentage';
-    const DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT = 1;
-    const DEFAULT_EXCEPTION_FILTER_DEVIATION_TYPE = 'absolute';
-    const DEFAULT_MIN_RESAMPLE_LIMIT = 0;
-    const DEFAULT_MAX_RESAMPLE_LIMIT = 5;
+    // Parameter validation function
+    const validateParameter = (value, paramName) => {
+        if (value === '') return true;
+        const numValue = Number(value);
+        if (isNaN(numValue)) return false;
 
-    // Format timestamp to include both date and time
+        const range = VALIDATION_RANGES[paramName];
+        return numValue >= range.min && numValue <= range.max;
+    };
+
+    // Get validation error message
+    const getValidationMessage = (paramName) => {
+        const range = VALIDATION_RANGES[paramName];
+        return `${paramName} must be between ${range.min} and ${range.max}`;
+    };
+
+    // Input handlers
+    const handleCompressionDeviationLimitChange = (e) => {
+        const value = e.target.value;
+        if (validateParameter(value, 'compressionDeviationLimit') || value === '') {
+            setCompressionDeviationLimit(value);
+            setError('');
+        } else {
+            setError(getValidationMessage('compressionDeviationLimit'));
+        }
+    };
+
+    const handleExceptionFilterDeviationLimitChange = (e) => {
+        const value = e.target.value;
+        if (validateParameter(value, 'exceptionFilterDeviationLimit') || value === '') {
+            setExceptionFilterDeviationLimit(value);
+            setError('');
+        } else {
+            setError(getValidationMessage('exceptionFilterDeviationLimit'));
+        }
+    };
+
+    const handleMinResampleLimitChange = (e) => {
+        const value = e.target.value;
+        if (validateParameter(value, 'minResampleLimit') || value === '') {
+            setMinResampleLimit(value);
+            setError('');
+        } else {
+            setError(getValidationMessage('minResampleLimit'));
+        }
+    };
+
+    const handleMaxResampleLimitChange = (e) => {
+        const value = e.target.value;
+        if (validateParameter(value, 'maxResampleLimit') || value === '') {
+            const min = minResampleLimit || DEFAULT_VALUES.minResampleLimit;
+            if (value === '' || Number(value) >= min) {
+                setMaxResampleLimit(value);
+                setError('');
+            } else {
+                setError(`Max resample limit must be ≥ min limit (${min})`);
+            }
+        } else {
+            setError(getValidationMessage('maxResampleLimit'));
+        }
+    };
+
+    const handleCompressionDeviationTypeChange = (e) => {
+        const value = e.target.value;
+        setCompressionDeviationType(value);
+        if (compressionDeviationLimit && !validateParameter(compressionDeviationLimit, 'compressionDeviationLimit')) {
+            setError(getValidationMessage('compressionDeviationLimit'));
+        }
+    };
+
+    const handleExceptionFilterDeviationTypeChange = (e) => {
+        const value = e.target.value;
+        setExceptionFilterDeviationType(value);
+        if (exceptionFilterDeviationLimit && !validateParameter(exceptionFilterDeviationLimit, 'exceptionFilterDeviationLimit')) {
+            setError(getValidationMessage('exceptionFilterDeviationLimit'));
+        }
+    };
+
+    // Format time string
     const formatTime = (timeString) => {
         const date = new Date(timeString);
-        if (isNaN(date.getTime())) {
-            return timeString;
-        }
+        if (isNaN(date.getTime())) return timeString;
         return date.toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -47,7 +133,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         });
     };
 
-    // Parse CSV file and initialize data
+    // Parse CSV file
     const parseCSV = (file) => {
         setError('');
         setMessage('Processing file...');
@@ -64,13 +150,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         setFullData(yValues);
                         setFullLabels(xValues);
                         setAllTimes(xValues);
-
                         setLabels(xValues);
                         setRawData(yValues);
-
                         setStartTime(xValues[0]);
                         setEndTime(xValues[xValues.length - 1]);
-
                         setMessage(`Loaded ${xValues.length} data points`);
                     } else {
                         setError('CSV file format error: valid data not found');
@@ -85,7 +168,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         });
     };
 
-    // Apply the selected time range
+    // Apply selected time range
     const applyTimeRange = () => {
         if (!file) {
             setError('No data file loaded');
@@ -142,10 +225,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         }
     };
 
-    // Handle compress action
+    // Handle compression operation
     const handleCompress = () => {
         if (!file) {
             setError('Please upload a file first');
+            return;
+        }
+
+        // Validate all parameters
+        if (
+            (compressionDeviationLimit && !validateParameter(compressionDeviationLimit, 'compressionDeviationLimit')) ||
+            (exceptionFilterDeviationLimit && !validateParameter(exceptionFilterDeviationLimit, 'exceptionFilterDeviationLimit')) ||
+            (minResampleLimit && !validateParameter(minResampleLimit, 'minResampleLimit')) ||
+            (maxResampleLimit && !validateParameter(maxResampleLimit, 'maxResampleLimit'))
+        ) {
+            setError('Please correct invalid parameters before compressing');
             return;
         }
 
@@ -165,56 +259,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         }, 1000);
     };
 
-    // Expose component methods via ref
-    useImperativeHandle(ref, () => ({
-        reset: () => {
-            setFile(null);
-            setCompressionDeviationLimit('');
-            setCompressionDeviationType('');
-            setExceptionFilterDeviationLimit('');
-            setExceptionFilterDeviationType('');
-            setMinResampleLimit('');
-            setMaxResampleLimit('');
-            setError('');
-            setMessage('');
-            setRawData([]);
-            setLabels([]);
-            setShowTimeRangeModal(false);
-            setStartTime('');
-            setEndTime('');
-            setAllTimes([]);
-            setFullData([]);
-            setFullLabels([]);
-        },
-        getParams: () => ({
-            compressionDeviationLimit: compressionDeviationLimit || DEFAULT_COMPRESSION_DEVIATION_LIMIT,
-            compressionDeviationType: compressionDeviationType || DEFAULT_COMPRESSION_DEVIATION_TYPE,
-            exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT,
-            exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_EXCEPTION_FILTER_DEVIATION_TYPE,
-            minResampleLimit: minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT,
-            maxResampleLimit: maxResampleLimit || DEFAULT_MAX_RESAMPLE_LIMIT,
-        }),
-        setParams: (params) => {
-            if (params.compressionDeviationLimit !== undefined)
-                setCompressionDeviationLimit(params.compressionDeviationLimit);
-            if (params.compressionDeviationType !== undefined)
-                setCompressionDeviationType(params.compressionDeviationType);
-            if (params.exceptionFilterDeviationLimit !== undefined)
-                setExceptionFilterDeviationLimit(params.exceptionFilterDeviationLimit);
-            if (params.exceptionFilterDeviationType !== undefined)
-                setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
-            if (params.minResampleLimit !== undefined)
-                setMinResampleLimit(params.minResampleLimit);
-            if (params.maxResampleLimit !== undefined)
-                setMaxResampleLimit(params.maxResampleLimit);
-        },
-        loadFile: (file) => {
-            setFile(file);
-            parseCSV(file);
-        },
-    }));
-
-    // Time Range Modal Component
+    // Time range selection modal component
     const TimeRangeModal = () => (
         <div style={{
             position: 'fixed',
@@ -380,6 +425,69 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         </div>
     );
 
+    // Expose methods to parent component
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            setFile(null);
+            setCompressionDeviationLimit('');
+            setCompressionDeviationType('');
+            setExceptionFilterDeviationLimit('');
+            setExceptionFilterDeviationType('');
+            setMinResampleLimit('');
+            setMaxResampleLimit('');
+            setError('');
+            setMessage('');
+            setRawData([]);
+            setLabels([]);
+            setShowTimeRangeModal(false);
+            setStartTime('');
+            setEndTime('');
+            setAllTimes([]);
+            setFullData([]);
+            setFullLabels([]);
+        },
+        getParams: () => ({
+            compressionDeviationLimit: compressionDeviationLimit || DEFAULT_VALUES.compressionDeviationLimit,
+            compressionDeviationType: compressionDeviationType || DEFAULT_VALUES.compressionDeviationType,
+            exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_VALUES.exceptionFilterDeviationLimit,
+            exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_VALUES.exceptionFilterDeviationType,
+            minResampleLimit: minResampleLimit || DEFAULT_VALUES.minResampleLimit,
+            maxResampleLimit: maxResampleLimit || DEFAULT_VALUES.maxResampleLimit,
+        }),
+        setParams: (params) => {
+            if (params.compressionDeviationLimit !== undefined) {
+                handleCompressionDeviationLimitChange({
+                    target: { value: params.compressionDeviationLimit }
+                });
+            }
+            if (params.compressionDeviationType !== undefined) {
+                setCompressionDeviationType(params.compressionDeviationType);
+            }
+            if (params.exceptionFilterDeviationLimit !== undefined) {
+                handleExceptionFilterDeviationLimitChange({
+                    target: { value: params.exceptionFilterDeviationLimit }
+                });
+            }
+            if (params.exceptionFilterDeviationType !== undefined) {
+                setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
+            }
+            if (params.minResampleLimit !== undefined) {
+                handleMinResampleLimitChange({
+                    target: { value: params.minResampleLimit }
+                });
+            }
+            if (params.maxResampleLimit !== undefined) {
+                handleMaxResampleLimitChange({
+                    target: { value: params.maxResampleLimit }
+                });
+            }
+        },
+        loadFile: (file) => {
+            setFile(file);
+            parseCSV(file);
+        },
+    }));
+
     return (
         <div style={{
             padding: '30px',
@@ -398,12 +506,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             marginLeft: 'auto',
             marginRight: 'auto'
         }}>
-            {/* File Upload Section - Modified */}
-            <div style={{
-                width: '95%',
-                marginBottom: '30px',
-                padding: '0 20px'
-            }}>
+            {/* File upload section */}
+            <div style={{ width: '95%', marginBottom: '30px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
                     fontSize: '20px',
@@ -415,30 +519,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 }}>
                     Data Source
                 </h2>
-
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '15px',
-                    width: '100%'
-                }}>
-                    <div style={{
-                        flex: '1 1 auto',
-                        minWidth: '300px',
-                        paddingLeft: '12px'
-                    }}>
-                        <label style={{
-                            display: 'block',
-                            fontSize: '16px',
-                            marginBottom: '8px'
-                        }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+                    <div style={{ flex: '1 1 auto', minWidth: '300px', paddingLeft: '12px' }}>
+                        <label style={{ display: 'block', fontSize: '16px', marginBottom: '8px' }}>
                             Upload CSV File:
                         </label>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                        }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <input
                                 type="file"
                                 accept=".csv"
@@ -454,16 +540,11 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                             />
                         </div>
                     </div>
-
-                    <div style={{
-                        flex: '0 0 auto',
-                        marginLeft: 'auto',
-                        paddingTop: '24px'
-                    }}>
+                    <div style={{ flex: '0 0 auto', marginLeft: 'auto', paddingTop: '24px' }}>
                         <button
                             style={{
                                 padding: '12px 20px',
-                                backgroundColor: '#4CAF50', // Changed to green
+                                backgroundColor: '#4CAF50',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '6px',
@@ -473,8 +554,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                                 whiteSpace: 'nowrap',
                                 transition: 'all 0.2s'
                             }}
-                            onMouseOver={(e) => e.target.style.backgroundColor = '#3e8e41'}
-                            onMouseOut={(e) => e.target.style.backgroundColor = '#4CAF50'}
                             onClick={() => {
                                 if (!file) {
                                     setError('Please upload a CSV file first');
@@ -493,12 +572,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </div>
             </div>
 
-            {/* Configuration Parameters - Aligned */}
-            <div style={{
-                width: '95%',
-                marginBottom: '20px',
-                padding: '0 20px'
-            }}>
+            {/* Parameter configuration section */}
+            <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
                     fontSize: '20px',
@@ -511,13 +586,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                     Compression Parameters
                 </h2>
 
-                {/* Compression Parameters Group */}
-                <div style={{
-                    display: 'flex',
-                    gap: '40px',
-                    marginBottom: '30px',
-                    paddingLeft: '12px'
-                }}>
+                {/* Compression parameter group */}
+                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
                     <div style={{ flex: 1 }}>
                         <label style={{
                             display: 'block',
@@ -530,19 +600,29 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         </label>
                         <input
                             type="number"
-                            min="0"
-                            step="0.1"
+                            min={VALIDATION_RANGES.compressionDeviationLimit.min}
+                            max={VALIDATION_RANGES.compressionDeviationLimit.max}
+                            step={VALIDATION_RANGES.compressionDeviationLimit.step}
                             value={compressionDeviationLimit}
-                            onChange={(e) => setCompressionDeviationLimit(e.target.value)}
-                            placeholder={DEFAULT_COMPRESSION_DEVIATION_LIMIT.toString()}
+                            onChange={handleCompressionDeviationLimitChange}
+                            placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                border: '1px solid #ddd',
+                                border: `1px solid ${error.includes('compressionDeviationLimit') ? 'red' : '#ddd'}`,
                                 borderRadius: '6px',
                                 fontSize: '15px'
                             }}
                         />
+                        <span style={{
+                            display: 'block',
+                            fontSize: '14px',
+                            color: '#666',
+                            marginTop: '4px'
+                        }}>
+                            Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max}
+                            {VALIDATION_RANGES.compressionDeviationLimit.unit && ' ' + VALIDATION_RANGES.compressionDeviationLimit.unit}
+                        </span>
                         <span style={{
                             display: 'block',
                             fontSize: '15px',
@@ -565,7 +645,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         </label>
                         <select
                             value={compressionDeviationType}
-                            onChange={(e) => setCompressionDeviationType(e.target.value)}
+                            onChange={handleCompressionDeviationTypeChange}
                             style={{
                                 width: '100%',
                                 padding: '12px',
@@ -589,13 +669,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                     </div>
                 </div>
 
-                {/* Exception Filter Parameters Group */}
-                <div style={{
-                    display: 'flex',
-                    gap: '40px',
-                    marginBottom: '30px',
-                    paddingLeft: '12px'
-                }}>
+                {/* Exception filter parameter group */}
+                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
                     <div style={{ flex: 1 }}>
                         <label style={{
                             display: 'block',
@@ -608,19 +683,29 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         </label>
                         <input
                             type="number"
-                            min="0"
-                            step="0.1"
+                            min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
+                            max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
+                            step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
                             value={exceptionFilterDeviationLimit}
-                            onChange={(e) => setExceptionFilterDeviationLimit(e.target.value)}
-                            placeholder={DEFAULT_EXCEPTION_FILTER_DEVIATION_LIMIT.toString()}
+                            onChange={handleExceptionFilterDeviationLimitChange}
+                            placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                border: '1px solid #ddd',
+                                border: `1px solid ${error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ddd'}`,
                                 borderRadius: '6px',
                                 fontSize: '15px'
                             }}
                         />
+                        <span style={{
+                            display: 'block',
+                            fontSize: '14px',
+                            color: '#666',
+                            marginTop: '4px'
+                        }}>
+                            Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
+                            {VALIDATION_RANGES.exceptionFilterDeviationLimit.unit && ' ' + VALIDATION_RANGES.exceptionFilterDeviationLimit.unit}
+                        </span>
                         <span style={{
                             display: 'block',
                             fontSize: '15px',
@@ -643,7 +728,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         </label>
                         <select
                             value={exceptionFilterDeviationType}
-                            onChange={(e) => setExceptionFilterDeviationType(e.target.value)}
+                            onChange={handleExceptionFilterDeviationTypeChange}
                             style={{
                                 width: '100%',
                                 padding: '12px',
@@ -667,13 +752,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                     </div>
                 </div>
 
-                {/* Resample Parameters Group */}
-                <div style={{
-                    display: 'flex',
-                    gap: '40px',
-                    marginBottom: '30px',
-                    paddingLeft: '12px'
-                }}>
+                {/* Resampling parameter group */}
+                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
                     <div style={{ flex: 1 }}>
                         <label style={{
                             display: 'block',
@@ -686,18 +766,29 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         </label>
                         <input
                             type="number"
-                            min="0"
+                            min={VALIDATION_RANGES.minResampleLimit.min}
+                            max={VALIDATION_RANGES.minResampleLimit.max}
+                            step={VALIDATION_RANGES.minResampleLimit.step}
                             value={minResampleLimit}
-                            onChange={(e) => setMinResampleLimit(e.target.value)}
-                            placeholder={DEFAULT_MIN_RESAMPLE_LIMIT.toString()}
+                            onChange={handleMinResampleLimitChange}
+                            placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                border: '1px solid #ddd',
+                                border: `1px solid ${error.includes('minResampleLimit') ? 'red' : '#ddd'}`,
                                 borderRadius: '6px',
                                 fontSize: '15px'
                             }}
                         />
+                        <span style={{
+                            display: 'block',
+                            fontSize: '14px',
+                            color: '#666',
+                            marginTop: '4px'
+                        }}>
+                            Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max}
+                            {VALIDATION_RANGES.minResampleLimit.unit && ' ' + VALIDATION_RANGES.minResampleLimit.unit}
+                        </span>
                         <span style={{
                             display: 'block',
                             fontSize: '15px',
@@ -720,18 +811,29 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                         </label>
                         <input
                             type="number"
-                            min={minResampleLimit || DEFAULT_MIN_RESAMPLE_LIMIT}
+                            min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
+                            max={VALIDATION_RANGES.maxResampleLimit.max}
+                            step={VALIDATION_RANGES.maxResampleLimit.step}
                             value={maxResampleLimit}
-                            onChange={(e) => setMaxResampleLimit(e.target.value)}
-                            placeholder={DEFAULT_MAX_RESAMPLE_LIMIT.toString()}
+                            onChange={handleMaxResampleLimitChange}
+                            placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                border: '1px solid #ddd',
+                                border: `1px solid ${error.includes('maxResampleLimit') ? 'red' : '#ddd'}`,
                                 borderRadius: '6px',
                                 fontSize: '15px'
                             }}
                         />
+                        <span style={{
+                            display: 'block',
+                            fontSize: '14px',
+                            color: '#666',
+                            marginTop: '4px'
+                        }}>
+                            Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max}
+                            {VALIDATION_RANGES.maxResampleLimit.unit && ' ' + VALIDATION_RANGES.maxResampleLimit.unit}
+                        </span>
                         <span style={{
                             display: 'block',
                             fontSize: '15px',
@@ -744,7 +846,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </div>
             </div>
 
-            {/* Status Messages */}
+            {/* Status messages */}
             {(error || message) && (
                 <div style={{
                     width: '95%',
@@ -780,7 +882,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </div>
             )}
 
-            {/* Compress Button */}
+            {/* Compression button */}
             <div style={{
                 width: '95%',
                 textAlign: 'center',
@@ -805,7 +907,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 </button>
             </div>
 
-            {/* Time Range Modal */}
+            {/* Time range selection modal */}
             {showTimeRangeModal && <TimeRangeModal />}
         </div>
     );

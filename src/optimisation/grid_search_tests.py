@@ -1,20 +1,13 @@
-import pytest
 import grid_search
 
 test_optimal_params = {
-        'cf_deviation_limit': 4,
-        'cf_deviation_type': 'absolute',
-        'ef_deviation_limit': 8,
-        'ef_deviation_type': 'percentage',
-        'max_resample_limit': (0, 2, 30),
-        'min_resample_limit': (0, 1, 0)
-    }
-
-
-def test_optimal_params_getter_and_setter():
-    grid_search.set_optimal_params(test_optimal_params)
-
-    assert grid_search.get_optimal_params() == test_optimal_params
+    'cf_deviation_limit': 4,
+    'cf_deviation_type': 'absolute',
+    'ef_deviation_limit': 8,
+    'ef_deviation_type': 'percentage',
+    'max_resample_limit': (0, 2, 30),
+    'min_resample_limit': (0, 1, 0)
+}
 
 
 def test_optimisation():
@@ -25,6 +18,12 @@ def test_optimisation():
     best_result = best_result[0][0]
 
     assert best_result == test_optimal_params
+
+
+def test_optimal_params_getter_and_setter():
+    grid_search.set_optimal_params(test_optimal_params)
+
+    assert grid_search.get_optimal_params() == test_optimal_params
 
 
 def test_top_5_results_number():
@@ -52,7 +51,3 @@ def test_optimal_result_valid():
     optimal_result = grid_search.get_optimal_result(results)
 
     assert optimal_result == test_optimal_params
-
-
-
-

@@ -87,19 +87,15 @@
 | 2.1.8 | Output Metrics  | Confirm the algorithm calculates and displays metrics correctly.           | Metrics like storage savings, point counts and data fidelity must align with the actual results.                   | Written - 16/11/24 | n/a          |
 | 2.1.9 | Edge Cases      | Test the algorithm with unusual or extreme datasets.                       | Include datasets with single points, duplicates or high frequency noise.                                           | Written - 16/11/24 | n/a          |
 
-### Compression Algorithm
+### Optimisation Algorithm
 
-| ID    | Test Type       | Description                                                                | Notes                                                                                                              | Pass/Fail          | Change Notes |
-|-------|-----------------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|--------------------|--------------|
-| 2.2.1 | Functionality   | Verify the algorithm optimises parameters correctly                        | When data is passed into the compression algorithm, it successfully compresses it and outputs the compressed data. | Written - 14/11/24 | n/a          |
-| 2.2.2 | Accuracy        | Check that the compression retains critical data within acceptable limits. | Ensure key points are preserved while reducing less critical data.                                                 | Written 16/11/24   | n/a          |
-| 2.2.3 | Error Handling  | Verify the algorithm handles invalid or malformed data properly.           | The algorithm should return clear error messages or warnings for invalid input.                                    | Written 16/11/24   | n/a          |
-| 2.2.4 | Configurability | Ensure the algorithm correctly applies user-defined parameters.            | User-provided settings, like compression ratio, must affect the output as expected.                                | Written 16/11/24   | n/a          |
-| 2.2.5 | Scalability     | Test the algorithm's ability to handle large datasets.                     | The algorithm should compress up to 100,000,000 points without crashing or failing.                                | Written 16/11/24   | n/a          |
-| 2.2.6 | Performance     | Ensure compression completes within a reasonable time.                     | Compression time should not exceed 5 seconds for 1,000,000 points.                                                 | Written 16/11/24   | n/a          |
-| 2.2.7 | Integration     | Check that the algorithm integrates well with other components.            | Compressed data should work correctly with the Data Core API and visualisation tools.                              | Written 16/11/24   | n/a          |
-| 2.2.8 | Output Metrics  | Confirm the algorithm calculates and displays metrics correctly.           | Metrics like storage savings, point counts and data fidelity must align with the actual results.                   | Written 16/11/24   | n/a          |
-| 2.2.9 | Edge Cases      | Test the algorithm with unusual or extreme datasets.                       | Include datasets with single points, duplicates or high frequency noise.                                           | Written 16/11/24   | n/a          |
+| ID    | Test Type     | Description                                      | Notes                                                                                                               | Pass/Fail          | Change Notes |
+|-------|---------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|--------------------|--------------|
+| 2.2.1 | Functionality | Verify algorithm optimises parameters correctly. | Optimisation algorithm should correctly identify a preset dictionary of optimal values by performing a grid search. | Written - 13/03/24 | n/a          |
+| 2.2.2 | Functionality | Test mock optimal parameters getter and setter.  | Test optimal parameter getter and setter work for mock compression of data.                                         | Written - 13/03/24 | n/a          |
+| 2.2.3 | Functionality | Retrieve Top 5 optimal compression parameters.   | Test the optimisation algorithm returns the top five compression parameters.                                        | Written - 13/03/24 | n/a          |
+| 2.2.4 | Functionality | Retrieve optimal compression parameter.          | Test the algorithm returns the most optimal value for each compression parameter.                                   | Written - 13/03/24 | n/a          |
+| 2.2.5 | Accuracy      | Test optimal result values.                      | Test the optimal result returned by the algorithm matches the set optimal parameters for testing.                   | Written - 13/03/24 | n/a          |
 
 ### Infrastructure
 

@@ -8,30 +8,20 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
     const calculateMetrics = (rawData, compressedData) => {
         const rawDataPoints = rawData.length;
         const compressedDataPoints = compressedData.length;
-
-        const compressionRatio = compressedDataPoints === 0
-            ? 'Infinity'
-            : (rawDataPoints / compressedDataPoints).toFixed(2);
-
+        const compressionRatio = rawDataPoints && compressedDataPoints ? (rawDataPoints / compressedDataPoints).toFixed(2) : "N/A";
         const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2);
         const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2);
-
-        let errorRate = '0.00';
-        if (rawData.length > 0 && compressedData.length > 0) {
-            const rawSum = rawData.reduce((sum, val) => sum + val, 0);
-            const compressedSum = compressedData.reduce((sum, val) => sum + val, 0);
-            errorRate = rawSum === 0
-                ? '0.00'
-                : ((1 - compressedSum / rawSum) * 100).toFixed(2);
-        }
+        const rawSum = rawData.reduce((sum, value) => sum + value, 0);
+        const compressedSum = compressedData.reduce((sum, value) => sum + value, 0);
+        const errorRate = rawSum && compressedSum ? ((1 - compressedSum / rawSum) * 100).toFixed(2) : "N/A";
 
         return [
-            { name: 'Number of Data Points (Raw)', value: rawDataPoints.toString(), testId: 'metric-value-raw-points' },
-            { name: 'Number of Data Points (Compressed)', value: compressedDataPoints.toString(), testId: 'metric-value-compressed-points' },
-            { name: 'Compression Ratio', value: compressionRatio, testId: 'metric-value-ratio' },
+            { name: 'Number of Data Points (Raw)', value: rawDataPoints.toString() },
+            { name: 'Number of Data Points (Compressed)', value: compressedDataPoints.toString() },
+            { name: 'Compression Ratio', value: compressionRatio },
             { name: 'Storage Size (Raw) (MB)', value: storageSizeRaw },
             { name: 'Storage Size (Compressed) (MB)', value: storageSizeCompressed },
-            { name: 'Data Accuracy (Error Rate) (%)', value: errorRate, testId: 'metric-value-error-rate' },
+            { name: 'Data Accuracy (Error Rate) (%)', value: errorRate },
         ];
     };
 
@@ -52,11 +42,6 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
         setSaveModalOpen(false);
     };
     const handleCancelSave = () => setSaveModalOpen(false);
-    const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget) {
-            setSaveModalOpen(false);
-        }
-    };
 
     return (
         <div
@@ -67,70 +52,28 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 border: '1px solid #ccc',
                 borderRadius: '8px',
                 padding: '1rem',
-                width: '100%',
-                boxSizing: 'border-box',
-                margin: '0 auto',
-                maxWidth: '95vw'
             }}
         >
             {metrics.length > 0 ? (
-                <div style={{ overflowX: 'auto' }}>
-                    <table
-                        role="table"
-                        style={{
-                            width: '100%',
-                            minWidth: '500px',
-                            borderCollapse: 'collapse',
-                            marginBottom: '20px',
-                            tableLayout: 'fixed'
-                        }}
-                    >
-                        <thead>
-                        <tr>
-                            <th style={{
-                                padding: '16px',
-                                textAlign: 'left',
-                                backgroundColor: '#f8f9fa',
-                                color: '#212529',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                borderBottom: '2px solid #dee2e6',
-                                borderTop: '1px solid #dee2e6',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                            }}>Metric</th>
-                            <th style={{
-                                padding: '16px',
-                                textAlign: 'left',
-                                backgroundColor: '#f8f9fa',
-                                color: '#212529',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                borderBottom: '2px solid #dee2e6',
-                                borderTop: '1px solid #dee2e6',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                            }}>Value</th>
+                <table
+                    role="table"
+                    style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}
+                >
+                    <thead>
+                    <tr>
+                        <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Metric</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {metrics.map((item, index) => (
+                        <tr key={index}>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.name}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.value}</td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        {metrics.map((item, index) => (
-                            <tr key={index}>
-                                <td style={{
-                                    border: '1px solid #ddd',
-                                    padding: '8px',
-                                    wordBreak: 'break-word'
-                                }}>{item.name}</td>
-                                <td style={{
-                                    border: '1px solid #ddd',
-                                    padding: '8px',
-                                    wordBreak: 'break-word'
-                                }} data-testid={item.testId || null}>
-                                    {item.value}
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                    ))}
+                    </tbody>
+                </table>
             ) : (
                 <p style={{ color: 'gray', fontStyle: 'italic', textAlign: 'center', marginBottom: '20px' }}>
                     No data available
@@ -141,8 +84,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 onClick={handleSave}
                 style={{
                     display: 'block',
-                    width: '100%',
-                    maxWidth: '300px',
+                    width: '30%',
                     padding: '12px 20px',
                     fontSize: '16px',
                     backgroundColor: '#28a745',
@@ -170,7 +112,6 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                     e.target.style.backgroundColor = '#218838';
                     e.target.style.transform = 'scale(1.02)';
                 }}
-                data-testid="save-button"
             >
                 Save Optimal Configuration
             </button>
@@ -189,63 +130,29 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                         alignItems: 'center',
                         zIndex: 1000,
                     }}
-                    onClick={handleBackdropClick}
-                    data-testid="modal-backdrop"
                 >
                     <div
                         style={{
                             background: '#fff',
                             padding: '20px',
                             borderRadius: '8px',
-                            width: '90%',
-                            maxWidth: '400px',
+                            width: '400px',
                             boxShadow: '0px 0px 10px rgba(0,0,0,0.2)',
                         }}
-                        onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 style={{ marginTop: 0 }}>Save Configuration</h3>
+                        <h3>Save Configuration</h3>
                         <div style={{ marginBottom: '10px' }}>
                             <label>
                                 <input
                                     type="checkbox"
                                     checked={includeCSV}
                                     onChange={(e) => setIncludeCSV(e.target.checked)}
-                                    data-testid="csv-checkbox"
                                 />
                                 Include CSV File
                             </label>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={handleConfirmSave}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#28a745',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    marginRight: '10px',
-                                    cursor: 'pointer'
-                                }}
-                                data-testid="confirm-button"
-                            >
-                                Confirm
-                            </button>
-                            <button
-                                onClick={handleCancelSave}
-                                style={{
-                                    padding: '8px 16px',
-                                    backgroundColor: '#dc3545',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer'
-                                }}
-                                data-testid="cancel-button"
-                            >
-                                Cancel
-                            </button>
-                        </div>
+                        <button onClick={handleConfirmSave} style={{ marginRight: '10px' }}>Confirm</button>
+                        <button onClick={handleCancelSave}>Cancel</button>
                     </div>
                 </div>
             )}

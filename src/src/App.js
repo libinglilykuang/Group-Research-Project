@@ -3,142 +3,131 @@ import ConfigPanel from "./components/ConfigPanel";
 import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
-
-// TODO: Remove Firebase imports and replace with Azure SDK
-// Example: import { BlobServiceClient } from "@azure/storage-blob";
 import { db } from "./firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 function App() {
-    // State variables
-    const [rawData, setRawData] = useState([]); // Stores raw data for the chart
-    const [labels, setLabels] = useState([]); // Stores labels for the chart
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls sidebar visibility
-    const [configurations, setConfigurations] = useState([]); // Stores user configurations
-    const [file, setFile] = useState(null); // Stores the current CSV file
+    const [rawData, setRawData] = useState([]);
+    const [labels, setLabels] = useState([]);
+    const [compressedData, setCompressedData] = useState([]);
+    const [compressedLabels, setCompressedLabels] = useState([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [configurations, setConfigurations] = useState([]);
+    const [file, setFile] = useState(null);
 
-    const configPanelRef = useRef(null); // Reference to the ConfigPanel component
+    const configPanelRef = useRef(null);
 
-    // TODO: Initialize Azure Blob Storage or Cosmos DB client here
+    // Hardcoded Azure Blob Storage setup
+    const AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=team6ipstorageaccount;AccountKey=Tt8rQKp/Vi6QAsxdTuSCJH1+s7HODqclwW4+/gZLUawwvDllOmKMRQq2wlOOFffQOmkdjHObgvMA+AStB3Sfog==;BlobEndpoint=https://team6ipstorageaccount.blob.core.windows.net/;FileEndpoint=https://team6ipstorageaccount.file.core.windows.net/;QueueEndpoint=https://team6ipstorageaccount.queue.core.windows.net/;TableEndpoint=https://team6ipstorageaccount.table.core.windows.net/";
+    const FUNCTION_KEY = "cY1UQbInfG8J47x6HpICBc_rrCFwSNen_geoVqVGgZAEAzFuv_plDw==";
+    const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+    const inputContainerClient = blobServiceClient.getContainerClient("ip-input-container");
+    const outputContainerClient = blobServiceClient.getContainerClient("ip-output-container");
 
-    // Effect to load configurations on component mount
     useEffect(() => {
-        loadConfigurations(); // Load configurations directly
+        loadConfigurations();
     }, []);
 
-    // Function to load configurations from Firestore
     const loadConfigurations = async () => {
         try {
-            // TODO: Replace Firebase Firestore logic with Azure storage logic
-            // Example: Load configurations from Azure Blob Storage or Cosmos DB
-            const querySnapshot = await getDocs(collection(db, "configurations")); // Load all configurations
+            const querySnapshot = await getDocs(collection(db, "configurations"));
             const configs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            setConfigurations(configs); // Update state with loaded configurations
+            setConfigurations(configs);
         } catch (error) {
             console.error("Error loading configurations:", error);
         }
     };
 
-    // Function to save a configuration to Firestore
     const handleSave = async (config) => {
-        // Create a new configuration object
         const newConfig = {
             ...config,
-            name: `Configuration ${configurations.length + 1}`, // Generate a dynamic name
-            date: new Date().toISOString(), // Add the current timestamp
-            parameters: {
-                ...config.parameters,
-            },
-            rawData: config.includeCSV ? rawData.join("\n") : null, // Store CSV content if included
-            labels: config.includeCSV ? labels : null, // Store labels if included
+            name: `Configuration ${configurations.length + 1}`,
+            date: new Date().toISOString(),
+            parameters: { ...config.parameters },
+            rawData: config.includeCSV ? rawData.join("\n") : null,
+            labels: config.includeCSV ? labels : null,
         };
-
         try {
-            // TODO: Replace Firebase Firestore logic with Azure storage logic
-            // Example: Save configuration to Azure Blob Storage or Cosmos DB
             const docRef = await addDoc(collection(db, "configurations"), newConfig);
-            console.log("Document written with ID:", docRef.id);
-
-            // Update local state with the new configuration
             setConfigurations((prevConfigs) => [...prevConfigs, { id: docRef.id, ...newConfig }]);
             alert("Optimal configuration saved!");
         } catch (error) {
             console.error("Error saving configuration:", error);
-            alert("Failed to save configuration. Please try again.");
+            alert("Failed to save configuration.");
         }
     };
 
-    // Function to create a new configuration
     const handleNewConfig = () => {
         if (configPanelRef.current) {
-            configPanelRef.current.reset(); // Reset the ConfigPanel
+            configPanelRef.current.reset();
         }
-        setFile(null); // Clear the current CSV file
+        setFile(null);
+        setCompressedData([]);
+        setCompressedLabels([]);
     };
 
-    // Function to toggle the sidebar
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
+    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-    // Function to load a configuration into the UI
     const handleLoadConfig = (config) => {
-        // Load raw data and labels into the chart
-        setRawData(config.rawData ? config.rawData.split("\n") : []);
+        setRawData(config.rawData ? config.rawData.split("\n").map(Number) : []);
         setLabels(config.labels || []);
-
-        // Load parameters into the ConfigPanel
+        setCompressedData([]);
+        setCompressedLabels([]);
         if (configPanelRef.current) {
             configPanelRef.current.setParams(config.parameters);
         }
     };
 
-    // Function to compress data based on parameters
-    const compressData = (
-        data,
-        labels,
-        compressionDeviationLimit,
-        compressionDeviationType,
-        exceptionFilterDeviationLimit,
-        exceptionFilterDeviationType
-    ) => {
-        const compressedData = [];
-        const compressedLabels = [];
-
-        // TODO: Replace local compression logic with a call to the backend compression API
-
-        return { compressedData, compressedLabels };
-    };
-
-    // Function to get compression parameters from the ConfigPanel
-    const getCompressionParameters = () => {
-        if (configPanelRef.current) {
-            return configPanelRef.current.getParams();
+    const compressData = async () => {
+        if (!rawData.length || !labels.length) {
+            alert("Please upload a CSV file first.");
+            return;
         }
-        return {
-            compressionDeviationLimit: null,
-            compressionDeviationType: null,
-            exceptionFilterDeviationLimit: null,
-            exceptionFilterDeviationType: null,
+
+        const params = configPanelRef.current.getParams();
+        const formattedData = rawData.map((value, index) => ({
+            timestamp: labels[index],
+            value,
+        }));
+        const payload = {
+            rawData: formattedData,
+            parameters: {
+                deviationLimit: Number(params.compressionDeviationLimit),
+                deviationType: params.compressionDeviationType,
+            },
         };
+
+        try {
+            const rawBlobName = `raw-${Date.now()}.json`;
+            const rawBlockBlobClient = inputContainerClient.getBlockBlobClient(rawBlobName);
+            const rawDataJson = JSON.stringify(formattedData);
+            await rawBlockBlobClient.upload(rawDataJson, rawDataJson.length);
+            console.log(`Raw data uploaded to ${rawBlobName}`);
+
+            const response = await fetch(
+                `https://ip-team6-compression-function.azurewebsites.net/api/compressdata?code=${FUNCTION_KEY}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                }
+            );
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            setCompressedData(result.map(d => d.value));
+            setCompressedLabels(result.map(d => d.timestamp));
+
+            const compressedBlobName = `compressed-${Date.now()}.json`;
+            const compressedBlockBlobClient = outputContainerClient.getBlockBlobClient(compressedBlobName);
+            const compressedDataJson = JSON.stringify(result);
+            await compressedBlockBlobClient.upload(compressedDataJson, compressedDataJson.length);
+            console.log(`Compressed data uploaded to ${compressedBlobName}`);
+        } catch (error) {
+            console.error("Error during compression or storage:", error);
+            alert("Compression or storage failed. Check console for details.");
+        }
     };
-
-    // Get parameters and compress the data
-    const {
-        compressionDeviationLimit,
-        compressionDeviationType,
-        exceptionFilterDeviationLimit,
-        exceptionFilterDeviationType,
-    } = getCompressionParameters();
-
-    const { compressedData, compressedLabels } = compressData(
-        rawData,
-        labels,
-        compressionDeviationLimit,
-        compressionDeviationType,
-        exceptionFilterDeviationLimit,
-        exceptionFilterDeviationType
-    );
 
     return (
         <div
@@ -155,19 +144,20 @@ function App() {
                 padding: "20px",
             }}
         >
-            {/* Main interface */}
-            <h2 style={{ color: "#333", marginBottom: "20px" }}>Intelligent Plant Compression Optimisation</h2>
+            <h2 style={{ color: "#333", marginBottom: "20px" }}>
+                Intelligent Plant Compression Optimisation
+            </h2>
             <div style={{ width: "80%" }}>
                 <CompressionSidebarPanel
                     configurations={configurations}
-                    setConfigurations={setConfigurations} // Pass setConfigurations here
+                    setConfigurations={setConfigurations}
                     onNewConfig={handleNewConfig}
                     isOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
                     onLoadConfig={handleLoadConfig}
+                    compressedData={compressedData}
                 />
             </div>
-
             <div
                 style={{
                     width: "80%",
@@ -181,9 +171,9 @@ function App() {
                     setRawData={setRawData}
                     setLabels={setLabels}
                     setFile={setFile}
+                    onCompress={compressData}
                 />
             </div>
-
             <div
                 style={{
                     width: "80%",
@@ -204,7 +194,6 @@ function App() {
                     compressedLabels={compressedLabels}
                 />
             </div>
-
             <div
                 style={{
                     width: "80%",

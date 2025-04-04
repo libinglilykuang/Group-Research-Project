@@ -3,94 +3,73 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 
+// Register Chart.js components and plugins
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, zoomPlugin);
 
-const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compressedLabels = [] }) => {
-    const isEmpty = !rawData?.length || !labels?.length;
+const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) => {
+    // Check if data is empty
+    const isEmpty = !rawData.length || !labels.length;
 
+    // Define chart data
     const chartData = {
-        labels: isEmpty ? [] : labels,
+        labels: isEmpty ? [] : labels, // Use empty array if no data
         datasets: [
             {
                 label: 'Raw Data',
-                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })),
+                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })), // Use empty array if no data
                 borderColor: '#82ca9d',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 2,
+                pointRadius: 2, // Smaller point radius
             },
             {
                 label: 'Compressed Data',
-                data: !compressedData?.length || !compressedLabels?.length ? [] :
-                    compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })),
+                data: isEmpty ? [] : compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })), // Use empty array if no data
                 borderColor: '#8884d8',
                 borderWidth: 2,
                 fill: false,
-                pointRadius: 5,
+                pointRadius: 5, // Larger point radius
             },
         ],
     };
 
+    // Define chart options
     const options = {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
             x: {
-                type: 'category',
-                title: {
-                    display: true,
-                    text: 'Time',
-                    font: { size: 14 },
-                    padding: { top: 10, bottom: 10 }
-                },
-                grid: { display: false },
+                type: 'category', // Use category axis
+                title: { display: true, text: 'Time', font: { size: 16 } },
                 ticks: {
-                    autoSkip: true,
-                    maxTicksLimit: 10,
-                    font: { size: 12 },
+                    autoSkip: true, // Automatically skip dense labels
+                    maxTicksLimit: 10, // Display a maximum of 10 labels
+                    font: { size: 14 },
                 },
-                bounds: 'ticks'
             },
             y: {
-                title: {
-                    display: true,
-                    text: 'Value',
-                    font: { size: 14 },
-                    padding: { top: 10, bottom: 10 }
-                },
-                ticks: { font: { size: 12 } },
-                grid: { color: '#f0f0f0' }
+                title: { display: true, text: 'Value', font: { size: 16 } },
+                ticks: { font: { size: 14 } },
             },
         },
         plugins: {
             zoom: {
-                pan: { enabled: true, mode: 'xy' },
-                zoom: { enabled: true, mode: 'xy', wheel: { enabled: true } }
+                pan: { enabled: true, mode: 'xy' }, // Enable panning
+                zoom: { enabled: true, mode: 'xy', wheel: { enabled: true } }, // Enable zooming with mouse wheel
             },
-            legend: {
-                position: 'top',
-                labels: { padding: 20 }
-            }
+            // Display a message if no data is available
+            title: {
+                display: isEmpty,
+                text: 'Please upload CSV data to display the chart',
+                font: { size: 18 },
+                color: 'gray',
+                padding: 20,
+            },
         },
-        layout: {
-            padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20
-            }
-        }
     };
 
     return (
-        <div style={{
-            width: '100%',
-            height: '500px',
-            padding: '0px 20px',
-            boxSizing: 'border-box',
-            margin: '0px auto',
-            maxWidth: 'calc(100% - 40px)'
-        }}>
+        <div style={{ width: '100%', height: '500px' }}>
             <Line data={chartData} options={options} />
         </div>
     );

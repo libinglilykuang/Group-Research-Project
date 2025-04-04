@@ -6,9 +6,11 @@ import { db } from "../firebase";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
+// Group by date
 const groupByDate = (configs) => {
     return configs.reduce((acc, config) => {
         const date = new Date(config.date);
+
         if (!isValid(date)) {
             console.warn(`Invalid date for config: ${config.name}`, config.date);
             return acc;
@@ -40,13 +42,13 @@ const CompressionSidebarPanel = ({
     const [selectedConfig, setSelectedConfig] = useState(null);
     const [editedConfig, setEditedConfig] = useState(null);
     const [selectedParameters, setSelectedParameters] = useState({});
-    const [isSaving, setIsSaving] = useState(false);
     const menuRef = useRef(null);
 
     const filteredConfigurations = useMemo(() => groupByDate(
         configurations.filter((config) =>
             config.name.toLowerCase().includes(searchInput.toLowerCase())
-        ), [configurations, searchInput]));
+        )
+    ), [configurations, searchInput]);
 
     const handleDelete = useCallback(async (configId) => {
         try {
@@ -77,6 +79,7 @@ const CompressionSidebarPanel = ({
         if (!selectedConfig) return;
 
         const zip = new JSZip();
+
         if (compressedData) {
             const compressedDataBlob = new Blob([JSON.stringify(compressedData, null, 2)], {
                 type: "application/json",
@@ -84,7 +87,17 @@ const CompressionSidebarPanel = ({
             zip.file("compressed-data.json", compressedDataBlob);
         }
 
-        const paramsBlob = new Blob([JSON.stringify(selectedConfig.parameters, null, 2)], {
+        const paramsToDownload = {
+            deviationLimit: selectedConfig.parameters.deviationLimit,
+            deviationType: selectedConfig.parameters.deviationType,
+            callbackFilter: selectedConfig.parameters.callbackFilter,
+            exceptionFilter1: selectedConfig.parameters.exceptionFilter1,
+            exceptionFilter2: selectedConfig.parameters.exceptionFilter2,
+            minResampleLimit: selectedConfig.parameters.minResampleLimit,
+            maxResampleLimit: selectedConfig.parameters.maxResampleLimit,
+        };
+
+        const paramsBlob = new Blob([JSON.stringify(paramsToDownload, null, 2)], {
             type: "application/json",
         });
         zip.file("parameters.json", paramsBlob);
@@ -105,10 +118,11 @@ const CompressionSidebarPanel = ({
         setEditedConfig({
             ...config,
             parameters: {
-                compressionDeviationLimit: config.parameters.compressionDeviationLimit || 2,
-                compressionDeviationType: config.parameters.compressionDeviationType || "percentage",
-                exceptionFilterDeviationLimit: config.parameters.exceptionFilterDeviationLimit || 1,
-                exceptionFilterDeviationType: config.parameters.exceptionFilterDeviationType || "absolute",
+                deviationLimit: config.parameters.deviationLimit || 2,
+                deviationType: config.parameters.deviationType || "percentage",
+                callbackFilter: config.parameters.callbackFilter || 0,
+                exceptionFilter1: config.parameters.exceptionFilter1 || "",
+                exceptionFilter2: config.parameters.exceptionFilter2 || "",
                 minResampleLimit: config.parameters.minResampleLimit || 0,
                 maxResampleLimit: config.parameters.maxResampleLimit || 5,
             },
@@ -117,43 +131,13 @@ const CompressionSidebarPanel = ({
     };
 
     const handleSaveEdit = async () => {
-        if (!selectedConfig || !editedConfig || isSaving) return;
-
-        setIsSaving(true);
         try {
-            // Prepare the updated configuration
-            const updatedConfig = {
-                name: editedConfig.name,
-                date: selectedConfig.date,
-                parameters: {
-                    compressionDeviationLimit: Number(editedConfig.parameters.compressionDeviationLimit) || 2,
-                    compressionDeviationType: editedConfig.parameters.compressionDeviationType || "percentage",
-                    exceptionFilterDeviationLimit: Number(editedConfig.parameters.exceptionFilterDeviationLimit) || 1,
-                    exceptionFilterDeviationType: editedConfig.parameters.exceptionFilterDeviationType || "absolute",
-                    minResampleLimit: Number(editedConfig.parameters.minResampleLimit) || 0,
-                    maxResampleLimit: Number(editedConfig.parameters.maxResampleLimit) || 5,
-                }
-            };
-
-            // Update Firestore
-            await updateDoc(doc(db, "configurations", selectedConfig.id), updatedConfig);
-
-            // Update local state
-            setConfigurations(prevConfigs =>
-                prevConfigs.map(config =>
-                    config.id === selectedConfig.id
-                        ? { ...config, ...updatedConfig }
-                        : config
-                )
-            );
-
+            await updateDoc(doc(db, "configurations", selectedConfig.id), editedConfig);
             setModalOpen(false);
             alert("Configuration updated successfully!");
         } catch (error) {
             console.error("Error updating configuration:", error);
-            alert(`Failed to update configuration: ${error.message}`);
-        } finally {
-            setIsSaving(false);
+            alert("Failed to update configuration. Please try again.");
         }
     };
 
@@ -199,7 +183,6 @@ const CompressionSidebarPanel = ({
 
     return (
         <div>
-            {/* Sidebar toggle button */}
             {!isOpen && (
                 <button
                     onClick={toggleSidebar}
@@ -217,7 +200,6 @@ const CompressionSidebarPanel = ({
                 </button>
             )}
 
-            {/* Sidebar content */}
             <div
                 className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}
                 style={{
@@ -237,7 +219,6 @@ const CompressionSidebarPanel = ({
             >
                 {isOpen && (
                     <>
-                        {/* Close button */}
                         <button
                             onClick={toggleSidebar}
                             style={{
@@ -252,7 +233,6 @@ const CompressionSidebarPanel = ({
                             <img src="/icons/close.png" alt="Close" style={{ width: "36px", height: "36px" }} />
                         </button>
 
-                        {/* Search bar */}
                         <div className="search-bar" style={{ marginBottom: "15px" }}>
                             <input
                                 type="text"
@@ -271,7 +251,6 @@ const CompressionSidebarPanel = ({
                             />
                         </div>
 
-                        {/* New configuration button */}
                         <button
                             onClick={onNewConfig}
                             style={{
@@ -286,7 +265,6 @@ const CompressionSidebarPanel = ({
                                 textAlign: "left",
                                 color: "#333",
                                 transition: "background 0.2s",
-                                ":hover": { background: "#f0f0f0" },
                             }}
                         >
                             <img
@@ -297,7 +275,6 @@ const CompressionSidebarPanel = ({
                             <span>Start New Configuration</span>
                         </button>
 
-                        {/* Configuration list */}
                         {Object.keys(filteredConfigurations).length > 0 ? (
                             <div>
                                 {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
@@ -362,7 +339,6 @@ const CompressionSidebarPanel = ({
                                                                         marginBottom: "4px",
                                                                         display: "flex",
                                                                         alignItems: "center",
-                                                                        ":hover": { background: "#f0f0f0" },
                                                                     }}
                                                                 >
                                                                     <img
@@ -387,7 +363,6 @@ const CompressionSidebarPanel = ({
                                                                         marginBottom: "4px",
                                                                         display: "flex",
                                                                         alignItems: "center",
-                                                                        ":hover": { background: "#f0f0f0" },
                                                                     }}
                                                                 >
                                                                     <img
@@ -412,7 +387,6 @@ const CompressionSidebarPanel = ({
                                                                         marginBottom: "4px",
                                                                         display: "flex",
                                                                         alignItems: "center",
-                                                                        ":hover": { background: "#f0f0f0" },
                                                                     }}
                                                                 >
                                                                     <img
@@ -436,7 +410,6 @@ const CompressionSidebarPanel = ({
                                                                         borderRadius: "4px",
                                                                         display: "flex",
                                                                         alignItems: "center",
-                                                                        ":hover": { background: "#f0f0f0" },
                                                                     }}
                                                                 >
                                                                     <img
@@ -462,7 +435,6 @@ const CompressionSidebarPanel = ({
                 )}
             </div>
 
-            {/* Edit modal */}
             {isModalOpen && selectedConfig && (
                 <div
                     style={{
@@ -513,7 +485,7 @@ const CompressionSidebarPanel = ({
                                 <label style={{ display: "block", marginBottom: "5px" }}>Name</label>
                                 <input
                                     type="text"
-                                    value={editedConfig?.name || ""}
+                                    value={editedConfig.name}
                                     onChange={handleNameChange}
                                     style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                                 />
@@ -524,52 +496,55 @@ const CompressionSidebarPanel = ({
                             <h4>Parameters:</h4>
                             <form>
                                 <div style={{ marginBottom: "10px" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Compression Deviation Limit</label>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Deviation Limit</label>
                                     <input
-                                        type="number"
-                                        value={editedConfig?.parameters?.compressionDeviationLimit || ""}
-                                        onChange={(e) => handleParamChange("compressionDeviationLimit", e.target.value)}
+                                        type="text"
+                                        value={editedConfig.parameters.deviationLimit || ""}
+                                        onChange={(e) => handleParamChange("deviationLimit", e.target.value)}
                                         style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                                     />
                                 </div>
                                 <div style={{ marginBottom: "10px" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Compression Deviation Type</label>
-                                    <select
-                                        value={editedConfig?.parameters?.compressionDeviationType || ""}
-                                        onChange={(e) => handleParamChange("compressionDeviationType", e.target.value)}
-                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
-                                    >
-                                        <option value="">Select type</option>
-                                        <option value="percentage">Percentage</option>
-                                        <option value="absolute">Absolute</option>
-                                    </select>
-                                </div>
-                                <div style={{ marginBottom: "10px" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter Deviation Limit</label>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Deviation Type</label>
                                     <input
-                                        type="number"
-                                        value={editedConfig?.parameters?.exceptionFilterDeviationLimit || ""}
-                                        onChange={(e) => handleParamChange("exceptionFilterDeviationLimit", e.target.value)}
+                                        type="text"
+                                        value={editedConfig.parameters.deviationType || ""}
+                                        onChange={(e) => handleParamChange("deviationType", e.target.value)}
                                         style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                                     />
                                 </div>
                                 <div style={{ marginBottom: "10px" }}>
-                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter Deviation Type</label>
-                                    <select
-                                        value={editedConfig?.parameters?.exceptionFilterDeviationType || ""}
-                                        onChange={(e) => handleParamChange("exceptionFilterDeviationType", e.target.value)}
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Callback Filter</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.callbackFilter || ""}
+                                        onChange={(e) => handleParamChange("callbackFilter", e.target.value)}
                                         style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
-                                    >
-                                        <option value="">Select type</option>
-                                        <option value="percentage">Percentage</option>
-                                        <option value="absolute">Absolute</option>
-                                    </select>
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 1</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.exceptionFilter1 || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilter1", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 2</label>
+                                    <input
+                                        type="text"
+                                        value={editedConfig.parameters.exceptionFilter2 || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilter2", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
                                 </div>
                                 <div style={{ marginBottom: "10px" }}>
                                     <label style={{ display: "block", marginBottom: "5px" }}>Min Resample Limit</label>
                                     <input
-                                        type="number"
-                                        value={editedConfig?.parameters?.minResampleLimit || ""}
+                                        type="text"
+                                        value={editedConfig.parameters.minResampleLimit || ""}
                                         onChange={(e) => handleParamChange("minResampleLimit", e.target.value)}
                                         style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                                     />
@@ -577,8 +552,8 @@ const CompressionSidebarPanel = ({
                                 <div style={{ marginBottom: "10px" }}>
                                     <label style={{ display: "block", marginBottom: "5px" }}>Max Resample Limit</label>
                                     <input
-                                        type="number"
-                                        value={editedConfig?.parameters?.maxResampleLimit || ""}
+                                        type="text"
+                                        value={editedConfig.parameters.maxResampleLimit || ""}
                                         onChange={(e) => handleParamChange("maxResampleLimit", e.target.value)}
                                         style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                                     />
@@ -589,29 +564,27 @@ const CompressionSidebarPanel = ({
                         <div style={{ marginTop: "10px", textAlign: "left" }}>
                             <button
                                 onClick={handleSaveEdit}
-                                disabled={isSaving}
                                 style={{
-                                    background: isSaving ? "#6c757d" : "#007BFF",
+                                    background: "#007BFF",
                                     color: "white",
                                     border: "none",
                                     padding: "10px 15px",
                                     borderRadius: "6px",
-                                    cursor: isSaving ? "not-allowed" : "pointer",
+                                    cursor: "pointer",
                                     fontSize: "16px",
                                     fontWeight: "bold",
                                     transition: "background 0.3s ease",
                                 }}
-                                onMouseOver={(e) => !isSaving && (e.target.style.background = "#0056b3")}
-                                onMouseOut={(e) => !isSaving && (e.target.style.background = isSaving ? "#6c757d" : "#007BFF")}
+                                onMouseOver={(e) => (e.target.style.background = "#0056b3")}
+                                onMouseOut={(e) => (e.target.style.background = "#007BFF")}
                             >
-                                {isSaving ? "Saving..." : "Save"}
+                                Save
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Download modal */}
             {isDownloadModalOpen && selectedConfig && (
                 <div
                     style={{
@@ -659,7 +632,15 @@ const CompressionSidebarPanel = ({
                         <h3>Download Configuration</h3>
                         <div style={{ overflowY: "auto", flex: 1 }}>
                             <p>Select parameters to include in the download:</p>
-                            {Object.entries(selectedConfig.parameters || {}).map(([param]) => (
+                            {[
+                                "deviationLimit",
+                                "deviationType",
+                                "callbackFilter",
+                                "exceptionFilter1",
+                                "exceptionFilter2",
+                                "minResampleLimit",
+                                "maxResampleLimit",
+                            ].map((param) => (
                                 <div key={param} style={{ marginBottom: "10px" }}>
                                     <label>
                                         <input

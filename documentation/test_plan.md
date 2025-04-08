@@ -117,10 +117,10 @@
 
 ### Optimisation Algorithm
 
-| ID    | Test Type     | Description                                      | Notes                                                                                                               | Pass/Fail          | Change Notes |
-|-------|---------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|--------------------|--------------|
-| 2.3.1 | Functionality | Verify algorithm optimises parameters correctly. | Optimisation algorithm should correctly identify a preset dictionary of optimal values by performing a grid search. | Written - 13/03/24 | n/a          |
-| 2.3.2 | Functionality | Test mock optimal parameters getter and setter.  | Test optimal parameter getter and setter work for mock compression of data.                                         | Written - 13/03/24 | n/a          |
-| 2.3.3 | Functionality | Retrieve Top 5 optimal compression parameters.   | Test the optimisation algorithm returns the top five compression parameters.                                        | Written - 13/03/24 | n/a          |
-| 2.3.4 | Functionality | Retrieve optimal compression parameter.          | Test the algorithm returns the most optimal value for each compression parameter.                                   | Written - 13/03/24 | n/a          |
-| 2.3.5 | Accuracy      | Test optimal result values.                      | Test the optimal result returned by the algorithm matches the set optimal parameters for testing.                   | Written - 13/03/24 | n/a          |
+| ID    | Test Type     | Description                                      | Notes                                                                                                               | Pass/Fail                             | Change Notes |
+|-------|---------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------|--------------|
+| 2.3.1 | Functionality | Verify algorithm optimises parameters correctly. | Optimisation algorithm should correctly identify a preset dictionary of optimal values by performing a grid search. | Written - 13/02/25, Passed - 25/03/25 | n/a          |
+| 2.3.2 | Functionality | Test mock optimal parameters getter and setter.  | Test optimal parameter getter and setter work for mock compression of data.                                         | Written - 13/02/25, Passed - 25/03/25 | n/a          |
+| 2.3.3 | Functionality | Retrieve Top 5 optimal compression parameters.   | Test the optimisation algorithm returns the top five compression parameters.                                        | Written - 13/02/25, Passed - 27/03/25 | n/a          |
+| 2.3.4 | Functionality | Retrieve optimal compression parameter.          | Test the algorithm returns the most optimal value for each compression parameter.                                   | Written - 13/02/25, Passed - 25/03/25 | n/a          |
+| 2.3.5 | Accuracy      | Test optimal result values.                      | Test the optimal result returned by the algorithm matches the set optimal parameters for testing.                   | Written - 13/02/25, Passed - 25/03/25 | n/a          |

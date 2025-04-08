@@ -79,6 +79,7 @@
 | [Week 19 : Meeting 2](./meeting_notes/Week19Meeting2.md) | 21/3/25 | Progress with compression & UI |
 | [Week 20 : Meeting 1](./meeting_notes/Week20Meeting1.md) | 28/3/25 | Final meeting of term |
 | [Week 21 : Meeting 1](./meeting_notes/Week21Meeting1.md) | 31/3/25 | Discussed report work |
+| [Week 22 : Meeting 1](./meeting_notes/Week22Meeting1.md) | 08/4/25 | Discussed report work |
 
 
 

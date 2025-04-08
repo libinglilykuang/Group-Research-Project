@@ -3,10 +3,11 @@ import ConfigPanel from "./components/ConfigPanel";
 import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
-import LoginForm from "./components/LoginForm"; // Import LoginForm component
 
-import { auth, db } from "./firebase"; // Import Firebase instances
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+// TODO: Remove Firebase imports and replace with Azure SDK
+// Example: import { BlobServiceClient } from "@azure/storage-blob";
+import { db } from "./firebase";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 function App() {
     // State variables
@@ -15,28 +16,24 @@ function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls sidebar visibility
     const [configurations, setConfigurations] = useState([]); // Stores user configurations
     const [file, setFile] = useState(null); // Stores the current CSV file
-    const [user, setUser] = useState(null); // Stores the currently logged-in user
 
     const configPanelRef = useRef(null); // Reference to the ConfigPanel component
 
-    // Effect to listen for authentication state changes
+    // TODO: Initialize Azure Blob Storage or Cosmos DB client here
+    // Example: const blobServiceClient = BlobServiceClient.fromConnectionString("<Your-Azure-Connection-String>");
+    // Example: const containerClient = blobServiceClient.getContainerClient("<Your-Container-Name>");
+
+    // Effect to load configurations on component mount
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-                setUser(user); // Set the user if logged in
-                loadConfigurations(user.uid); // Load configurations for the user
-            } else {
-                setUser(null); // Clear the user if logged out
-            }
-        });
-        return () => unsubscribe(); // Cleanup the listener on unmount
+        loadConfigurations(); // Load configurations directly
     }, []);
 
     // Function to load configurations from Firestore
-    const loadConfigurations = async (userId) => {
+    const loadConfigurations = async () => {
         try {
-            const q = query(collection(db, "configurations"), where("userId", "==", userId));
-            const querySnapshot = await getDocs(q);
+            // TODO: Replace Firebase Firestore logic with Azure storage logic
+            // Example: Load configurations from Azure Blob Storage or Cosmos DB
+            const querySnapshot = await getDocs(collection(db, "configurations")); // Load all configurations
             const configs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setConfigurations(configs); // Update state with loaded configurations
         } catch (error) {
@@ -46,35 +43,21 @@ function App() {
 
     // Function to save a configuration to Firestore
     const handleSave = async (config) => {
-        if (!user) {
-            alert("Please log in to save configurations.");
-            return;
-        }
-
-        // Get parameters from the ConfigPanel
-        const params = configPanelRef.current ? configPanelRef.current.getParams() : {
-            deviationLimit: null,
-            deviationType: null,
-            callbackFilter: null,
-            exceptionFilter: null,
-        };
-
         // Create a new configuration object
         const newConfig = {
             ...config,
-            userId: user.uid, // Associate with the current user
             name: `Configuration ${configurations.length + 1}`, // Generate a dynamic name
             date: new Date().toISOString(), // Add the current timestamp
             parameters: {
                 ...config.parameters,
-                ...params,
             },
             rawData: config.includeCSV ? rawData.join("\n") : null, // Store CSV content if included
             labels: config.includeCSV ? labels : null, // Store labels if included
         };
 
         try {
-            // Save the configuration to Firestore
+            // TODO: Replace Firebase Firestore logic with Azure storage logic
+            // Example: Save configuration to Azure Blob Storage or Cosmos DB
             const docRef = await addDoc(collection(db, "configurations"), newConfig);
             console.log("Document written with ID:", docRef.id);
 
@@ -113,35 +96,61 @@ function App() {
     };
 
     // Function to compress data based on parameters
-    const compressData = (data, labels, deviationLimit, deviationType, callbackFilter, exceptionFilter) => {
+    const compressData = (
+        data,
+        labels,
+        compressionDeviationLimit,
+        compressionDeviationType,
+        exceptionFilterDeviationLimit,
+        exceptionFilterDeviationType
+    ) => {
         const compressedData = [];
         const compressedLabels = [];
 
-        // Example compression logic
+        // TODO: Replace local compression logic with a call to the backend compression API
+        // Example: Call a backend API endpoint to perform compression
+        // Example: const response = await fetch("/api/compress", { method: "POST", body: JSON.stringify({ data, labels, ... }) });
+        // Example: const { compressedData, compressedLabels } = await response.json();
+
+        // Example compression logic (to be replaced)
         for (let i = 0; i < data.length; i++) {
             const value = data[i];
             const label = labels[i];
 
-            // Apply deviation limit
-            if (deviationLimit && Math.abs(value) > deviationLimit) {
+            // Apply compression deviation limit
+            if (compressionDeviationLimit && Math.abs(value) > compressionDeviationLimit) {
                 continue; // Skip values exceeding the limit
             }
 
-            // Apply deviation type
-            if (deviationType === "positive" && value < 0) {
-                continue; // Skip negative values
-            } else if (deviationType === "negative" && value > 0) {
-                continue; // Skip positive values
+            // Apply compression deviation type
+            if (compressionDeviationType === "percentage") {
+                // Example: Skip values that are within a percentage range
+                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < compressionDeviationLimit) {
+                    continue;
+                }
+            } else if (compressionDeviationType === "absolute") {
+                // Example: Skip values that are within an absolute range
+                if (i > 0 && Math.abs(value - data[i - 1]) < compressionDeviationLimit) {
+                    continue;
+                }
             }
 
-            // Apply callback filter
-            if (callbackFilter && !callbackFilter(value)) {
-                continue; // Skip values that don't pass the filter
+            // Apply exception filter deviation limit
+            if (exceptionFilterDeviationLimit && Math.abs(value) > exceptionFilterDeviationLimit) {
+                continue; // Skip values exceeding the exception filter limit
             }
 
-            // Apply exception filter
-            if (exceptionFilter && exceptionFilter(value)) {
-                continue; // Skip values that match the exception filter
+            // Apply exception filter deviation type
+            if (exceptionFilterDeviationType === "percentage") {
+                // Example: Skip values that are within a percentage range
+                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < exceptionFilterDeviationLimit) {
+                    continue;
+                }
+            } else if (exceptionFilterDeviationType === "absolute") {
+                // Example: Skip values that are within an absolute range
+                if (i > 0 && Math.abs(value - data[i - 1]) < exceptionFilterDeviationLimit) {
+                    continue;
+                }
             }
 
             // Add the value and label to the compressed data
@@ -158,22 +167,28 @@ function App() {
             return configPanelRef.current.getParams();
         }
         return {
-            deviationLimit: null,
-            deviationType: null,
-            callbackFilter: null,
-            exceptionFilter: null,
+            compressionDeviationLimit: null,
+            compressionDeviationType: null,
+            exceptionFilterDeviationLimit: null,
+            exceptionFilterDeviationType: null,
         };
     };
 
     // Get parameters and compress the data
-    const { deviationLimit, deviationType, callbackFilter, exceptionFilter } = getCompressionParameters();
+    const {
+        compressionDeviationLimit,
+        compressionDeviationType,
+        exceptionFilterDeviationLimit,
+        exceptionFilterDeviationType,
+    } = getCompressionParameters();
+
     const { compressedData, compressedLabels } = compressData(
         rawData,
         labels,
-        deviationLimit,
-        deviationType,
-        callbackFilter,
-        exceptionFilter
+        compressionDeviationLimit,
+        compressionDeviationType,
+        exceptionFilterDeviationLimit,
+        exceptionFilterDeviationType
     );
 
     return (
@@ -191,82 +206,75 @@ function App() {
                 padding: "20px",
             }}
         >
-            {/* Login form (shown if no user is logged in) */}
-            {!user && <LoginForm onLoginSuccess={() => setUser(auth.currentUser)} />}
+            {/* Main interface */}
+            <h2 style={{ color: "#333", marginBottom: "20px" }}>Intelligent Plant Compression Optimisation</h2>
+            <div style={{ width: "80%" }}>
+                <CompressionSidebarPanel
+                    configurations={configurations}
+                    setConfigurations={setConfigurations} // Pass setConfigurations here
+                    onNewConfig={handleNewConfig}
+                    isOpen={isSidebarOpen}
+                    toggleSidebar={toggleSidebar}
+                    onLoadConfig={handleLoadConfig}
+                />
+            </div>
 
-            {/* Main interface (shown if a user is logged in) */}
-            {user && (
-                <>
-                    <h2 style={{ color: "#333", marginBottom: "20px" }}>Intelligent Plant Compression Optimisation</h2>
-                    <div style={{ width: "80%" }}>
-                        <CompressionSidebarPanel
-                            configurations={configurations}
-                            setConfigurations={setConfigurations} // Pass setConfigurations here
-                            onNewConfig={handleNewConfig}
-                            isOpen={isSidebarOpen}
-                            toggleSidebar={toggleSidebar}
-                            onLoadConfig={handleLoadConfig}
-                        />
-                    </div>
+            <div
+                style={{
+                    width: "80%",
+                    marginBottom: "20px",
+                    marginLeft: isSidebarOpen ? "250px" : "0",
+                    transition: "margin-left 0.3s ease",
+                }}
+            >
+                <ConfigPanel
+                    ref={configPanelRef}
+                    setRawData={setRawData}
+                    setLabels={setLabels}
+                    setFile={setFile}
+                />
+            </div>
 
-                    <div
-                        style={{
-                            width: "80%",
-                            marginBottom: "20px",
-                            marginLeft: isSidebarOpen ? "250px" : "0",
-                            transition: "margin-left 0.3s ease",
-                        }}
-                    >
-                        <ConfigPanel
-                            ref={configPanelRef}
-                            setRawData={setRawData}
-                            setLabels={setLabels}
-                            setFile={setFile}
-                        />
-                    </div>
+            <div
+                style={{
+                    width: "80%",
+                    flexGrow: 1,
+                    marginBottom: "20px",
+                    marginLeft: isSidebarOpen ? "250px" : "0",
+                    transition: "margin-left 0.3s ease",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                    padding: "20px",
+                }}
+            >
+                <ZoomableChart
+                    rawData={rawData}
+                    labels={labels}
+                    compressedData={compressedData}
+                    compressedLabels={compressedLabels}
+                />
+            </div>
 
-                    <div
-                        style={{
-                            width: "80%",
-                            flexGrow: 1,
-                            marginBottom: "20px",
-                            marginLeft: isSidebarOpen ? "250px" : "0",
-                            transition: "margin-left 0.3s ease",
-                            backgroundColor: "#ffffff",
-                            borderRadius: "8px",
-                            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                            padding: "20px",
-                        }}
-                    >
-                        <ZoomableChart
-                            rawData={rawData}
-                            labels={labels}
-                            compressedData={compressedData}
-                            compressedLabels={compressedLabels}
-                        />
-                    </div>
-
-                    <div
-                        style={{
-                            width: "80%",
-                            flexShrink: 0,
-                            marginBottom: "20px",
-                            marginLeft: isSidebarOpen ? "250px" : "0",
-                            transition: "margin-left 0.3s ease",
-                            backgroundColor: "#ffffff",
-                            borderRadius: "8px",
-                            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                            padding: "20px",
-                        }}
-                    >
-                        <MetricsTable
-                            rawData={rawData}
-                            compressedData={compressedData}
-                            onSave={handleSave}
-                        />
-                    </div>
-                </>
-            )}
+            <div
+                style={{
+                    width: "80%",
+                    flexShrink: 0,
+                    marginBottom: "20px",
+                    marginLeft: isSidebarOpen ? "250px" : "0",
+                    transition: "margin-left 0.3s ease",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "8px",
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                    padding: "20px",
+                }}
+            >
+                <MetricsTable
+                    rawData={rawData}
+                    compressedData={compressedData}
+                    onSave={handleSave}
+                />
+            </div>
         </div>
     );
 }

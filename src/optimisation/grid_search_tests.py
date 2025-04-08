@@ -10,7 +10,7 @@ test_optimal_params = {
 }
 
 
-# test 2.2.1 - functionality
+# test 2.3.1 - functionality
 def test_optimisation():
     grid_search.set_optimal_params(test_optimal_params)
 
@@ -21,14 +21,14 @@ def test_optimisation():
     assert best_result == test_optimal_params
 
 
-# test 2.2.2 - functionality
+# test 2.3.2 - functionality
 def test_optimal_params_getter_and_setter():
     grid_search.set_optimal_params(test_optimal_params)
 
     assert grid_search.get_optimal_params() == test_optimal_params
 
 
-# test 2.2.3 - functionality
+# test 2.3.3 - functionality
 def test_top_5_results_number():
     grid_search.set_optimal_params(test_optimal_params)
 
@@ -38,7 +38,7 @@ def test_top_5_results_number():
     assert len(top_5_results) == 5
 
 
-# test 2.2.4 - functionality
+# test 2.3.4 - functionality
 def test_optimal_result_number():
     grid_search.set_optimal_params(test_optimal_params)
 
@@ -48,7 +48,7 @@ def test_optimal_result_number():
     assert len(optimal_result) == 6
 
 
-# test 2.2.5 - functionality
+# test 2.3.5 - accuracy
 def test_optimal_result_valid():
     grid_search.set_optimal_params(test_optimal_params)
 

@@ -1,4 +1,5 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
@@ -64,13 +65,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     };
 
     const handleCompress = () => {
-        if (!file && !rawData.length) {
-            setError('Please upload a file or load data first');
+        if (!file) {
+            setError("Please upload a file first");
         } else {
-            setError('');
-            setMessage('Compressing data...');
-            onCompress();
-            setMessage('Compression triggered');
+            setError("");
+            setMessage("Data compressed");
+            if (onCompress) onCompress();
         }
     };
 
@@ -187,7 +187,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         Compression Deviation Type:
                     </label>
                     <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The type of deviation for data compression. Choose "Percentage" or "Absolute".
+                        The type of deviation for data compression. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
                     </p>
                     <select
                         id="compressionDeviationType"
@@ -201,6 +201,9 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
                             color: compressionDeviationType ? '#333' : '#999',
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
                         }}
                     >
                         <option value="">Select Deviation Type</option>
@@ -218,7 +221,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         Exception Filter Deviation Limit:
                     </label>
                     <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The maximum allowed deviation for filtering anomalies. Enter a positive integer.
+                        The maximum allowed deviation for filtering out anomalies. Enter a positive integer.
                     </p>
                     <input
                         id="exceptionFilterDeviationLimit"
@@ -243,7 +246,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         Exception Filter Deviation Type:
                     </label>
                     <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The type of deviation for filtering anomalies. Choose "Percentage" or "Absolute".
+                        The type of deviation for filtering out anomalies. Choose "Percentage" for percentage-based deviation or "Absolute" for absolute value deviation.
                     </p>
                     <select
                         id="exceptionFilterDeviationType"
@@ -257,6 +260,9 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             border: '1px solid #4CAF50',
                             backgroundColor: '#f0f0f0',
                             color: exceptionFilterDeviationType ? '#333' : '#999',
+                            appearance: 'none',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
                         }}
                     >
                         <option value="">Select Deviation Type</option>
@@ -299,7 +305,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         Maximum Resample Limit:
                     </label>
                     <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
-                        The maximum time interval (in seconds) between resamples. Enter a positive integer greater than the minimum.
+                        The maximum time interval (in seconds) between resamples. Enter a positive integer greater than the minimum resample limit.
                     </p>
                     <input
                         id="maxResampleLimit"
@@ -364,5 +370,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         </div>
     );
 });
+
+ConfigPanel.propTypes = {
+    setRawData: PropTypes.func.isRequired,
+    setLabels: PropTypes.func.isRequired,
+    setFile: PropTypes.func.isRequired,
+    onCompress: PropTypes.func,
+};
 
 export default ConfigPanel;

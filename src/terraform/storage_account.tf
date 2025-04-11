@@ -9,7 +9,7 @@ resource "azurerm_storage_account" "IP_storage_account" {
     cors_rule {
       allowed_headers    = ["*"]
       allowed_methods    = ["GET", "POST", "PUT", "DELETE"]
-      allowed_origins    = ["http://localhost:3000"]
+      allowed_origins    = ["http://localhost:3000", "https://delightful-dune-0bf943403-preview.westeurope.6.azurestaticapps.net"]
       exposed_headers    = ["*"]
       max_age_in_seconds = 86400
     }

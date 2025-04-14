@@ -4,44 +4,46 @@
 
 ### Configuration Panel
 
-| ID    | Test Type     | Description                               | Notes                                                                                                           | Pass/Fail          | Change Notes |
-|-------|---------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------|--------------------|--------------|
-| 1.1.1 | Functionality | "optimise" button can be pressed          | When the user presses the "optimise" button, the app should calculate and apply the optimal compression values. | Written - 14/11/24 | n/a          |
-| 1.1.2 | Functionality | Clicking data with no no file selected.   | This should result in an error.                                                                                 | Written - 21/11/24 | n/a          |
-| 1.1.3 | Functionality | Provide input for valid parameter 1       | Input is saved.                                                                                                 | Written - 21/11/24 | n/a          |
-| 1.1.4 | Functionality | Provide valid input for parameter 2       | Input is saved.                                                                                                 | Written - 21/11/24 | n/a          |
-| 1.1.5 | Functionality | Clicking compress without a selected file | Should result in an error message.                                                                              | Written - 21/11/24 | n/a          |
-| 1.1.6 | Functionality | Clicking download icon                    | Should download current metrics and the graphs represented currently.                                           | Written - 21/11/24 | n/a          |
+| ID    | Test Type     | Description                               | Notes                                                                                                           | Pass/Fail                              | Change Notes |
+|-------|---------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------|--------------|
+| 1.1.1 | Functionality | "optimise" button can be pressed          | When the user presses the "optimise" button, the app should calculate and apply the optimal compression values. | Written - 14/11/24, Passed - 14/04/25  | n/a          |
+| 1.1.2 | Functionality | Clicking data with no no file selected.   | This should result in an error.                                                                                 | Written - 21/11/24, Passed - 14/04/25  | n/a          |
+| 1.1.3 | Functionality | Provide input for valid parameter 1       | Input is saved.                                                                                                 | Written - 21/11/24, Passed - 14/04/25  | n/a          |
+| 1.1.4 | Functionality | Provide valid input for parameter 2       | Input is saved.                                                                                                 | Written - 21/11/24, Passed - 14/04/25  | n/a          |
+| 1.1.5 | Functionality | Clicking compress without a selected file | Should result in an error message.                                                                              | Written - 21/11/24, Passed - 14/04/25  | n/a          |
+| 1.1.6 | Functionality | Clicking compress icon                    | Should download current compressed data represented currently.                                                  | Written - 21/11/24, Passed - 14/04/25  | n/a          |
 
 ### Compression Sidebar Panel
 
-| ID     | Test Type      | Description                                                                            | Notes                                                           | Pass/Fail          | Change Notes |
-|--------|----------------|----------------------------------------------------------------------------------------|-----------------------------------------------------------------|--------------------|--------------|
-| 1.2.1  | Functionality  | Sidebar renders correctly when the app is opened, displaying the title and search box. | Ensures the basic UI elements load correctly.                   | Written - 18/11/24 | n/a          |
-| 1.2.2  | Functionality  | Clicking the button opens the sidebar when it is closed.                               | Ensures the sidebar is displayed after clicking the button.     | Written - 18/11/24 | n/a          |
-| 1.2.3  | Functionality  | Clicking the button closes the sidebar when it is open.                                | Ensures the sidebar is hidden after clicking the button.        | Written - 18/11/24 | n/a          |
-| 1.2.4  | Functionality  | Clicking the "..." button shows a menu with Load, Edit, Download, and Delete options.  | Validates the menu appears with the correct options.            | Written - 18/11/24 | n/a          |
-| 1.2.5  | Functionality  | Filters configurations based on the entered keyword (case-insensitive).                | Keyword matching should work regardless of letter case.         | Written - 18/11/24 | n/a          |
-| 1.2.6  | Functionality  | Shows "No matching configurations" when no names match the keyword.                    | Ensures user receives clear feedback when no results are found. | Written - 18/11/24 | n/a          |
-| 1.2.7  | Functionality  | Clicking the magnifying glass activates the search input field.                        | Ensures the input field is focused and ready for text.          | Written - 18/11/24 | n/a          |
-| 1.2.8  | Interaction    | Dynamically updates the list as the user types in the search box.                      | Ensures seamless user experience with real-time filtering.      | Written - 18/11/24 | n/a          |
-| 1.2.9  | Edge Case      | Handles special characters (e.g., "&", "%") and overly long keywords without crashing. | Includes validation for uncommon input scenarios.               | Written - 18/11/24 | n/a          |
-| 1.2.10 | Responsiveness | Sidebar and menus render correctly on both desktop and mobile devices.                 | Ensures layout integrity across devices.                        | Written - 18/11/24 | n/a          |
+| ID     | Test Type      | Description                                                                            | Notes                                                               | Pass/Fail                             | Change Notes |
+|--------|----------------|----------------------------------------------------------------------------------------|---------------------------------------------------------------------|---------------------------------------|--------------|
+| 1.2.1  | Functionality  | Sidebar renders correctly when the app is opened, displaying the title and search box. | Ensures the basic UI elements load correctly.                       | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.2  | Functionality  | Clicking the button opens the sidebar when it is closed.                               | Ensures the sidebar is displayed after clicking the button.         | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.3  | Functionality  | Clicking the button closes the sidebar when it is open.                                | Ensures the sidebar is hidden after clicking the button.            | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.4  | Functionality  | Clicking the "..." button shows a menu with Load, Edit, Download, and Delete options.  | Validates the menu appears with the correct options.                | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.5  | Functionality  | Filters configurations based on the entered keyword (case-insensitive).                | Keyword matching should work regardless of letter case.             | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.6  | Functionality  | Shows "No matching configurations" when no names match the keyword.                    | Ensures user receives clear feedback when no results are found.     | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.7  | Functionality  | Clicking the magnifying glass activates the search input field.                        | Ensures the input field is focused and ready for text.              | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.8  | Interaction    | Dynamically updates the list as the user types in the search box.                      | Ensures seamless user experience with real-time filtering.          | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.9  | Edge Case      | Handles special characters (e.g., "&", "%") and overly long keywords without crashing. | Includes validation for uncommon input scenarios.                   | Written - 18/11/24, Passed - 14/04/25 | n/a          |
+| 1.2.10 | Responsiveness | Sidebar renders correctly on mobile devices                                            | Ensure layout and usability on smaller screens (e.g., iPhone width) | Written - 29/03/25, Passed - 14/04/25 | New          |
+| 1.2.11 | Functionality  | Clicking "Start New Configuration" button triggers action                              | Confirms user can start a new configuration session                 | Written - 29/03/25, Passed - 14/04/25 | New          |
+| 1.2.12 | Functionality  | Clicking "Load" option loads the selected configuration                                | Ensures configuration loading callback is triggered                 | Written - 29/03/25, Passed - 14/04/25 | New          |
+| 1.2.13 | Functionality  | Clicking "Delete" option deletes a configuration                                       | Verifies deletion works and user is notified                        | Written - 29/03/25, Passed - 14/04/25 | New          |
+| 1.2.14 | Functionality  | Clicking "Download" option compresses and saves config                                 | Ensures ZIP creation and download initiation                        | Written - 29/03/25, Passed - 14/04/25 | New          |
+| 1.2.15 | Edge Case      | Empty configuration list displays fallback message                                     | Clear UI feedback when no saved configurations                      | Written - 29/03/25, Passed - 14/04/25 | New          |
 
 ### Compression Visualisation Graphs
 
-| ID     | Test Type        | Description                                      | Notes                                                                                                         | Pass/Fail          | Change Notes |
-|--------|------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------|--------------------|--------------|
-| 1.3.1  | Functionality    | Graph renders on page                            | When the user sends data to be compressed, the app should display the resulting compression graph             | Written - 17/11/24 | n/a          |
-| 1.3.2  | Functionality    | Graph updates with parameter changes             | Ensure the graph dynamically updates when a user adjusts compression parameters such as accuracy or file size | Written - 17/11/24 | n/a          |
-| 1.3.3  | Functionality    | Multiple compression methods can be compared     | Verify that users can select multiple compression methods and view them on the same graph for comparison      | Written - 17/11/24 | n/a          |
-| 1.3.4  | Functionality    | Legends and tooltips display correctly           | Ensure legends and tooltips are visible and show correct information for data points                          | Written - 17/11/24 | n/a          |
-| 1.3.5  | User Interaction | Input validation for parameters                  | Test error messages when invalid parameters are input, and ensure graph does not break                        | Written - 17/11/24 | n/a          |
-| 1.3.6  | Performance      | Graph renders with large datasets                | Measure load time and responsiveness of the graph when handling datasets of varying sizes                     | Written - 17/11/24 | n/a          |
-| 1.3.7  | Functionality    | Graph export options                             | Test exporting the graph as an image and ensure the data reflects the graph view accurately                   | Written - 17/11/24 | n/a          |
-| 1.3.8  | Responsiveness   | Graph adjusts to screen size                     | Ensure the graph scales and remains readable on different devices (desktop, tablet, mobile)                   | Written - 17/11/24 | n/a          |
-| 1.3.9  | Back End         | Data integrity for plotted points                | Validate the plotted data matches the raw dataset values and compression calculations                         | Written - 17/11/24 | n/a          |
-| 1.3.10 | User Interaction | Interactivity: zoom, pan, and hover-over details | Test features like zoom, pan, and tooltips for usability and clarity of the graph                             | Written - 17/11/24 | n/a          |
+| ID    | Test Type        | Description                                      | Notes                                                                                                         | Pass/Fail                             | Change Notes |
+|-------|------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------|---------------------------------------|--------------|
+| 1.3.1 | Functionality    | Graph renders on page                            | When the user sends data to be compressed, the app should display the resulting compression graph             | Written - 17/11/24, Passed - 14/04/25 | n/a          |
+| 1.3.2 | Functionality    | Graph updates with parameter changes             | Ensure the graph dynamically updates when a user adjusts compression parameters such as accuracy or file size | Written - 17/11/24, Passed - 14/04/25 | n/a          |
+| 1.3.3 | Functionality    | Multiple compression methods can be compared     | Verify that users can select multiple compression methods and view them on the same graph for comparison      | Written - 17/11/24, Passed - 14/04/25 |  n/a         |
+| 1.3.4 | Functionality    | Legends and tooltips display correctly           | Ensure legends and tooltips are visible and show correct information for data points                          | Written - 17/11/24, Passed - 14/04/25 | n/a          |
+| 1.3.5 | Performance      | Graph renders with large datasets                | Measure load time and responsiveness of the graph when handling datasets of varying sizes                     | Written - 17/11/24, Passed - 14/04/25 | n/a          |
+| 1.3.6 | Responsiveness   | Graph adjusts to screen size                     | Ensure the graph scales and remains readable on different devices (desktop, tablet, mobile)                   | Written - 17/11/24, Passed - 14/04/25 | n/a          |
+| 1.3.7 | Back End         | Data integrity for plotted points                | Validate the plotted data matches the raw dataset values and compression calculations                         | Written - 17/11/24, Passed - 14/04/25 | n/a          |
 
 [Ideas to Enhance Functionality](../tests/graph_testing_notes/graph_enhancements.md)
 <br>
@@ -49,27 +51,29 @@
 
 ### Compression Matrix Table
 
-| ID    | Test Type      | Description                                                                      | Notes                                                    | Pass/Fail          | Change Notes |
-|-------|----------------|----------------------------------------------------------------------------------|----------------------------------------------------------|--------------------|--------------|
-| 1.4.1 | Functionality  | Displays original data metrics correctly.                                        | Verifies correct rendering of original dataset metrics.  | Written - 14/11/24 | n/a          |
-| 1.4.2 | Functionality  | Displays optimal configuration metrics after running the compression algorithm.  | Ensures metrics like compression rate are accurate.      | Written - 18/11/24 | n/a          |
-| 1.4.3 | Functionality  | Saves optimal configuration when "Save Optimal Configuration" button is clicked. | Confirms saved configuration metrics are accurate.       | Written - 18/11/24 | n/a          |
-| 1.4.4 | Functionality  | Updates the table dynamically when parameters are adjusted.                      | Ensures real-time table updates after parameter changes. | Written - 18/11/24 | n/a          |
-| 1.4.5 | Edge Case      | Handles empty datasets gracefully with "No data available" message.              | Ensures proper feedback for empty inputs.                | Written - 18/11/24 | n/a          |
-| 1.4.6 | Edge Case      | Displays large datasets (e.g., millions of data points) correctly.               | Verifies stable rendering for large datasets.            | Written - 18/11/24 | n/a          |
-| 1.4.7 | UI/Interaction | Scrollbar appears and functions smoothly for large datasets.                     | Ensures usability for data-heavy tables.                 | Written - 18/11/24 | n/a          |
+| ID     | Test Type      | Description                                                                      | Notes                                                    | Pass/Fail                              | Change Notes |
+|--------|----------------|----------------------------------------------------------------------------------|----------------------------------------------------------|----------------------------------------|--------------|
+| 1.4.1  | Functionality  | Displays original data metrics correctly.                                        | Verifies correct rendering of original dataset metrics.  | Written - 14/11/24, Passed - 14/04/25  | n/a          |
+| 1.4.2  | Functionality  | Displays optimal configuration metrics after running the compression algorithm.  | Ensures metrics like compression rate are accurate.      | Written - 18/11/24, Passed - 14/04/25  | n/a          |
+| 1.4.3  | Functionality  | Saves optimal configuration when "Save Optimal Configuration" button is clicked. | Confirms saved configuration metrics are accurate.       | Written - 18/11/24, Passed - 14/04/25  | n/a          |
+| 1.4.4  | Functionality  | Updates the table dynamically when parameters are adjusted.                      | Ensures real-time table updates after parameter changes. | Written - 18/11/24, Passed - 14/04/25  | n/a          |
+| 1.4.5  | Edge Case      | Handles empty datasets gracefully with "No data available" message.              | Ensures proper feedback for empty inputs.                | Written - 18/11/24, Passed - 14/04/25  | n/a          |
+| 1.4.6  | Functionality	 | Show "Configuration saved successfully" after saving	                            | Confirms user feedback on successful save	               | Written - 29/03/25, Passed - 14/04/25	 | New          |
+| 1.4.7  | UI Styling     | Table headers have correct background and font styling                           | Visual consistency check                                 | Written - 29/03/25, Passed - 14/04/25  | New          |
+| 1.4.8  | UI Styling     | Table cells have correct border styling                                          | Validate table visual consistency                        | Written - 29/03/25, Passed - 14/04/25  | New          |
+| 1.4.9  | UI Styling     | Save button has correct color, padding, and size                                 | Ensures button looks polished                            | Written - 29/03/25, Passed - 14/04/25  | New          |
+| 1.4.10 | UI Styling     | Scrollable container has correct scroll behavior and style                       | Ensures large data can scroll inside container           | Written - 29/03/25, Passed - 14/04/25  | New          |
 
 ### UI Layout
 
-| ID    | Test Type     | Description                                                                             | Notes                                                                                         | Pass/Fail          | Change Notes |
-|-------|---------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|--------------------|--------------|
-| 1.5.1 | Functionality | The logo is present on the page.                                                        | Ensures the component is visible.                                                             | Written - 20/11/24 | n/a          |
-| 1.5.2 | Functionality | The configuration panel is present on the page.                                         | Ensures the component is visible.                                                             | Written - 20/11/24 | n/a          |
-| 1.5.3 | Functionality | The compression visualisation graph is present on the page.                             | Ensures the component is visible.                                                             | Written - 20/11/24 | n/a          |
-| 1.5.4 | Functionality | The compression matrix is present on the page.                                          | Ensures the component is visible.                                                             | Written - 20/11/24 | n/a          |
-| 1.5.5 | Functionality | The save optimal parameters button is present on the page.                              | Ensures the component is visible.                                                             | Written - 20/11/24 | n/a          |
-| 1.5.6 | Functionality | The sidebar toggle is present on the page.                                              | Ensures the component is visible.                                                             | Written - 20/11/24 | n/a          |
-| 1.5.7 | Functionality | Compare the visual similarity of the current iteration of the website to our prototype. | Ensures that the layout adheres to our design and does not majorly change between iterations. | Written - 21/11/24 | n/a          |
+| ID    | Test Type     | Description                                                                             | Notes                                                                                         | Pass/Fail                             | Change Notes |
+|-------|---------------|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|---------------------------------------|--------------|
+| 1.5.1 | Functionality | The logo is present on the page.                                                        | Ensures the component is visible.                                                             | Written - 20/11/24, Passed - 14/04/25 | n/a          |
+| 1.5.2 | Functionality | The configuration panel is present on the page.                                         | Ensures the component is visible.                                                             | Written - 20/11/24, Passed - 14/04/25 | n/a          |
+| 1.5.3 | Functionality | The compression visualisation graph is present on the page.                             | Ensures the component is visible.                                                             | Written - 20/11/24, Passed - 14/04/25 | n/a          |
+| 1.5.4 | Functionality | The compression matrix is present on the page.                                          | Ensures the component is visible.                                                             | Written - 20/11/24, Passed - 14/04/25 | n/a          |
+| 1.5.5 | Functionality | The save optimal parameters button is present on the page.                              | Ensures the component is visible.                                                             | Written - 20/11/24, Passed - 14/04/25 | n/a          |
+| 1.5.6 | Functionality | The sidebar toggle is present on the page.                                              | Ensures the component is visible.                                                             | Written - 20/11/24, Passed - 14/04/25 | n/a          |
 
 ## Back End
 

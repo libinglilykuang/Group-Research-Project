@@ -4,6 +4,7 @@
 tmp/
 *.temp
 *.tmp
+*.zip
 
 # Node.js dependencies
 node_modules/
@@ -21,9 +22,12 @@ htmlcov
 **/.terraform/*
 *.tfvars
 *.tfvars.json
-.terraformrc
+*.terraformrc
 terraform.rc
-.terraform.tfstate.lock.info
+*.terraform.tfstate.lock.info
+*.terraform.lock.hcl
+
+
 
 # react
 packages/react-devtools-core/dist
@@ -43,3 +47,27 @@ packages/react-devtools-timeline/dist
 #azure
 src/main/infrastructure/api/config.json
 src/main/infrastructure/api/test_data.json
+# C#
+## Build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+
+## NuGet and project caches
+project.assets.json
+project.nuget.cache
+*.nuget.g.props
+*.nuget.g.targets
+*.nuget.dgspec.json
+
+## Temporary files
+*.cache
+
+## IDE-specific files
+*.user
+*.suo
+.vscode/

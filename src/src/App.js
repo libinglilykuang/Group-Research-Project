@@ -26,6 +26,9 @@ function App() {
     new AzureSASCredential(sasToken)
   );
 
+  const FUNCTION_URL = "https://ip-team6-compression-function.azurewebsites.net/api/compressdata";
+  const FUNCTION_KEY = "cY1UQbInfG8J47x6HpICBc_rrCFwSNen_geoVqVGgZAEAzFuv_plDw==";
+
   useEffect(() => {
     const loadConfigurations = async () => {
       console.log("Starting to load configurations from Azure...");
@@ -105,11 +108,12 @@ function App() {
     }
   };
 
-  const compressData = () => {
+  const compressData = async () => {
     if (!rawData.length || !labels.length) {
       setError("Please upload a file first");
       return;
     }
+
     const params = configPanelRef.current.getParams();
     const {
       compressionDeviationLimit,
@@ -118,67 +122,61 @@ function App() {
       exceptionFilterDeviationType,
     } = params;
 
-    const result = compressDataLogic(
-      rawData,
-      labels,
-      compressionDeviationLimit,
-      compressionDeviationType,
-      exceptionFilterDeviationLimit,
-      exceptionFilterDeviationType
-    );
-    setCompressedData(result.compressedData);
-    setCompressedLabels(result.compressedLabels);
-    setError(null);
-  };
+    const requestData = {
+      rawData: rawData.map((value, index) => ({
+        timestamp: labels[index],
+        value: value,
+      })),
+      parameters: {
+        deviationLimit: compressionDeviationLimit || exceptionFilterDeviationLimit || 0,
+        deviationType: (compressionDeviationType || exceptionFilterDeviationType || "absolute").toLowerCase(),
+      },
+    };
 
-  const compressDataLogic = (
-    data,
-    labels,
-    compressionDeviationLimit,
-    compressionDeviationType,
-    exceptionFilterDeviationLimit,
-    exceptionFilterDeviationType
-  ) => {
-    const compressedData = [];
-    const compressedLabels = [];
+    console.log("Request Data:", JSON.stringify(requestData, null, 2));
 
-    for (let i = 0; i < data.length; i++) {
-      const value = data[i];
-      const label = labels[i];
+    try {
+      setLoading(true);
+      setError(null);
 
-      if (compressionDeviationLimit && Math.abs(value) > compressionDeviationLimit) {
-        continue;
+      console.log(`Fetching from: ${FUNCTION_URL}?code=${FUNCTION_KEY}`);
+
+      const response = await fetch(`${FUNCTION_URL}?code=${FUNCTION_KEY}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      console.log("Response Status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
       }
 
-      if (compressionDeviationType === "percentage") {
-        if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < compressionDeviationLimit) {
-          continue;
-        }
-      } else if (compressionDeviationType === "absolute") {
-        if (i > 0 && Math.abs(value - data[i - 1]) < compressionDeviationLimit) {
-          continue;
-        }
+      const result = await response.json();
+      console.log("Response Data:", result);
+
+      if (!Array.isArray(result) || !result.every(item => "timestamp" in item && "value" in item)) {
+        throw new Error("Unexpected response format from compression endpoint");
       }
 
-      if (exceptionFilterDeviationLimit && Math.abs(value) > exceptionFilterDeviationLimit) {
-        continue;
+      if (result.length === 0) {
+        setError("No data points remained after compression. Try adjusting the parameters.");
+        setCompressedData([]);
+        setCompressedLabels([]);
+      } else {
+        setCompressedData(result.map(item => item.value));
+        setCompressedLabels(result.map(item => new Date(item.timestamp).toISOString()));
       }
-
-      if (exceptionFilterDeviationType === "percentage") {
-        if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < exceptionFilterDeviationLimit) {
-          continue;
-        }
-      } else if (exceptionFilterDeviationType === "absolute") {
-        if (i > 0 && Math.abs(value - data[i - 1]) < exceptionFilterDeviationLimit) {
-          continue;
-        }
-      }
-
-      compressedData.push(value);
-      compressedLabels.push(label);
+    } catch (err) {
+      console.error("Error compressing data with Azure Function:", err);
+      setError(`Failed to compress data: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    return { compressedData, compressedLabels };
   };
 
   if (loading) {

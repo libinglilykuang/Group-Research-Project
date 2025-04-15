@@ -16,5 +16,13 @@ resource "azurerm_linux_function_app" "IP_compression_function" {
     application_stack {
       dotnet_version = "8.0"
     }
+
+    cors {
+      allowed_origins = [
+        "http://localhost:3000",
+        "https://delightful-dune-0bf943403-preview.westeurope.6.azurestaticapps.net"
+      ]
+      support_credentials = false
+    }
   }
 }

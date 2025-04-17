@@ -25,17 +25,28 @@ public class Tests {
     // Test 2.1.3: Error Handling
     [Fact]
     public async Task ProcessDataAsync_InvalidInput_ThrowsException() {
-        await Assert.ThrowsAsync<ArgumentException>(() => _algorithm.ProcessDataAsync(
-            (List<double>?)null, 15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3)));
+        await Assert.ThrowsAsync<ArgumentException>(() => _algorithm.ProcessDataAsync(new List<double>(), 15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3)));
     }
 
     // Test 2.1.4: Configurability
     [Fact]
     public async Task ProcessDataAsync_RespectsDeviationLimit() {
         var input = Enumerable.Repeat(1.0, 100).ToList();
-        var resultLowDeviation = await _algorithm.ProcessDataAsync(input, 0, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3));
-        var resultHighDeviation = await _algorithm.ProcessDataAsync(input, 100, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3));
+        var resultLowDeviation = await _algorithm.ProcessDataAsync(
+            input, 0, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3));
+        var resultHighDeviation = await _algorithm.ProcessDataAsync(
+            input, 100, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3));
+
         resultLowDeviation.CompressedCount.Should().BeLessThanOrEqualTo(resultHighDeviation.CompressedCount);
+    }
+
+    // Test 2.1.5: Scalability
+    [Fact]
+    public async Task ProcessDataAsync_LargeDataset_HandlesWithoutCrash() {
+        var input = Enumerable.Repeat(1.0, 1_000_000).ToList();
+        var result = await _algorithm.ProcessDataAsync(input, 15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3));
+        result.Should().NotBeNull();
+        result.CompressedCount.Should().BeGreaterThan(0);
     }
 
     // Test 2.1.6: Performance
@@ -56,6 +67,27 @@ public class Tests {
         var APIClient = new MockDataCoreAPIClient();
         var response = await APIClient.PostCompressedDataAsync(result.CompressedValues.Select(v => v.NumericValue));
         response.IsSuccess.Should().BeTrue();
+    }
+
+    // Test 2.1.8: Output Metrics
+    [Fact]
+    public async Task ProcessDataAsync_OutputMetrics_AreValid() {
+        var input = Enumerable.Repeat(1.0, 1000).ToList();
+        var result = await _algorithm.ProcessDataAsync(input, 15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(3));
+
+        // Validate CompressionRatio
+        var expectedRatio = (double)result.CompressedCount / result.OriginalCount;
+        result.CompressionRatio.Should().BeApproximately(expectedRatio, 0.001);
+
+        // Validate derived StorageSavings (1 - CompressionRatio)
+        var expectedSavings = 1 - expectedRatio;
+        (1 - result.CompressionRatio).Should().BeApproximately(expectedSavings, 0.001);
+
+        // Validate ProcessingTimeMs
+        result.ProcessingTimeMs.Should().BeGreaterThanOrEqualTo(0);
+
+        // Validate CompressedValues integrity
+        result.CompressedValues.Should().NotBeNull().And.HaveCount(result.CompressedCount);
     }
 
     // Test 2.1.9: Edge Cases

@@ -52,7 +52,7 @@ public class Algorithm {
             OriginalCount = inputValues.Count,
             CompressedCount = compressedValues.Count,
             CompressionRatio = (double)compressedValues.Count / inputValues.Count,
-            ProcessingTimeMs = stopwatch.ElapsedMilliseconds,
+            ProcessingTimeMs = stopwatch.Elapsed.TotalMilliseconds,
             CompressedValues = new List<DataCoreTagValue>(compressedValues)
         };
     }
@@ -62,7 +62,7 @@ public class CompressionResult {
     public int OriginalCount { get; set; }
     public int CompressedCount { get; set; }
     public double CompressionRatio { get; set; }
-    public long ProcessingTimeMs { get; set; }
+    public double ProcessingTimeMs { get; set; }
     public List<DataCoreTagValue> CompressedValues { get; set; } = new();
 }
 
@@ -70,8 +70,11 @@ public class CompressionResult {
 To run program: 
 1. dotnet clean
 2. dotnet restore
-3. dotnet build --configuration Release
-4. dotnet run --configuration Release
+3. dotnet build
+4. dotnet run
+
+To test program: 
+1. dotnet test
 */
 
 class Program {
@@ -101,17 +104,9 @@ class Program {
             Console.WriteLine($" {i} : {val}");
         }
 
-        // Metrics (Test 2.1.8)
         Console.WriteLine("\nMetrics:");
         Console.WriteLine($"Compression Ratio: {result.CompressionRatio:P2}");
         Console.WriteLine($"Storage Savings: {1 - result.CompressedCount:P2}");
         Console.WriteLine($"Processing Time: {result.ProcessingTimeMs} ms");
-        Console.WriteLine($"Data Fidelity Score: {CalculateFidelity(testValues, result.CompressedValues):P2}");
-    }
-
-    // Placeholder for fidelity calculation
-    private static double CalculateFidelity(
-        List<double> originalValues, List<DataCoreTagValue> compressedValues) {
-        return 0.95; // Example value
     }
 }

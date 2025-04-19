@@ -13,8 +13,7 @@
     <StartupObject>Program</StartupObject>
   </PropertyGroup>
 
-  <!-- Define Release Configuration -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+  <PropertyGroup>
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
@@ -26,6 +25,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IntelligentPlant.Compression\IntelligentPlant.Compression.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
   </ItemGroup>
 
 </Project>

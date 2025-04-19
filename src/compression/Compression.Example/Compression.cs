@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using IntelligentPlant.Compression.DataFilters;
 using IntelligentPlant.Compression.Models;
+using Azure.Storage.Blobs;
+using System.Text.Json;
 
 // Need to:
 // 1. Initialise the pipeline (already done for us)
@@ -107,5 +109,36 @@ class Program {
         Console.WriteLine($"Compression Ratio: {result.CompressionRatio:P2}");
         Console.WriteLine($"Storage Savings: {1 - result.CompressedCount:P2}");
         Console.WriteLine($"Processing Time: {result.ProcessingTimeMs} ms");
+    }
+}
+
+// Placeholder for Azure Data Handling
+public class AzureBlobHelper {
+    private readonly BlobServiceClient _blobServiceClient;
+
+    public AzureBlobHelper(string connectionString) {
+        _blobServiceClient = new BlobServiceClient(connectionString);
+    }
+
+    // Read raw data from blob
+    public async Task<List<DataCoreTagValue>> ReadFromBlobAsync(string containerName, string blobName) {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        var blobClient = containerClient.GetBlobClient(blobName);
+        
+        var response = await blobClient.DownloadContentAsync();
+        var result = JsonSerializer.Deserialize<List<DataCoreTagValue>>(response.Value.Content);
+        if (result == null) {
+            throw new InvalidOperationException("Failed to deserialize blob content.");
+        } return result;
+    }
+
+    // Write compressed data to blob
+    public async Task WriteToBlobAsync(string containerName, string blobName, List<DataCoreTagValue> data) {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        await containerClient.CreateIfNotExistsAsync();
+        
+        var blobClient = containerClient.GetBlobClient(blobName);
+        var jsonData = JsonSerializer.Serialize(data);
+        await blobClient.UploadAsync(BinaryData.FromString(jsonData), overwrite: true);
     }
 }

@@ -57,7 +57,7 @@ namespace AzureCompressionFunction
 
             var responseData = compressedSamples.Select(s => new
             {
-                timestamp = s.UtcSampleTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                timestamp = s.UtcSampleTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                 value = s.NumericValue
             }).ToList();
 

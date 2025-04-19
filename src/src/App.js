@@ -5,6 +5,72 @@ import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
 import { TableClient, AzureSASCredential } from "@azure/data-tables";
 
+// 🔥 将 compressData 提到外面，并保留可测试
+export const compressData = (
+    data,
+    labels,
+    compressionDeviationLimit,
+    compressionDeviationType,
+    exceptionFilterDeviationLimit,
+    exceptionFilterDeviationType
+) => {
+    const compressedData = [];
+    const compressedLabels = [];
+
+    // TODO: Replace local compression logic with a call to the backend compression API
+    // Example: Call a backend API endpoint to perform compression
+    // Example: const response = await fetch("/api/compress", { method: "POST", body: JSON.stringify({ data, labels, ... }) });
+    // Example: const { compressedData, compressedLabels } = await response.json();
+
+    // Example compression logic (to be replaced)
+    for (let i = 0; i < data.length; i++) {
+        const value = data[i];
+        const label = labels[i];
+
+        // Apply compression deviation limit
+        if (compressionDeviationLimit && Math.abs(value) > compressionDeviationLimit) {
+            continue; // Skip values exceeding the limit
+        }
+
+        // Apply compression deviation type
+        if (compressionDeviationType === "percentage") {
+            // Example: Skip values that are within a percentage range
+            if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < compressionDeviationLimit) {
+                continue;
+            }
+        } else if (compressionDeviationType === "absolute") {
+            // Example: Skip values that are within an absolute range
+            if (i > 0 && Math.abs(value - data[i - 1]) < compressionDeviationLimit) {
+                continue;
+            }
+        }
+
+        // Apply exception filter deviation limit
+        if (exceptionFilterDeviationLimit && Math.abs(value) > exceptionFilterDeviationLimit) {
+            continue; // Skip values exceeding the exception filter limit
+        }
+
+        // Apply exception filter deviation type
+        if (exceptionFilterDeviationType === "percentage") {
+            // Example: Skip values that are within a percentage range
+            if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < exceptionFilterDeviationLimit) {
+                continue;
+            }
+        } else if (exceptionFilterDeviationType === "absolute") {
+            // Example: Skip values that are within an absolute range
+            if (i > 0 && Math.abs(value - data[i - 1]) < exceptionFilterDeviationLimit) {
+                continue;
+            }
+        }
+
+        // Add the value and label to the compressed data
+        compressedData.push(value);
+        compressedLabels.push(label);
+    }
+
+    return { compressedData, compressedLabels };
+};
+
 function App() {
   const [rawData, setRawData] = useState([]);
   const [labels, setLabels] = useState([]);

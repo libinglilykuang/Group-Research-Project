@@ -44,6 +44,9 @@ packages/react-devtools-inline/dist
 packages/react-devtools-shell/dist
 packages/react-devtools-timeline/dist
 
+#azure
+src/main/infrastructure/api/config.json
+src/main/infrastructure/api/test_data.json
 # C#
 ## Build outputs
 bin/

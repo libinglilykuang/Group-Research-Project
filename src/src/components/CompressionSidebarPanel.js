@@ -200,57 +200,167 @@ const CompressionSidebarPanel = ({
     };
   }, []);
 
-  return (
-    <div>
-      {/* Sidebar toggle button */}
-      {!isOpen && (
-        <button
-          onClick={toggleSidebar}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            position: "fixed",
-            top: "10px",
-            left: "10px",
-            zIndex: 1000,
-          }}
-        >
-          <img src="/icons/open-sidebar.png" alt="Menu" style={{ width: "30px", height: "30px" }} />
-        </button>
-      )}
+    const handleConfirmDownload = () => {
+        if (!selectedConfig) return;
 
-      {/* Sidebar content */}
-      <div
-        className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}
-        style={{
-          position: "fixed",
-          left: 0,
-          top: 0,
-          height: "100vh",
-          width: isOpen ? "250px" : "0",
-          transition: "width 0.3s",
-          overflow: "hidden",
-          background: "#ffffff",
-          padding: isOpen ? "10px" : "0",
-          zIndex: 999,
-          color: "#333",
-          boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        {isOpen && (
-          <>
-            {/* Close button */}
-            <button
-              onClick={toggleSidebar}
-              style={{
-                position: "absolute",
-                right: 10,
-                top: 10,
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-              }}
+        const zip = new JSZip();
+        if (compressedData) {
+            const compressedDataBlob = new Blob([JSON.stringify(compressedData, null, 2)], {
+                type: "application/json",
+            });
+            zip.file("compressed-data.json", compressedDataBlob);
+        }
+
+        const paramsBlob = new Blob([JSON.stringify(selectedConfig.parameters, null, 2)], {
+            type: "application/json",
+        });
+        zip.file("parameters.json", paramsBlob);
+
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, `${selectedConfig.name}-download.zip`);
+            setDownloadModalOpen(false);
+            alert("Download started!");
+        });
+    };
+
+    const handleCancelDownload = () => {
+        setDownloadModalOpen(false);
+    };
+
+    const handleEdit = (config) => {
+        setSelectedConfig(config);
+        setEditedConfig({
+            ...config,
+            parameters: {
+                compressionDeviationLimit: config.parameters.compressionDeviationLimit || 2,
+                compressionDeviationType: config.parameters.compressionDeviationType || "percentage",
+                exceptionFilterDeviationLimit: config.parameters.exceptionFilterDeviationLimit || 1,
+                exceptionFilterDeviationType: config.parameters.exceptionFilterDeviationType || "absolute",
+                minResampleLimit: config.parameters.minResampleLimit || 0,
+                maxResampleLimit: config.parameters.maxResampleLimit || 5,
+            },
+        });
+        setModalOpen(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!selectedConfig || !editedConfig || isSaving) return;
+
+        setIsSaving(true);
+        try {
+            // Prepare the updated configuration
+            const updatedConfig = {
+                name: editedConfig.name,
+                date: selectedConfig.date,
+                parameters: {
+                    compressionDeviationLimit: Number(editedConfig.parameters.compressionDeviationLimit) || 2,
+                    compressionDeviationType: editedConfig.parameters.compressionDeviationType || "percentage",
+                    exceptionFilterDeviationLimit: Number(editedConfig.parameters.exceptionFilterDeviationLimit) || 1,
+                    exceptionFilterDeviationType: editedConfig.parameters.exceptionFilterDeviationType || "absolute",
+                    minResampleLimit: Number(editedConfig.parameters.minResampleLimit) || 0,
+                    maxResampleLimit: Number(editedConfig.parameters.maxResampleLimit) || 5,
+                }
+            };
+
+            // Update Firestore
+            await updateDoc(doc(db, "configurations", selectedConfig.id), updatedConfig);
+
+            // Update local state
+            setConfigurations(prevConfigs =>
+                prevConfigs.map(config =>
+                    config.id === selectedConfig.id
+                        ? { ...config, ...updatedConfig }
+                        : config
+                )
+            );
+
+            setModalOpen(false);
+            alert("Configuration updated successfully!");
+        } catch (error) {
+            console.error("Error updating configuration:", error);
+            alert(`Failed to update configuration: ${error.message}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setModalOpen(false);
+    };
+
+    const handleNameChange = (e) => {
+        setEditedConfig((prevConfig) => ({
+            ...prevConfig,
+            name: e.target.value,
+        }));
+    };
+
+    const handleParamChange = (paramName, value) => {
+        setEditedConfig((prevConfig) => ({
+            ...prevConfig,
+            parameters: {
+                ...prevConfig.parameters,
+                [paramName]: value,
+            },
+        }));
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target) &&
+                !event.target.closest('button[data-action="edit"]') &&
+                !event.target.closest('button[data-action="download"]') &&
+                !event.target.closest('button[data-action="delete"]')
+            ) {
+                setActiveMenuIndex(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    return (
+        <div>
+            {/* Sidebar toggle button */}
+            {!isOpen && (
+                <button
+                    onClick={toggleSidebar}
+                    style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        position: "fixed",
+                        top: "10px",
+                        left: "10px",
+                        zIndex: 1000,
+                    }}
+                >
+                    <img src="/icons/open-sidebar.png" alt="Menu" style={{ width: "30px", height: "30px" }} />
+                </button>
+            )}
+
+            {/* Sidebar content */}
+            <div
+                className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}
+                style={{
+                    position: "fixed",
+                    left: 0,
+                    top: 0,
+                    height: "100vh",
+                    width: isOpen ? "250px" : "0",
+                    transition: "width 0.3s",
+                    overflow: "hidden",
+                    background: "#ffffff",
+                    padding: isOpen ? "10px" : "0",
+                    zIndex: 999,
+                    color: "#333",
+                    boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
+                }}
             >
               <img src="/icons/close.png" alt="Close" style={{ width: "36px", height: "36px" }} />
             </button>
@@ -313,32 +423,194 @@ const CompressionSidebarPanel = ({
                           key={config.id}
                           style={{
                             display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "5px 0",
-                            color: "#333",
-                          }}
-                        >
-                          <span onClick={() => onLoadConfig(config)} style={{ cursor: "pointer" }}>
-                            {config.name}
-                          </span>
-                          <div style={{ position: "relative" }} ref={menuRef}>
-                            <button
-                              onClick={() => setActiveMenuIndex(activeMenuIndex === config.id ? null : config.id)}
-                              style={{
+                            flexDirection: "column",
+                            position: "relative",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={handleCancelEdit}
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "10px",
                                 background: "transparent",
                                 border: "none",
                                 cursor: "pointer",
-                                color: "#333",
-                                fontSize: "16px",
-                                padding: "0 5px",
-                              }}
+                            }}
+                        >
+                            <img src="/icons/cancel.png" alt="Close" style={{ width: "24px", height: "24px" }} />
+                        </button>
+
+                        <h3>Edit Configuration</h3>
+                        <div style={{ overflowY: "auto", flex: 1 }}>
+                            <div style={{ marginBottom: "10px" }}>
+                                <label style={{ display: "block", marginBottom: "5px" }}>Name</label>
+                                <input
+                                    type="text"
+                                    value={editedConfig?.name || ""}
+                                    onChange={handleNameChange}
+                                    style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                />
+                            </div>
+                            <p>
+                                <strong>Date:</strong> {format(new Date(selectedConfig.date), "yyyy-MM-dd HH:mm")}
+                            </p>
+                            <h4>Parameters:</h4>
+                            <form>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Compression Deviation Limit</label>
+                                    <input
+                                        type="number"
+                                        value={editedConfig?.parameters?.compressionDeviationLimit || ""}
+                                        onChange={(e) => handleParamChange("compressionDeviationLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Compression Deviation Type</label>
+                                    <select
+                                        value={editedConfig?.parameters?.compressionDeviationType || ""}
+                                        onChange={(e) => handleParamChange("compressionDeviationType", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    >
+                                        <option value="">Select type</option>
+                                        <option value="percentage">Percentage</option>
+                                        <option value="absolute">Absolute</option>
+                                    </select>
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter Deviation Limit</label>
+                                    <input
+                                        type="number"
+                                        value={editedConfig?.parameters?.exceptionFilterDeviationLimit || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilterDeviationLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter Deviation Type</label>
+                                    <select
+                                        value={editedConfig?.parameters?.exceptionFilterDeviationType || ""}
+                                        onChange={(e) => handleParamChange("exceptionFilterDeviationType", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    >
+                                        <option value="">Select type</option>
+                                        <option value="percentage">Percentage</option>
+                                        <option value="absolute">Absolute</option>
+                                    </select>
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Min Resample Limit</label>
+                                    <input
+                                        type="number"
+                                        value={editedConfig?.parameters?.minResampleLimit || ""}
+                                        onChange={(e) => handleParamChange("minResampleLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: "10px" }}>
+                                    <label style={{ display: "block", marginBottom: "5px" }}>Max Resample Limit</label>
+                                    <input
+                                        type="number"
+                                        value={editedConfig?.parameters?.maxResampleLimit || ""}
+                                        onChange={(e) => handleParamChange("maxResampleLimit", e.target.value)}
+                                        style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                                    />
+                                </div>
+                            </form>
+                        </div>
+
+                        <div style={{ marginTop: "10px", textAlign: "left" }}>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={isSaving}
+                                style={{
+                                    background: isSaving ? "#6c757d" : "#007BFF",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "10px 15px",
+                                    borderRadius: "6px",
+                                    cursor: isSaving ? "not-allowed" : "pointer",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    transition: "background 0.3s ease",
+                                }}
+                                onMouseOver={(e) => !isSaving && (e.target.style.background = "#0056b3")}
+                                onMouseOut={(e) => !isSaving && (e.target.style.background = isSaving ? "#6c757d" : "#007BFF")}
                             >
-                              ...
+                                {isSaving ? "Saving..." : "Save"}
                             </button>
-                            {activeMenuIndex === config.id && (
-                              <div
-                                className="menu"
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Download modal */}
+            {isDownloadModalOpen && selectedConfig && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 1000,
+                    }}
+                    onClick={handleCancelDownload}
+                >
+                    <div
+                        style={{
+                            background: "#fff",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            width: "400px",
+                            maxHeight: "80vh",
+                            boxShadow: "0px 0px 10px rgba(0,0,0,0.2)",
+                            display: "flex",
+                            flexDirection: "column",
+                            position: "relative",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={handleCancelDownload}
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "10px",
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <img src="/icons/cancel.png" alt="Close" style={{ width: "24px", height: "24px" }} />
+                        </button>
+
+                        <h3>Download Configuration</h3>
+                        <div style={{ overflowY: "auto", flex: 1 }}>
+                            <p>Select parameters to include in the download:</p>
+                            {Object.entries(selectedConfig.parameters || {}).map(([param]) => (
+                                <div key={param} style={{ marginBottom: "10px" }}>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedParameters[param] || false}
+                                            onChange={(e) => handleParameterSelection(param, e.target.checked)}
+                                        />
+                                        {param}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ marginTop: "10px", textAlign: "left" }}>
+                            <button
+                                onClick={handleConfirmDownload}
                                 style={{
                                   position: "absolute",
                                   right: "0",

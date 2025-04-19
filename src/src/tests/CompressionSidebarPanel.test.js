@@ -2,17 +2,14 @@ import React from 'react';
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CompressionSidebarPanel from '../components/CompressionSidebarPanel';
-import { db } from '../firebase';
-import { deleteDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc } from 'firebase/firestore';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-// Mock external dependencies
 jest.mock('firebase/firestore');
 jest.mock('jszip');
 jest.mock('file-saver');
 
-// Mock window.alert and other browser APIs
 beforeAll(() => {
     global.alert = jest.fn();
     Object.defineProperty(window, 'scrollTo', { value: jest.fn(), writable: true });
@@ -24,14 +21,7 @@ describe('CompressionSidebarPanel', () => {
             id: '1',
             name: 'Config 1',
             date: '2023-01-01T00:00:00Z',
-            parameters: {
-                compressionDeviationLimit: 2,
-                compressionDeviationType: 'percentage',
-                exceptionFilterDeviationLimit: 1,
-                exceptionFilterDeviationType: 'absolute',
-                minResampleLimit: 0,
-                maxResampleLimit: 5
-            }
+            parameters: {}
         }
     ];
 
@@ -49,73 +39,105 @@ describe('CompressionSidebarPanel', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        // Mock the offsetParent property
         Object.defineProperty(HTMLElement.prototype, 'offsetParent', {
             get() { return this.parentNode; }
         });
     });
 
-    // Basic rendering test
-    it('renders without crashing', () => {
+    it('renders sidebar UI correctly (1.2.1)', () => {
         render(<CompressionSidebarPanel {...defaultProps} />);
         expect(screen.getByPlaceholderText('Search configurations')).toBeInTheDocument();
+        expect(screen.getByText('Start New Configuration')).toBeInTheDocument();
     });
 
-    // Configuration display test
-    it('displays configurations correctly', () => {
+    it('opens sidebar when button clicked (1.2.2)', () => {
+        render(<CompressionSidebarPanel {...defaultProps} isOpen={false} />);
+        fireEvent.click(screen.getByAltText('Menu'));
+        expect(defaultProps.toggleSidebar).toHaveBeenCalled();
+    });
+
+    it('closes sidebar when button clicked again (1.2.3)', () => {
+        render(<CompressionSidebarPanel {...defaultProps} isOpen={true} />);
+        fireEvent.click(screen.getByAltText('Close'));
+        expect(defaultProps.toggleSidebar).toHaveBeenCalled();
+    });
+
+    it('shows menu with Load, Edit, Download, and Delete (1.2.4)', async () => {
         render(<CompressionSidebarPanel {...defaultProps} />);
-        expect(screen.getByText('Config 1')).toBeInTheDocument();
+        fireEvent.click(screen.getByText('...'));
+        await waitFor(() => {
+            expect(screen.getByText('Load')).toBeInTheDocument();
+            expect(screen.getByText('Edit')).toBeInTheDocument();
+            expect(screen.getByText('Download')).toBeInTheDocument();
+            expect(screen.getByText('Delete')).toBeInTheDocument();
+        });
     });
 
-    // Search functionality test
-    it('filters configurations based on search input', () => {
+    it('displays fallback when no keyword matches (1.2.6)', () => {
+        render(<CompressionSidebarPanel {...defaultProps} />);
+        fireEvent.change(screen.getByPlaceholderText('Search configurations'), {
+            target: { value: 'notfound' }
+        });
+        expect(screen.getByText('No configurations available')).toBeInTheDocument();
+    });
+
+    it('allows focusing the search input manually (1.2.7)', () => {
+        render(<CompressionSidebarPanel {...defaultProps} />);
+        const input = screen.getByPlaceholderText('Search configurations');
+        input.focus();
+        expect(document.activeElement).toBe(input);
+    });
+
+    it('dynamically filters configurations as user types (1.2.8)', () => {
         render(<CompressionSidebarPanel {...defaultProps} configurations={[
             ...mockConfigurations,
             { id: '2', name: 'Another Config', date: '2023-01-02T00:00:00Z', parameters: {} }
         ]} />);
-
         fireEvent.change(screen.getByPlaceholderText('Search configurations'), {
-            target: { value: 'Another' }
+            target: { value: 'another' }
         });
-
         expect(screen.getByText('Another Config')).toBeInTheDocument();
         expect(screen.queryByText('Config 1')).not.toBeInTheDocument();
     });
 
-    // New config button test
-    it('triggers onNewConfig when new config button clicked', () => {
+    it('handles special characters and long keywords (1.2.9)', () => {
+        render(<CompressionSidebarPanel {...defaultProps} />);
+        fireEvent.change(screen.getByPlaceholderText('Search configurations'), {
+            target: { value: '!@#$%^&*()_+中文'.repeat(10) }
+        });
+        expect(screen.getByText('No configurations available')).toBeInTheDocument();
+    });
+
+    it('renders correctly on mobile (1.2.10)', () => {
+        global.innerWidth = 375;
+        render(<CompressionSidebarPanel {...defaultProps} />);
+        expect(screen.getByPlaceholderText('Search configurations')).toBeInTheDocument();
+    });
+
+    it('Start New Configuration button triggers callback (1.2.11)', () => {
         render(<CompressionSidebarPanel {...defaultProps} />);
         fireEvent.click(screen.getByText('Start New Configuration'));
         expect(defaultProps.onNewConfig).toHaveBeenCalled();
     });
 
-    // Configuration loading test
-    it('triggers onLoadConfig with correct config', async () => {
+    it('Load menu option triggers onLoadConfig (1.2.12)', async () => {
         render(<CompressionSidebarPanel {...defaultProps} />);
-
         fireEvent.click(screen.getByText('...'));
-        await waitFor(() => expect(screen.getByText('Load')).toBeInTheDocument());
-        fireEvent.click(screen.getByText('Load'));
-
+        await waitFor(() => fireEvent.click(screen.getByText('Load')));
         expect(defaultProps.onLoadConfig).toHaveBeenCalledWith(mockConfigurations[0]);
     });
 
-    // Configuration deletion test
-    it('deletes configuration and shows success alert', async () => {
+    it('Delete option deletes config and alerts (1.2.13)', async () => {
         render(<CompressionSidebarPanel {...defaultProps} />);
-
         fireEvent.click(screen.getByText('...'));
-        await waitFor(() => expect(screen.getByText('Delete')).toBeInTheDocument());
-        fireEvent.click(screen.getByText('Delete'));
-
+        await waitFor(() => fireEvent.click(screen.getByText('Delete')));
         await waitFor(() => {
             expect(deleteDoc).toHaveBeenCalled();
             expect(global.alert).toHaveBeenCalledWith('Configuration deleted successfully!');
         });
     });
 
-    // Download functionality test
-    it('handles configuration download correctly', async () => {
+    it('Download option compresses and triggers saveAs (1.2.14)', async () => {
         const mockZip = {
             file: jest.fn(),
             generateAsync: jest.fn().mockResolvedValue('mockBlob')
@@ -123,13 +145,9 @@ describe('CompressionSidebarPanel', () => {
         JSZip.mockImplementation(() => mockZip);
 
         render(<CompressionSidebarPanel {...defaultProps} />);
-
         fireEvent.click(screen.getByText('...'));
-        await waitFor(() => expect(screen.getByText('Download')).toBeInTheDocument());
-        fireEvent.click(screen.getByText('Download'));
-
-        await waitFor(() => expect(screen.getByText('Confirm Download')).toBeInTheDocument());
-        fireEvent.click(screen.getByText('Confirm Download'));
+        await waitFor(() => fireEvent.click(screen.getByText('Download')));
+        await waitFor(() => fireEvent.click(screen.getByText('Confirm Download')));
 
         await waitFor(() => {
             expect(mockZip.file).toHaveBeenCalled();
@@ -138,16 +156,8 @@ describe('CompressionSidebarPanel', () => {
         });
     });
 
-    // Empty state test
-    it('shows empty message when no configurations', () => {
+    it('shows empty message when no configs (1.2.15)', () => {
         render(<CompressionSidebarPanel {...defaultProps} configurations={[]} />);
         expect(screen.getByText('No configurations available')).toBeInTheDocument();
-    });
-
-    // Sidebar toggle test
-    it('toggles sidebar visibility', () => {
-        render(<CompressionSidebarPanel {...defaultProps} isOpen={false} />);
-        fireEvent.click(screen.getByAltText('Menu'));
-        expect(defaultProps.toggleSidebar).toHaveBeenCalled();
     });
 });

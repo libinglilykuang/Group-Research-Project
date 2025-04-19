@@ -1,7 +1,9 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 
-const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
+// Component definition
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
         compressionDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
@@ -20,28 +22,22 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         maxResampleLimit: 5
     };
 
-    // Configuration parameter states
+    // State variables
     const [compressionDeviationLimit, setCompressionDeviationLimit] = useState('');
     const [compressionDeviationType, setCompressionDeviationType] = useState('');
     const [exceptionFilterDeviationLimit, setExceptionFilterDeviationLimit] = useState('');
     const [exceptionFilterDeviationType, setExceptionFilterDeviationType] = useState('');
     const [minResampleLimit, setMinResampleLimit] = useState('');
     const [maxResampleLimit, setMaxResampleLimit] = useState('');
-
-    // File and data processing states
-    const [file, setFile] = useState(null);
+    const [file, setFileState] = useState(null);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
-
-    // Time range selection states
     const [showTimeRangeModal, setShowTimeRangeModal] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [allTimes, setAllTimes] = useState([]);
     const [fullData, setFullData] = useState([]);
     const [fullLabels, setFullLabels] = useState([]);
-
-    // Optimization state
     const [isOptimizing, setIsOptimizing] = useState(false);
 
     // Parameter validation function
@@ -49,7 +45,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         if (value === '') return true;
         const numValue = Number(value);
         if (isNaN(numValue)) return false;
-
         const range = VALIDATION_RANGES[paramName];
         return numValue >= range.min && numValue <= range.max;
     };
@@ -60,7 +55,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         return `${paramName} must be between ${range.min} and ${range.max}`;
     };
 
-    // Input handlers
+    // Parameter change handlers with validation
     const handleCompressionDeviationLimitChange = (e) => {
         const value = e.target.value;
         if (validateParameter(value, 'compressionDeviationLimit') || value === '') {
@@ -94,7 +89,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const handleMaxResampleLimitChange = (e) => {
         const value = e.target.value;
         if (validateParameter(value, 'maxResampleLimit') || value === '') {
-            const min = minResampleLimit || DEFAULT_VALUES.minResampleLimit;
+            const min = Number(minResampleLimit) || DEFAULT_VALUES.minResampleLimit;
             if (value === '' || Number(value) >= min) {
                 setMaxResampleLimit(value);
                 setError('');
@@ -107,22 +102,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     };
 
     const handleCompressionDeviationTypeChange = (e) => {
-        const value = e.target.value;
-        setCompressionDeviationType(value);
-        if (compressionDeviationLimit && !validateParameter(compressionDeviationLimit, 'compressionDeviationLimit')) {
-            setError(getValidationMessage('compressionDeviationLimit'));
-        }
+        setCompressionDeviationType(e.target.value);
     };
 
     const handleExceptionFilterDeviationTypeChange = (e) => {
-        const value = e.target.value;
-        setExceptionFilterDeviationType(value);
-        if (exceptionFilterDeviationLimit && !validateParameter(exceptionFilterDeviationLimit, 'exceptionFilterDeviationLimit')) {
-            setError(getValidationMessage('exceptionFilterDeviationLimit'));
-        }
+        setExceptionFilterDeviationType(e.target.value);
     };
 
-    // Format time string
+    // Format time for display in time range selector
     const formatTime = (timeString) => {
         const date = new Date(timeString);
         if (isNaN(date.getTime())) return timeString;
@@ -140,19 +127,17 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
     const parseCSV = (file) => {
         setError('');
         setMessage('Processing file...');
-
         Papa.parse(file, {
             skipEmptyLines: true,
             complete: (results) => {
                 if (results.data.length > 1) {
                     const dataRows = results.data.slice(1);
-                    const xValues = dataRows.map(row => formatTime(row[0]));
+                    const xValues = dataRows.map(row => row[0]); // Original timestamps
                     const yValues = dataRows.map(row => parseFloat(row[1]));
-
                     if (xValues.length > 0 && yValues.length > 0) {
-                        setFullData(yValues);
                         setFullLabels(xValues);
-                        setAllTimes(xValues);
+                        setFullData(yValues);
+                        setAllTimes(xValues.map(formatTime));
                         setLabels(xValues);
                         setRawData(yValues);
                         setStartTime(xValues[0]);
@@ -165,54 +150,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                     setError('CSV file is empty or formatted incorrectly');
                 }
             },
-            error: (error) => {
-                setError(`Error parsing CSV: ${error.message}`);
+            error: (err) => {
+                setError(`Error parsing CSV: ${err.message}`);
             }
         });
-    };
-
-    // Apply selected time range
-    const applyTimeRange = () => {
-        if (!file) {
-            setError('No data file loaded');
-            return;
-        }
-
-        if (!startTime || !endTime) {
-            setError('Please select both start and end times');
-            return;
-        }
-
-        const startIndex = allTimes.indexOf(startTime);
-        const endIndex = allTimes.indexOf(endTime);
-
-        if (startIndex === -1 || endIndex === -1) {
-            setError('Selected times not found in dataset');
-            return;
-        }
-
-        if (startIndex > endIndex) {
-            setError('Start time must be before end time');
-            return;
-        }
-
-        const filteredData = fullData.slice(startIndex, endIndex + 1);
-        const filteredLabels = fullLabels.slice(startIndex, endIndex + 1);
-
-        setRawData(filteredData);
-        setLabels(filteredLabels);
-        setMessage(`Showing ${filteredLabels.length} points from ${startTime} to ${endTime}`);
-        setShowTimeRangeModal(false);
-    };
-
-    // Reset to full time range
-    const resetTimeRange = () => {
-        setRawData(fullData);
-        setLabels(fullLabels);
-        setStartTime(allTimes[0]);
-        setEndTime(allTimes[allTimes.length - 1]);
-        setMessage('Showing full dataset');
-        setShowTimeRangeModal(false);
     };
 
     // Handle file upload
@@ -223,19 +164,56 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
                 setError('Please upload a CSV file');
                 return;
             }
+            setFileState(selectedFile);
             setFile(selectedFile);
             parseCSV(selectedFile);
         }
     };
 
-    // Handle compression operation
+    // Apply time range selection
+    const applyTimeRange = () => {
+        if (!file) {
+            setError('No data file loaded');
+            return;
+        }
+        if (!startTime || !endTime) {
+            setError('Please select both start and end times');
+            return;
+        }
+        const startIndex = fullLabels.indexOf(startTime);
+        const endIndex = fullLabels.indexOf(endTime);
+        if (startIndex === -1 || endIndex === -1) {
+            setError('Selected times not found in dataset');
+            return;
+        }
+        if (startIndex > endIndex) {
+            setError('Start time must be before end time');
+            return;
+        }
+        const filteredLabels = fullLabels.slice(startIndex, endIndex + 1);
+        const filteredData = fullData.slice(startIndex, endIndex + 1);
+        setLabels(filteredLabels);
+        setRawData(filteredData);
+        setMessage(`Showing ${filteredLabels.length} points from ${formatTime(startTime)} to ${formatTime(endTime)}`);
+        setShowTimeRangeModal(false);
+    };
+
+    // Reset to full time range
+    const resetTimeRange = () => {
+        setLabels(fullLabels);
+        setRawData(fullData);
+        setStartTime(fullLabels[0] || '');
+        setEndTime(fullLabels[fullLabels.length - 1] || '');
+        setMessage('Showing full dataset');
+        setShowTimeRangeModal(false);
+    };
+
+    // Handle compression
     const handleCompress = () => {
         if (!file) {
             setError('Please upload a file first');
             return;
         }
-
-        // Validate all parameters
         if (
             (compressionDeviationLimit && !validateParameter(compressionDeviationLimit, 'compressionDeviationLimit')) ||
             (exceptionFilterDeviationLimit && !validateParameter(exceptionFilterDeviationLimit, 'exceptionFilterDeviationLimit')) ||
@@ -245,50 +223,33 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             setError('Please correct invalid parameters before compressing');
             return;
         }
-
         setError('');
         setMessage('Compressing data...');
-
-        // Simulate compression process
-        setTimeout(() => {
-            const blob = new Blob(['Compressed Data'], { type: 'application/zip' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'compressed-data.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-            setMessage('Compressed file downloaded');
-        }, 1000);
+        onCompress();
     };
 
-    // Handle optimization operation
+    // Handle parameter optimization
     const handleOptimize = () => {
         if (!file) {
             setError('Please upload a file first');
             return;
         }
-
         setIsOptimizing(true);
         setError('');
         setMessage('Optimizing parameters...');
-
-        // Simulate optimization process (2 seconds delay)
         setTimeout(() => {
-            setIsOptimizing(false);
-            setMessage('Optimization complete! Parameters have been updated.');
-
-            // Set some example optimized parameters
             setCompressionDeviationLimit('1.5');
             setCompressionDeviationType('percentage');
             setExceptionFilterDeviationLimit('0.8');
             setExceptionFilterDeviationType('absolute');
             setMinResampleLimit('1');
             setMaxResampleLimit('8');
+            setIsOptimizing(false);
+            setMessage('Optimization complete! Parameters updated.');
         }, 2000);
     };
 
-    // Time range selection modal component
+    // Time range modal component
     const TimeRangeModal = () => (
         <div style={{
             position: 'fixed',
@@ -300,163 +261,61 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 1000,
+            zIndex: 1000
         }}>
             <div style={{
-                backgroundColor: '#ffffff',
+                backgroundColor: '#fff',
+                padding: '20px',
                 borderRadius: '8px',
-                padding: '25px',
                 width: '90%',
-                maxWidth: '600px',
-                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-                border: '1px solid #ccc'
+                maxWidth: '500px',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
             }}>
-                <h3 style={{
-                    color: '#333',
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    marginBottom: '20px',
-                    textAlign: 'center'
-                }}>
-                    Select Time Range
-                </h3>
-
-                <div style={{
-                    marginBottom: '20px',
-                    padding: '15px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '6px',
-                    textAlign: 'center',
-                    fontSize: '15px',
-                    color: '#666'
-                }}>
-                    <p style={{ margin: 0 }}>
-                        <strong>Data Range:</strong> {allTimes[0]} to {allTimes[allTimes.length - 1]}
-                    </p>
-                </div>
-
-                <div style={{ marginBottom: '25px' }}>
-                    <label style={{
-                        display: 'block',
-                        marginBottom: '10px',
-                        color: '#333',
-                        fontWeight: 'bold',
-                        fontSize: '16px'
-                    }}>
-                        Start Time:
-                    </label>
+                <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Select Time Range</h3>
+                <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '10px' }}>Start Time:</label>
                     <select
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '12px',
-                            fontSize: '15px',
-                            borderRadius: '6px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f8f9fa',
-                            appearance: 'none',
-                        }}
+                        style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
                     >
                         {allTimes.map((time, index) => (
-                            <option key={`start-${index}`} value={time}>
-                                {time}
-                            </option>
+                            <option key={`start-${index}`} value={fullLabels[index]}>{time}</option>
                         ))}
                     </select>
-                </div>
-
-                <div style={{ marginBottom: '30px' }}>
-                    <label style={{
-                        display: 'block',
-                        marginBottom: '10px',
-                        color: '#333',
-                        fontWeight: 'bold',
-                        fontSize: '16px'
-                    }}>
-                        End Time:
-                    </label>
+                    <label style={{ display: 'block', marginBottom: '10px' }}>End Time:</label>
                     <select
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '12px',
-                            fontSize: '15px',
-                            borderRadius: '6px',
-                            border: '1px solid #4CAF50',
-                            backgroundColor: '#f8f9fa',
-                            appearance: 'none',
-                        }}
+                        style={{ width: '100%', padding: '8px' }}
                     >
                         {allTimes.map((time, index) => (
                             <option
                                 key={`end-${index}`}
-                                value={time}
-                                disabled={startTime && allTimes.indexOf(time) < allTimes.indexOf(startTime)}
+                                value={fullLabels[index]}
+                                disabled={startTime && fullLabels.indexOf(fullLabels[index]) < fullLabels.indexOf(startTime)}
                             >
                                 {time}
                             </option>
                         ))}
                     </select>
                 </div>
-
-                {error && <p style={{
-                    color: 'red',
-                    marginBottom: '20px',
-                    fontSize: '15px',
-                    textAlign: 'center'
-                }}>{error}</p>}
-
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    gap: '15px'
-                }}>
-                    <button
-                        onClick={resetTimeRange}
-                        style={{
-                            padding: '12px',
-                            fontSize: '15px',
-                            backgroundColor: '#f0f0f0',
-                            color: '#333',
-                            border: '1px solid #ccc',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            flex: 1,
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#e2e2e2'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = '#f0f0f0'}
-                    >
-                        Reset to Full Range
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <button onClick={resetTimeRange} style={{ padding: '10px', flex: 1, marginRight: '10px' }}>
+                        Reset
                     </button>
-                    <button
-                        onClick={applyTimeRange}
-                        style={{
-                            padding: '12px',
-                            fontSize: '15px',
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            flex: 1,
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#3d8b40'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = '#4CAF50'}
-                    >
-                        Apply Time Range
+                    <button onClick={applyTimeRange} style={{ padding: '10px', flex: 1, backgroundColor: '#4CAF50', color: 'white' }}>
+                        Apply
                     </button>
                 </div>
             </div>
         </div>
     );
 
-    // Expose methods to parent component
+    // Expose methods to parent via useImperativeHandle
     useImperativeHandle(ref, () => ({
         reset: () => {
+            setFileState(null);
             setFile(null);
             setCompressionDeviationLimit('');
             setCompressionDeviationType('');
@@ -474,6 +333,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             setAllTimes([]);
             setFullData([]);
             setFullLabels([]);
+            setIsOptimizing(false);
         },
         getParams: () => ({
             compressionDeviationLimit: compressionDeviationLimit || DEFAULT_VALUES.compressionDeviationLimit,
@@ -481,42 +341,30 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_VALUES.exceptionFilterDeviationLimit,
             exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_VALUES.exceptionFilterDeviationType,
             minResampleLimit: minResampleLimit || DEFAULT_VALUES.minResampleLimit,
-            maxResampleLimit: maxResampleLimit || DEFAULT_VALUES.maxResampleLimit,
+            maxResampleLimit: maxResampleLimit || DEFAULT_VALUES.maxResampleLimit
         }),
         setParams: (params) => {
-            if (params.compressionDeviationLimit !== undefined) {
-                handleCompressionDeviationLimitChange({
-                    target: { value: params.compressionDeviationLimit }
-                });
-            }
-            if (params.compressionDeviationType !== undefined) {
+            if (params.compressionDeviationLimit !== undefined)
+                handleCompressionDeviationLimitChange({ target: { value: params.compressionDeviationLimit } });
+            if (params.compressionDeviationType !== undefined)
                 setCompressionDeviationType(params.compressionDeviationType);
-            }
-            if (params.exceptionFilterDeviationLimit !== undefined) {
-                handleExceptionFilterDeviationLimitChange({
-                    target: { value: params.exceptionFilterDeviationLimit }
-                });
-            }
-            if (params.exceptionFilterDeviationType !== undefined) {
+            if (params.exceptionFilterDeviationLimit !== undefined)
+                handleExceptionFilterDeviationLimitChange({ target: { value: params.exceptionFilterDeviationLimit } });
+            if (params.exceptionFilterDeviationType !== undefined)
                 setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
-            }
-            if (params.minResampleLimit !== undefined) {
-                handleMinResampleLimitChange({
-                    target: { value: params.minResampleLimit }
-                });
-            }
-            if (params.maxResampleLimit !== undefined) {
-                handleMaxResampleLimitChange({
-                    target: { value: params.maxResampleLimit }
-                });
-            }
+            if (params.minResampleLimit !== undefined)
+                handleMinResampleLimitChange({ target: { value: params.minResampleLimit } });
+            if (params.maxResampleLimit !== undefined)
+                handleMaxResampleLimitChange({ target: { value: params.maxResampleLimit } });
         },
         loadFile: (file) => {
+            setFileState(file);
             setFile(file);
             parseCSV(file);
-        },
+        }
     }));
 
+    // Render UI
     return (
         <div style={{
             padding: '30px',
@@ -535,7 +383,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
             marginLeft: 'auto',
             marginRight: 'auto'
         }}>
-            {/* File upload section */}
+            {/* Data Source Section */}
             <div style={{ width: '95%', marginBottom: '30px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
@@ -964,5 +812,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels }, ref) => {
         </div>
     );
 });
+
+ConfigPanel.propTypes = {
+    setRawData: PropTypes.func.isRequired,
+    setLabels: PropTypes.func.isRequired,
+    setFile: PropTypes.func.isRequired,
+    onCompress: PropTypes.func.isRequired
+};
 
 export default ConfigPanel;

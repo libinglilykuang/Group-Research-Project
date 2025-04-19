@@ -44,8 +44,10 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.2.0",
+    "@azure/data-tables": "^13.3.0",
     "@azure/storage-blob": "^12.26.0",
     "chart.js": "^4.4.7",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-zoom": "^2.2.0",
     "date-fns": "^4.1.0",
     "file-saver": "^2.0.5",

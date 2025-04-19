@@ -8,14 +8,11 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
     const calculateMetrics = (rawData, compressedData) => {
         const rawDataPoints = rawData.length;
         const compressedDataPoints = compressedData.length;
-
         const compressionRatio = compressedDataPoints === 0
             ? 'Infinity'
             : (rawDataPoints / compressedDataPoints).toFixed(2);
-
         const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2);
         const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2);
-
         let errorRate = '0.00';
         if (rawData.length > 0 && compressedData.length > 0) {
             const rawSum = rawData.reduce((sum, val) => sum + val, 0);

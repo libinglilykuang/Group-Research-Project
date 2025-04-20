@@ -384,6 +384,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             marginRight: 'auto'
         }}>
             {/* Data Source Section */}
+            {/* Data Source Section */}
             <div style={{ width: '95%', marginBottom: '30px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
@@ -396,28 +397,54 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 }}>
                     Data Source
                 </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
-                    <div style={{ flex: '1 1 auto', minWidth: '300px', paddingLeft: '12px' }}>
-                        <label style={{ display: 'block', fontSize: '16px', marginBottom: '8px' }}>
-                            Upload CSV File:
-                        </label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <input
-                                type="file"
-                                accept=".csv"
-                                onChange={handleFileUpload}
-                                style={{
-                                    flex: '1 1 auto',
-                                    padding: '10px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '6px',
-                                    fontSize: '15px',
-                                    minWidth: '200px'
-                                }}
-                            />
-                        </div>
+
+                {/* Upload area with background */}
+                <div style={{
+                    width: '100%',
+                    backgroundColor: '#e9f5ff',
+                    border: '2px dashed #66a6ff',
+                    borderRadius: '20px',
+                    padding: '30px 20px',
+                    textAlign: 'center',
+                    fontFamily: 'Arial, sans-serif',
+                    transition: 'all 0.3s'
+                }}
+                     onClick={() => document.getElementById("csv-upload").click()}
+                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0faff'}
+                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e9f5ff'}
+                >
+                    <div style={{
+                        fontSize: '42px',
+                        backgroundColor: '#fff',
+                        borderRadius: '50%',
+                        width: '60px',
+                        height: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                        margin: '0 auto 16px'
+                    }}>
+                        +
                     </div>
-                    <div style={{ flex: '0 0 auto', marginLeft: 'auto', paddingTop: '24px' }}>
+                    <p style={{ fontSize: '16px', color: '#333', margin: 0 }}>
+                        Upload or drag & drop your <strong>CSV</strong> file
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#777', marginTop: '6px' }}>
+                        Only CSV files are supported
+                    </p>
+
+                    {/* Hidden input */}
+                    <input
+                        id="csv-upload"
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileUpload}
+                        style={{ display: 'none' }}
+                    />
+
+                    {/* Upload confirmation button */}
+                    <div style={{ marginTop: '20px' }}>
                         <button
                             style={{
                                 padding: '12px 20px',
@@ -431,7 +458,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                 whiteSpace: 'nowrap',
                                 transition: 'all 0.2s'
                             }}
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 if (!file) {
                                     setError('Please upload a CSV file first');
                                     return;
@@ -448,6 +476,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     </div>
                 </div>
             </div>
+
 
             {/* Parameter configuration section */}
             <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>

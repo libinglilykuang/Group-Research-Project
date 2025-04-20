@@ -364,6 +364,71 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         }
     }));
 
+    // Style definitions for the parameter section
+    const cardStyle = {
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        padding: '20px',
+        marginBottom: '20px'
+    };
+
+    const sectionTitle = {
+        color: '#333',
+        fontSize: '18px',
+        fontWeight: '600',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+    };
+
+    const rowStyle = {
+        display: 'flex',
+        gap: '30px',
+        marginBottom: '20px'
+    };
+
+    const columnStyle = {
+        flex: 1
+    };
+
+    const labelStyle = {
+        display: 'block',
+        marginBottom: '8px',
+        fontWeight: '600',
+        color: '#555',
+        fontSize: '14px'
+    };
+
+    const inputStyle = {
+        width: '100%',
+        padding: '10px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        fontSize: '14px',
+        transition: 'border-color 0.3s'
+    };
+
+    const selectStyle = {
+        ...inputStyle,
+        backgroundColor: 'white'
+    };
+
+    const hintStyle = {
+        display: 'block',
+        fontSize: '12px',
+        color: '#666',
+        marginTop: '4px'
+    };
+
+    const descStyle = {
+        display: 'block',
+        fontSize: '13px',
+        color: '#666',
+        marginTop: '8px'
+    };
+
     // Render UI
     return (
         <div style={{
@@ -383,7 +448,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             marginLeft: 'auto',
             marginRight: 'auto'
         }}>
-            {/* Data Source Section */}
             {/* Data Source Section */}
             <div style={{ width: '95%', marginBottom: '30px', padding: '0 20px' }}>
                 <h2 style={{
@@ -477,277 +541,130 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 </div>
             </div>
 
-
             {/* Parameter configuration section */}
             <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>
-                <h2 style={{
-                    color: '#333',
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    marginBottom: '20px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid #eee',
-                    paddingLeft: '12px'
-                }}>
-                    Compression Parameters
-                </h2>
-
-                {/* Compression parameter group */}
-                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Compression Deviation Limit:
-                        </label>
-                        <input
-                            type="number"
-                            min={VALIDATION_RANGES.compressionDeviationLimit.min}
-                            max={VALIDATION_RANGES.compressionDeviationLimit.max}
-                            step={VALIDATION_RANGES.compressionDeviationLimit.step}
-                            value={compressionDeviationLimit}
-                            onChange={handleCompressionDeviationLimitChange}
-                            placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('compressionDeviationLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max}
-                            {VALIDATION_RANGES.compressionDeviationLimit.unit && ' ' + VALIDATION_RANGES.compressionDeviationLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Maximum allowed deviation for compression (default: 2)
-                        </span>
+                <div style={{ padding: '20px' }}>
+                    {/* Compression Parameters */}
+                    <div style={cardStyle}>
+                        <h3 style={sectionTitle}>📉 Compression Data</h3>
+                        <div style={rowStyle}>
+                            <div style={columnStyle}>
+                                <label style={labelStyle}>Compression Deviation Limit:</label>
+                                <input
+                                    type="number"
+                                    min={VALIDATION_RANGES.compressionDeviationLimit.min}
+                                    max={VALIDATION_RANGES.compressionDeviationLimit.max}
+                                    step={VALIDATION_RANGES.compressionDeviationLimit.step}
+                                    value={compressionDeviationLimit}
+                                    onChange={handleCompressionDeviationLimitChange}
+                                    placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
+                                    style={{ ...inputStyle, borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc' }}
+                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
+                                    onBlur={(e) => e.target.style.borderColor = error.includes('compressionDeviationLimit') ? 'red' : '#ccc'}
+                                />
+                                <span style={hintStyle}>
+                                    Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max}
+                                </span>
+                                <span style={descStyle}>Maximum allowed deviation (default: 2)</span>
+                            </div>
+                            <div style={columnStyle}>
+                                <label style={labelStyle}>Deviation Type:</label>
+                                <select
+                                    value={compressionDeviationType}
+                                    onChange={handleCompressionDeviationTypeChange}
+                                    style={selectStyle}
+                                >
+                                    <option value="">Select type</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="absolute">Absolute</option>
+                                </select>
+                                <span style={descStyle}>Type of deviation (default: percentage)</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Deviation Type:
-                        </label>
-                        <select
-                            value={compressionDeviationType}
-                            onChange={handleCompressionDeviationTypeChange}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: '1px solid #ddd',
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <option value="">Select type</option>
-                            <option value="percentage">Percentage</option>
-                            <option value="absolute">Absolute</option>
-                        </select>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Type of deviation calculation (default: percentage)
-                        </span>
-                    </div>
-                </div>
-
-                {/* Exception filter parameter group */}
-                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Exception Filter Limit:
-                        </label>
-                        <input
-                            type="number"
-                            min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
-                            max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
-                            step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
-                            value={exceptionFilterDeviationLimit}
-                            onChange={handleExceptionFilterDeviationLimitChange}
-                            placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
-                            {VALIDATION_RANGES.exceptionFilterDeviationLimit.unit && ' ' + VALIDATION_RANGES.exceptionFilterDeviationLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Threshold for filtering anomalies (default: 1)
-                        </span>
+                    {/* Exception Filter */}
+                    <div style={cardStyle}>
+                        <h3 style={sectionTitle}>🚨 Exception Filter</h3>
+                        <div style={rowStyle}>
+                            <div style={columnStyle}>
+                                <label style={labelStyle}>Exception Filter Limit:</label>
+                                <input
+                                    type="number"
+                                    min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
+                                    max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
+                                    step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
+                                    value={exceptionFilterDeviationLimit}
+                                    onChange={handleExceptionFilterDeviationLimitChange}
+                                    placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
+                                    style={{ ...inputStyle, borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc' }}
+                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
+                                    onBlur={(e) => e.target.style.borderColor = error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc'}
+                                />
+                                <span style={hintStyle}>
+                                    Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
+                                </span>
+                                <span style={descStyle}>Threshold for anomaly filtering (default: 1)</span>
+                            </div>
+                            <div style={columnStyle}>
+                                <label style={labelStyle}>Deviation Type:</label>
+                                <select
+                                    value={exceptionFilterDeviationType}
+                                    onChange={handleExceptionFilterDeviationTypeChange}
+                                    style={selectStyle}
+                                >
+                                    <option value="">Select type</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="absolute">Absolute</option>
+                                </select>
+                                <span style={descStyle}>Type of deviation (default: absolute)</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Deviation Type:
-                        </label>
-                        <select
-                            value={exceptionFilterDeviationType}
-                            onChange={handleExceptionFilterDeviationTypeChange}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: '1px solid #ddd',
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <option value="">Select type</option>
-                            <option value="percentage">Percentage</option>
-                            <option value="absolute">Absolute</option>
-                        </select>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Type of deviation calculation (default: absolute)
-                        </span>
-                    </div>
-                </div>
-
-                {/* Resampling parameter group */}
-                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Min Resample Interval (s):
-                        </label>
-                        <input
-                            type="number"
-                            min={VALIDATION_RANGES.minResampleLimit.min}
-                            max={VALIDATION_RANGES.minResampleLimit.max}
-                            step={VALIDATION_RANGES.minResampleLimit.step}
-                            value={minResampleLimit}
-                            onChange={handleMinResampleLimitChange}
-                            placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('minResampleLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max}
-                            {VALIDATION_RANGES.minResampleLimit.unit && ' ' + VALIDATION_RANGES.minResampleLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Minimum time between samples in seconds (default: 0)
-                        </span>
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Max Resample Interval (s):
-                        </label>
-                        <input
-                            type="number"
-                            min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
-                            max={VALIDATION_RANGES.maxResampleLimit.max}
-                            step={VALIDATION_RANGES.maxResampleLimit.step}
-                            value={maxResampleLimit}
-                            onChange={handleMaxResampleLimitChange}
-                            placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('maxResampleLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max}
-                            {VALIDATION_RANGES.maxResampleLimit.unit && ' ' + VALIDATION_RANGES.maxResampleLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Maximum time between samples in seconds (default: 5)
-                        </span>
+                    {/* Resampling Parameters */}
+                    <div style={cardStyle}>
+                        <h3 style={sectionTitle}>⏱ Resampling Parameters</h3>
+                        <div style={rowStyle}>
+                            <div style={columnStyle}>
+                                <label style={labelStyle}>Min Resample Interval (s):</label>
+                                <input
+                                    type="number"
+                                    min={VALIDATION_RANGES.minResampleLimit.min}
+                                    max={VALIDATION_RANGES.minResampleLimit.max}
+                                    step={VALIDATION_RANGES.minResampleLimit.step}
+                                    value={minResampleLimit}
+                                    onChange={handleMinResampleLimitChange}
+                                    placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
+                                    style={{ ...inputStyle, borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc' }}
+                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
+                                    onBlur={(e) => e.target.style.borderColor = error.includes('minResampleLimit') ? 'red' : '#ccc'}
+                                />
+                                <span style={hintStyle}>
+                                    Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max} {VALIDATION_RANGES.minResampleLimit.unit}
+                                </span>
+                                <span style={descStyle}>Minimum time between samples (default: 0)</span>
+                            </div>
+                            <div style={columnStyle}>
+                                <label style={labelStyle}>Max Resample Interval (s):</label>
+                                <input
+                                    type="number"
+                                    min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
+                                    max={VALIDATION_RANGES.maxResampleLimit.max}
+                                    step={VALIDATION_RANGES.maxResampleLimit.step}
+                                    value={maxResampleLimit}
+                                    onChange={handleMaxResampleLimitChange}
+                                    placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
+                                    style={{ ...inputStyle, borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc' }}
+                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
+                                    onBlur={(e) => e.target.style.borderColor = error.includes('maxResampleLimit') ? 'red' : '#ccc'}
+                                />
+                                <span style={hintStyle}>
+                                    Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max} {VALIDATION_RANGES.maxResampleLimit.unit}
+                                </span>
+                                <span style={descStyle}>Maximum time between samples (default: 5)</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

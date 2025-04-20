@@ -1,8 +1,3 @@
-resource "azurerm_storage_table" "ip_configurations_table" {
-  name                 = "ipconfigurations"
-  storage_account_name = azurerm_storage_account.IP_storage_account.name
-}
-
 data "azurerm_storage_account_sas" "table_sas" {
   connection_string = azurerm_storage_account.IP_storage_account.primary_connection_string
   https_only        = true
@@ -32,11 +27,9 @@ data "azurerm_storage_account_sas" "table_sas" {
     create  = true
     update  = true
     process = false
-    filter  = false  # Added to satisfy newer schema
-    tag     = false  # Added to satisfy newer schema
+    filter  = false
+    tag     = false
   }
-
-  depends_on = [azurerm_storage_account.IP_storage_account]
 }
 
 output "table_sas_token" {

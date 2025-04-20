@@ -1,8 +1,7 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 
-// Component definition
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
@@ -39,6 +38,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [fullData, setFullData] = useState([]);
     const [fullLabels, setFullLabels] = useState([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -124,7 +124,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     };
 
     // Parse CSV file
-    const parseCSV = (file) => {
+    const parseCSV = useCallback((file) => {
         setError('');
         setMessage('Processing file...');
         Papa.parse(file, {
@@ -132,7 +132,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             complete: (results) => {
                 if (results.data.length > 1) {
                     const dataRows = results.data.slice(1);
-                    const xValues = dataRows.map(row => row[0]); // Original timestamps
+                    const xValues = dataRows.map(row => row[0]);
                     const yValues = dataRows.map(row => parseFloat(row[1]));
                     if (xValues.length > 0 && yValues.length > 0) {
                         setFullLabels(xValues);
@@ -142,7 +142,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         setRawData(yValues);
                         setStartTime(xValues[0]);
                         setEndTime(xValues[xValues.length - 1]);
-                        setMessage(`Loaded ${xValues.length} data points`);
+                        setMessage(`Loaded ${xValues.length} data points from ${file.name}`);
                     } else {
                         setError('CSV file format error: valid data not found');
                     }
@@ -154,11 +154,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 setError(`Error parsing CSV: ${err.message}`);
             }
         });
-    };
+    }, [setLabels, setRawData]);
 
-    // Handle file upload
-    const handleFileUpload = (e) => {
-        const selectedFile = e.target.files[0];
+    // Handle file selection
+    const handleFileSelect = useCallback((selectedFile) => {
         if (selectedFile) {
             if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
                 setError('Please upload a CSV file');
@@ -167,6 +166,40 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setFileState(selectedFile);
             setFile(selectedFile);
             parseCSV(selectedFile);
+        }
+    }, [parseCSV, setFile]);
+
+    // Handle file input change
+    const handleFileInputChange = (e) => {
+        handleFileSelect(e.target.files[0]);
+    };
+
+    // Drag and drop handlers
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
         }
     };
 
@@ -194,7 +227,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         const filteredData = fullData.slice(startIndex, endIndex + 1);
         setLabels(filteredLabels);
         setRawData(filteredData);
-        setMessage(`Showing ${filteredLabels.length} points from ${formatTime(startTime)} to ${formatTime(endTime)}`);
+        setMessage(`Showing ${filteredLabels.length} points from ${formatTime(startTime)} to ${formatTime(endTime)} (${file.name})`);
         setShowTimeRangeModal(false);
     };
 
@@ -204,11 +237,11 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         setRawData(fullData);
         setStartTime(fullLabels[0] || '');
         setEndTime(fullLabels[fullLabels.length - 1] || '');
-        setMessage('Showing full dataset');
+        setMessage(`Showing full dataset (${file.name})`);
         setShowTimeRangeModal(false);
     };
 
-    // Handle compression
+    // Handle compression with proper error checking
     const handleCompress = () => {
         if (!file) {
             setError('Please upload a file first');
@@ -236,7 +269,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         }
         setIsOptimizing(true);
         setError('');
-        setMessage('Optimizing parameters...');
+        setMessage(`Optimizing parameters for ${file.name}...`);
         setTimeout(() => {
             setCompressionDeviationLimit('1.5');
             setCompressionDeviationType('percentage');
@@ -245,7 +278,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setMinResampleLimit('1');
             setMaxResampleLimit('8');
             setIsOptimizing(false);
-            setMessage('Optimization complete! Parameters updated.');
+            setMessage(`Optimization complete for ${file.name}! Parameters updated.`);
         }, 2000);
     };
 
@@ -271,7 +304,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 maxWidth: '500px',
                 boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
             }}>
-                <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Select Time Range</h3>
+                <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Select Time Range ({file?.name})</h3>
                 <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '10px' }}>Start Time:</label>
                     <select
@@ -364,7 +397,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         }
     }));
 
-    // Style definitions for the parameter section
+    // Style definitions
     const cardStyle = {
         backgroundColor: '#ffffff',
         borderRadius: '8px',
@@ -429,6 +462,18 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         marginTop: '8px'
     };
 
+    const fileInfoStyle = {
+        marginTop: '15px',
+        padding: '10px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '6px',
+        border: '1px solid #dee2e6',
+        fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    };
+
     // Render UI
     return (
         <div style={{
@@ -462,20 +507,24 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     Data Source
                 </h2>
 
-                {/* Upload area with background */}
-                <div style={{
-                    width: '100%',
-                    backgroundColor: '#e9f5ff',
-                    border: '2px dashed #66a6ff',
-                    borderRadius: '20px',
-                    padding: '30px 20px',
-                    textAlign: 'center',
-                    fontFamily: 'Arial, sans-serif',
-                    transition: 'all 0.3s'
-                }}
-                     onClick={() => document.getElementById("csv-upload").click()}
-                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0faff'}
-                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e9f5ff'}
+                {/* Upload area with drag and drop support */}
+                <div
+                    style={{
+                        width: '100%',
+                        backgroundColor: isDragging ? '#f0faff' : '#e9f5ff',
+                        border: `2px dashed ${isDragging ? '#4CAF50' : '#66a6ff'}`,
+                        borderRadius: '20px',
+                        padding: '30px 20px',
+                        textAlign: 'center',
+                        fontFamily: 'Arial, sans-serif',
+                        transition: 'all 0.3s',
+                        cursor: 'pointer'
+                    }}
+                    onClick={() => document.getElementById("csv-upload").click()}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
                 >
                     <div style={{
                         fontSize: '42px',
@@ -492,22 +541,29 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         +
                     </div>
                     <p style={{ fontSize: '16px', color: '#333', margin: 0 }}>
-                        Upload or drag & drop your <strong>CSV</strong> file
+                        {isDragging ? 'Drop your CSV file here' : 'Upload or drag & drop your CSV file'}
                     </p>
                     <p style={{ fontSize: '13px', color: '#777', marginTop: '6px' }}>
                         Only CSV files are supported
                     </p>
 
-                    {/* Hidden input */}
+                    {/* Hidden file input */}
                     <input
                         id="csv-upload"
                         type="file"
                         accept=".csv"
-                        onChange={handleFileUpload}
+                        onChange={handleFileInputChange}
                         style={{ display: 'none' }}
                     />
 
-                    {/* Upload confirmation button */}
+                    {/* File info display */}
+                    {file && (
+                        <div style={fileInfoStyle}>
+                            <span>Loaded file: <strong>{file.name}</strong></span>
+                        </div>
+                    )}
+
+                    {/* Time range selection button */}
                     <div style={{ marginTop: '20px' }}>
                         <button
                             style={{
@@ -559,8 +615,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     onChange={handleCompressionDeviationLimitChange}
                                     placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
                                     style={{ ...inputStyle, borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc' }}
-                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
-                                    onBlur={(e) => e.target.style.borderColor = error.includes('compressionDeviationLimit') ? 'red' : '#ccc'}
                                 />
                                 <span style={hintStyle}>
                                     Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max}
@@ -598,8 +652,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     onChange={handleExceptionFilterDeviationLimitChange}
                                     placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
                                     style={{ ...inputStyle, borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc' }}
-                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
-                                    onBlur={(e) => e.target.style.borderColor = error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc'}
                                 />
                                 <span style={hintStyle}>
                                     Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
@@ -637,8 +689,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     onChange={handleMinResampleLimitChange}
                                     placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
                                     style={{ ...inputStyle, borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc' }}
-                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
-                                    onBlur={(e) => e.target.style.borderColor = error.includes('minResampleLimit') ? 'red' : '#ccc'}
                                 />
                                 <span style={hintStyle}>
                                     Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max} {VALIDATION_RANGES.minResampleLimit.unit}
@@ -656,8 +706,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     onChange={handleMaxResampleLimitChange}
                                     placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
                                     style={{ ...inputStyle, borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc' }}
-                                    onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
-                                    onBlur={(e) => e.target.style.borderColor = error.includes('maxResampleLimit') ? 'red' : '#ccc'}
                                 />
                                 <span style={hintStyle}>
                                     Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max} {VALIDATION_RANGES.maxResampleLimit.unit}

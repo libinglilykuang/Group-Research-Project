@@ -3,193 +3,318 @@ import ConfigPanel from "./components/ConfigPanel";
 import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
 import ZoomableChart from "./components/Chart";
-
-// TODO: Remove Firebase imports and replace with Azure SDK
-// Example: import { BlobServiceClient } from "@azure/storage-blob";
-import { db } from "./firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { TableClient, AzureSASCredential } from "@azure/data-tables";
 
 function App() {
-    // State variables
-    const [rawData, setRawData] = useState([]); // Stores raw data for the chart
-    const [labels, setLabels] = useState([]); // Stores labels for the chart
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Controls sidebar visibility
-    const [configurations, setConfigurations] = useState([]); // Stores user configurations
-    const [file, setFile] = useState(null); // Stores the current CSV file
+    const [rawData, setRawData] = useState([]);
+    const [labels, setLabels] = useState([]);
+    const [compressedData, setCompressedData] = useState([]);
+    const [compressedLabels, setCompressedLabels] = useState([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [configurations, setConfigurations] = useState([]);
+    const [file, setFile] = useState(null);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const configPanelRef = useRef(null); // Reference to the ConfigPanel component
+    const configPanelRef = useRef(null);
 
-    // TODO: Initialize Azure Blob Storage or Cosmos DB client here
-    // Example: const blobServiceClient = BlobServiceClient.fromConnectionString("<Your-Azure-Connection-String>");
-    // Example: const containerClient = blobServiceClient.getContainerClient("<Your-Container-Name>");
+    const sasToken = "?sv=2017-07-29&ss=t&srt=so&sp=rwdlacu&se=2026-01-01T00:00:00Z&st=2025-01-01T00:00:00Z&spr=https&sig=wK7MJiU907XljD3qFOQ0H4KJOL9pYYL8CteWYq5Rhfc%3D";
+    const accountName = "team6ipstorageaccount";
+    const tableClient = new TableClient(
+        `https://${accountName}.table.core.windows.net`,
+        "ipconfigurations",
+        new AzureSASCredential(sasToken)
+    );
 
-    // Effect to load configurations on component mount
-    useEffect(() => {
-        loadConfigurations(); // Load configurations directly
-    }, []);
+    const FUNCTION_URL = "https://ip-team6-compression-function.azurewebsites.net/api/compressdata";
+    const FUNCTION_KEY = "cY1UQbInfG8J47x6HpICBc_rrCFwSNen_geoVqVGgZAEAzFuv_plDw==";
 
-    // Function to load configurations from Firestore
-    const loadConfigurations = async () => {
-        try {
-            // TODO: Replace Firebase Firestore logic with Azure storage logic
-            // Example: Load configurations from Azure Blob Storage or Cosmos DB
-            const querySnapshot = await getDocs(collection(db, "configurations")); // Load all configurations
-            const configs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            setConfigurations(configs); // Update state with loaded configurations
-        } catch (error) {
-            console.error("Error loading configurations:", error);
+    const parseTimestamp = (timestamp, index = 0) => {
+        if (!timestamp || typeof timestamp !== "string") {
+            console.warn("Invalid timestamp (not a string):", timestamp);
+            return null;
         }
+
+        if (timestamp.includes("T") && timestamp.endsWith("Z")) {
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) {
+                console.warn("Invalid ISO 8601 timestamp:", timestamp);
+                return null;
+            }
+            return date;
+        }
+
+        const timeMatch = timestamp.match(/^(\d{1,2}):(\d{2})\s+(AM|PM)$/i);
+        if (timeMatch) {
+            const [, hours, minutes, period] = timeMatch;
+            let hour = parseInt(hours, 10);
+            const minute = parseInt(minutes, 10);
+
+            if (period.toUpperCase() === "PM" && hour !== 12) {
+                hour += 12;
+            } else if (period.toUpperCase() === "AM" && hour === 12) {
+                hour = 0;
+            }
+
+            const baseDate = new Date("2025-02-18T00:00:00Z");
+            const date = new Date(baseDate.getTime() + index * 1000);
+            date.setUTCHours(hour, minute, 0, 0);
+
+            if (isNaN(date.getTime())) {
+                console.warn("Invalid timestamp after parsing HH:mm AM/PM:", timestamp);
+                return null;
+            }
+            return date;
+        }
+
+        console.warn("Invalid timestamp (unrecognized format):", timestamp);
+        return null;
     };
 
-    // Function to save a configuration to Firestore
+    useEffect(() => {
+        const loadConfigurations = async () => {
+            console.log("Starting to load configurations from Azure...");
+            try {
+                const entities = [];
+                for await (const entity of tableClient.listEntities()) {
+                    console.log("Fetched entity:", entity);
+                    let parsedLabels = [];
+                    try {
+                        parsedLabels = entity.labels ? JSON.parse(entity.labels) : [];
+                        parsedLabels = parsedLabels
+                            .map((label, index) => {
+                                const parsed = parseTimestamp(label, index);
+                                return parsed ? parsed.toISOString() : null;
+                            })
+                            .filter(label => label !== null);
+                    } catch (err) {
+                        console.error("Error parsing labels for entity:", entity, err);
+                        parsedLabels = [];
+                    }
+                    entities.push({
+                        id: entity.rowKey,
+                        name: entity.name,
+                        date: entity.date,
+                        parameters: JSON.parse(entity.parameters || "{}"),
+                        rawData: entity.rawData || null,
+                        labels: parsedLabels,
+                    });
+                }
+                console.log("Loaded configurations:", entities);
+                setConfigurations(entities);
+                setLoading(false);
+            } catch (err) {
+                console.error("Error loading configurations from Azure:", err);
+                setError(`Failed to load configurations from Azure: ${err.message}`);
+                setLoading(false);
+            }
+        };
+        loadConfigurations();
+    }, []);
+
     const handleSave = async (config) => {
-        // Create a new configuration object
         const newConfig = {
             ...config,
-            name: `Configuration ${configurations.length + 1}`, // Generate a dynamic name
-            date: new Date().toISOString(), // Add the current timestamp
-            parameters: {
-                ...config.parameters,
-            },
-            rawData: config.includeCSV ? rawData.join("\n") : null, // Store CSV content if included
-            labels: config.includeCSV ? labels : null, // Store labels if included
+            name: config.name || `Configuration ${configurations.length + 1}`,
+            date: new Date().toISOString(),
+            parameters: JSON.stringify(config.parameters),
+            rawData: config.includeCSV ? rawData.join("\n") : null,
+            labels: config.includeCSV ? JSON.stringify(labels) : null,
         };
 
         try {
-            // TODO: Replace Firebase Firestore logic with Azure storage logic
-            // Example: Save configuration to Azure Blob Storage or Cosmos DB
-            const docRef = await addDoc(collection(db, "configurations"), newConfig);
-            console.log("Document written with ID:", docRef.id);
-
-            // Update local state with the new configuration
-            setConfigurations((prevConfigs) => [...prevConfigs, { id: docRef.id, ...newConfig }]);
+            const entity = {
+                partitionKey: "configurations",
+                rowKey: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                name: newConfig.name,
+                date: newConfig.date,
+                parameters: newConfig.parameters,
+                rawData: newConfig.rawData,
+                labels: newConfig.labels,
+            };
+            console.log("Saving entity:", entity);
+            await tableClient.createEntity(entity);
+            setConfigurations((prev) => [...prev, { id: entity.rowKey, ...newConfig, parameters: config.parameters }]);
             alert("Optimal configuration saved!");
-        } catch (error) {
-            console.error("Error saving configuration:", error);
-            alert("Failed to save configuration. Please try again.");
+        } catch (err) {
+            console.error("Error saving configuration to Azure:", err);
+            setError(`Failed to save configuration to Azure: ${err.message}`);
         }
     };
 
-    // Function to create a new configuration
     const handleNewConfig = () => {
         if (configPanelRef.current) {
-            configPanelRef.current.reset(); // Reset the ConfigPanel
+            configPanelRef.current.reset();
         }
-        setFile(null); // Clear the current CSV file
+        setFile(null);
+        setCompressedData([]);
+        setCompressedLabels([]);
     };
 
-    // Function to toggle the sidebar
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
+    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-    // Function to load a configuration into the UI
     const handleLoadConfig = (config) => {
-        // Load raw data and labels into the chart
-        setRawData(config.rawData ? config.rawData.split("\n") : []);
-        setLabels(config.labels || []);
-
-        // Load parameters into the ConfigPanel
+        setRawData(config.rawData ? config.rawData.split("\n").map(Number) : []);
+        const loadedLabels = config.labels || [];
+        const validLabels = loadedLabels
+            .map((label, index) => {
+                const parsed = parseTimestamp(label, index);
+                return parsed ? parsed.toISOString() : null;
+            })
+            .filter(label => label !== null);
+        setLabels(validLabels);
+        setCompressedData([]);
+        setCompressedLabels([]);
         if (configPanelRef.current) {
             configPanelRef.current.setParams(config.parameters);
         }
     };
 
-    // Function to compress data based on parameters
-    const compressData = (
-        data,
-        labels,
-        compressionDeviationLimit,
-        compressionDeviationType,
-        exceptionFilterDeviationLimit,
-        exceptionFilterDeviationType
-    ) => {
-        const compressedData = [];
-        const compressedLabels = [];
-
-        // TODO: Replace local compression logic with a call to the backend compression API
-        // Example: Call a backend API endpoint to perform compression
-        // Example: const response = await fetch("/api/compress", { method: "POST", body: JSON.stringify({ data, labels, ... }) });
-        // Example: const { compressedData, compressedLabels } = await response.json();
-
-        // Example compression logic (to be replaced)
-        for (let i = 0; i < data.length; i++) {
-            const value = data[i];
-            const label = labels[i];
-
-            // Apply compression deviation limit
-            if (compressionDeviationLimit && Math.abs(value) > compressionDeviationLimit) {
-                continue; // Skip values exceeding the limit
-            }
-
-            // Apply compression deviation type
-            if (compressionDeviationType === "percentage") {
-                // Example: Skip values that are within a percentage range
-                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < compressionDeviationLimit) {
-                    continue;
-                }
-            } else if (compressionDeviationType === "absolute") {
-                // Example: Skip values that are within an absolute range
-                if (i > 0 && Math.abs(value - data[i - 1]) < compressionDeviationLimit) {
-                    continue;
-                }
-            }
-
-            // Apply exception filter deviation limit
-            if (exceptionFilterDeviationLimit && Math.abs(value) > exceptionFilterDeviationLimit) {
-                continue; // Skip values exceeding the exception filter limit
-            }
-
-            // Apply exception filter deviation type
-            if (exceptionFilterDeviationType === "percentage") {
-                // Example: Skip values that are within a percentage range
-                if (i > 0 && Math.abs((value - data[i - 1]) / data[i - 1]) * 100 < exceptionFilterDeviationLimit) {
-                    continue;
-                }
-            } else if (exceptionFilterDeviationType === "absolute") {
-                // Example: Skip values that are within an absolute range
-                if (i > 0 && Math.abs(value - data[i - 1]) < exceptionFilterDeviationLimit) {
-                    continue;
-                }
-            }
-
-            // Add the value and label to the compressed data
-            compressedData.push(value);
-            compressedLabels.push(label);
+    const compressData = async () => {
+        if (!rawData.length || !labels.length) {
+            setError("Please upload a file first");
+            return;
         }
 
-        return { compressedData, compressedLabels };
-    };
+        const params = configPanelRef.current.getParams();
+        const {
+            compressionDeviationLimit,
+            compressionDeviationType,
+            exceptionFilterDeviationLimit,
+            exceptionFilterDeviationType,
+        } = params;
 
-    // Function to get compression parameters from the ConfigPanel
-    const getCompressionParameters = () => {
-        if (configPanelRef.current) {
-            return configPanelRef.current.getParams();
+        const parsedTimestamps = labels.map((label, index) => parseTimestamp(label, index))
+            .filter(timestamp => timestamp !== null)
+            .map(timestamp => timestamp.toISOString());
+
+        if (parsedTimestamps.length !== rawData.length) {
+            setError("Mismatch between raw data and timestamps after parsing. Please check the data.");
+            return;
         }
-        return {
-            compressionDeviationLimit: null,
-            compressionDeviationType: null,
-            exceptionFilterDeviationLimit: null,
-            exceptionFilterDeviationType: null,
+
+        const requestData = {
+            rawData: rawData.map((value, index) => ({
+                timestamp: parsedTimestamps[index],
+                value: value,
+            })),
+            parameters: {
+                deviationLimit: compressionDeviationLimit || exceptionFilterDeviationLimit || 0,
+                deviationType: (compressionDeviationType || exceptionFilterDeviationType || "absolute").toLowerCase(),
+            },
         };
+
+        console.log("Request Data:", JSON.stringify(requestData, null, 2));
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            console.log(`Fetching from: ${FUNCTION_URL}?code=${FUNCTION_KEY}`);
+
+            const response = await fetch(`${FUNCTION_URL}?code=${FUNCTION_KEY}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            console.log("Response Status:", response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log("Response Data:", result);
+
+            if (!Array.isArray(result) || !result.every(item => "timestamp" in item && "value" in item)) {
+                throw new Error("Unexpected response format from compression endpoint");
+            }
+
+            if (result.length === 0) {
+                setError("No data points remained after compression. Try adjusting the parameters.");
+                setCompressedData([]);
+                setCompressedLabels([]);
+            } else {
+                const rawDataForChart = rawData
+                    .map((value, index) => {
+                        const parsedTime = parseTimestamp(labels[index], index);
+                        if (!parsedTime) return null;
+                        return {
+                            time: parsedTime,
+                            value: value,
+                        };
+                    })
+                    .filter(item => item !== null)
+                    .sort((a, b) => a.time - b.time);
+
+                const compressedDataForChart = result
+                    .map((item, index) => {
+                        const parsedTime = parseTimestamp(item.timestamp, index);
+                        if (!parsedTime) return null;
+                        return {
+                            time: parsedTime,
+                            value: item.value,
+                        };
+                    })
+                    .filter(item => item !== null)
+                    .sort((a, b) => a.time - b.time);
+
+                setCompressedData(compressedDataForChart.map(item => item.value));
+                setCompressedLabels(compressedDataForChart.map(item => item.time.toISOString()));
+            }
+        } catch (err) {
+            console.error("Error compressing data with Azure Function:", err);
+            setError(`Failed to compress data: ${err.message}`);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Get parameters and compress the data
-    const {
-        compressionDeviationLimit,
-        compressionDeviationType,
-        exceptionFilterDeviationLimit,
-        exceptionFilterDeviationType,
-    } = getCompressionParameters();
+    const rawDataForChart = rawData
+        .map((value, index) => {
+            const parsedTime = parseTimestamp(labels[index], index);
+            if (!parsedTime) return null;
+            return {
+                time: parsedTime,
+                value: value,
+            };
+        })
+        .filter(item => item !== null)
+        .sort((a, b) => a.time - b.time);
 
-    const { compressedData, compressedLabels } = compressData(
-        rawData,
-        labels,
-        compressionDeviationLimit,
-        compressionDeviationType,
-        exceptionFilterDeviationLimit,
-        exceptionFilterDeviationType
-    );
+    const compressedDataForChart = compressedData
+        .map((value, index) => {
+            const parsedTime = parseTimestamp(compressedLabels[index], index);
+            if (!parsedTime) return null;
+            return {
+                time: parsedTime,
+                value: value,
+            };
+        })
+        .filter(item => item !== null)
+        .sort((a, b) => a.time - b.time);
+
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+                <h1>Loading...</h1>
+                <p>Fetching configurations from Azure Table Storage</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{ textAlign: "center", padding: "20px", color: "red" }}>
+                <h1>Error</h1>
+                <p>{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -206,19 +331,20 @@ function App() {
                 padding: "20px",
             }}
         >
-            {/* Main interface */}
-            <h2 style={{ color: "#333", marginBottom: "20px" }}>Intelligent Plant Compression Optimisation</h2>
+            <h2 style={{ color: "#333", marginBottom: "20px" }}>
+                Intelligent Plant Compression Optimisation
+            </h2>
             <div style={{ width: "80%" }}>
                 <CompressionSidebarPanel
                     configurations={configurations}
-                    setConfigurations={setConfigurations} // Pass setConfigurations here
+                    setConfigurations={setConfigurations}
                     onNewConfig={handleNewConfig}
                     isOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
                     onLoadConfig={handleLoadConfig}
+                    compressedData={compressedData}
                 />
             </div>
-
             <div
                 style={{
                     width: "80%",
@@ -230,11 +356,14 @@ function App() {
                 <ConfigPanel
                     ref={configPanelRef}
                     setRawData={setRawData}
-                    setLabels={setLabels}
+                    setLabels={(newLabels) => {
+                        console.log("Setting labels from ConfigPanel:", newLabels);
+                        setLabels(newLabels);
+                    }}
                     setFile={setFile}
+                    onCompress={compressData}
                 />
             </div>
-
             <div
                 style={{
                     width: "80%",
@@ -249,13 +378,12 @@ function App() {
                 }}
             >
                 <ZoomableChart
-                    rawData={rawData}
-                    labels={labels}
-                    compressedData={compressedData}
-                    compressedLabels={compressedLabels}
+                    rawData={rawDataForChart.map(item => item.value)}
+                    labels={rawDataForChart.map(item => item.time.toISOString())}
+                    compressedData={compressedDataForChart.map(item => item.value)}
+                    compressedLabels={compressedDataForChart.map(item => item.time.toISOString())}
                 />
             </div>
-
             <div
                 style={{
                     width: "80%",

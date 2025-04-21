@@ -84,43 +84,15 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                     >
                         <thead>
                         <tr>
-                            <th style={{
-                                padding: '16px',
-                                textAlign: 'left',
-                                backgroundColor: '#f8f9fa',
-                                color: '#212529',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                borderBottom: '2px solid #dee2e6',
-                                borderTop: '1px solid #dee2e6',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                            }}>Metric</th>
-                            <th style={{
-                                padding: '16px',
-                                textAlign: 'left',
-                                backgroundColor: '#f8f9fa',
-                                color: '#212529',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                borderBottom: '2px solid #dee2e6',
-                                borderTop: '1px solid #dee2e6',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                            }}>Value</th>
+                            <th style={thStyle}>Metric</th>
+                            <th style={thStyle}>Value</th>
                         </tr>
                         </thead>
                         <tbody>
                         {metrics.map((item, index) => (
                             <tr key={index}>
-                                <td style={{
-                                    border: '1px solid #ddd',
-                                    padding: '8px',
-                                    wordBreak: 'break-word'
-                                }}>{item.name}</td>
-                                <td style={{
-                                    border: '1px solid #ddd',
-                                    padding: '8px',
-                                    wordBreak: 'break-word'
-                                }} data-testid={item.testId || null}>
+                                <td style={tdStyle}>{item.name}</td>
+                                <td style={tdStyle} data-testid={item.testId || null}>
                                     {item.value}
                                 </td>
                             </tr>
@@ -134,43 +106,35 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 </p>
             )}
 
-            <button
-                onClick={handleSave}
-                style={{
-                    display: 'block',
-                    width: '100%',
-                    maxWidth: '300px',
-                    padding: '12px 20px',
-                    fontSize: '16px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    margin: '20px auto 0',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.3s ease, transform 0.2s ease',
-                    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                }}
-                onMouseOver={(e) => {
-                    e.target.style.backgroundColor = '#218838';
-                    e.target.style.transform = 'scale(1.02)';
-                }}
-                onMouseOut={(e) => {
-                    e.target.style.backgroundColor = '#28a745';
-                    e.target.style.transform = 'scale(1)';
-                }}
-                onMouseDown={(e) => {
-                    e.target.style.backgroundColor = '#1e7e34';
-                    e.target.style.transform = 'scale(0.98)';
-                }}
-                onMouseUp={(e) => {
-                    e.target.style.backgroundColor = '#218838';
-                    e.target.style.transform = 'scale(1.02)';
-                }}
-                data-testid="save-button"
-            >
-                Save Optimal Configuration
-            </button>
+            <div style={{ textAlign: 'center' }}>
+                <button
+                    onClick={handleSave}
+                    style={{
+                        padding: '12px 24px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                        marginTop: '10px'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#45a049';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#4CAF50';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                    data-testid="save-button"
+                >
+                    Save Current Configuration
+                </button>
+            </div>
 
             {isSaveModalOpen && (
                 <div
@@ -248,6 +212,24 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             )}
         </div>
     );
+};
+
+const thStyle = {
+    padding: '16px',
+    textAlign: 'left',
+    backgroundColor: '#f8f9fa',
+    color: '#212529',
+    fontSize: '15px',
+    fontWeight: 600,
+    borderBottom: '2px solid #dee2e6',
+    borderTop: '1px solid #dee2e6',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+};
+
+const tdStyle = {
+    border: '1px solid #ddd',
+    padding: '8px',
+    wordBreak: 'break-word'
 };
 
 MetricsTable.propTypes = {

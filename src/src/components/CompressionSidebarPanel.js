@@ -52,7 +52,6 @@ const CompressionSidebarPanel = ({
   const startWidthRef = useRef(0);
   const menuRef = useRef(null);
 
-  // 处理鼠标按下开始调整大小
   const startResizing = useCallback((e) => {
     setIsResizing(true);
     startXRef.current = e.clientX;
@@ -61,16 +60,13 @@ const CompressionSidebarPanel = ({
     document.body.style.userSelect = 'none';
   }, [sidebarWidth]);
 
-  // 处理鼠标移动调整大小
   const resize = useCallback((e) => {
     if (isResizing) {
       const newWidth = startWidthRef.current + e.clientX - startXRef.current;
-      // 限制最小和最大宽度
       setSidebarWidth(Math.max(150, Math.min(newWidth, 500)));
     }
   }, [isResizing]);
 
-  // 处理鼠标释放停止调整大小
   const stopResizing = useCallback(() => {
     setIsResizing(false);
     document.body.style.cursor = '';
@@ -165,17 +161,24 @@ const CompressionSidebarPanel = ({
   };
 
   const handleEdit = (config) => {
+    let p = {};
+    try {
+      p = typeof config.parameters === 'string' ? JSON.parse(config.parameters) : config.parameters;
+    } catch (e) {
+      console.error("Failed to parse config.parameters", e);
+      p = {};
+    }
+
     setSelectedConfig(config);
     setEditedConfig({
       ...config,
       parameters: {
-        deviationLimit: config.parameters.deviationLimit || 2,
-        deviationType: config.parameters.deviationType || "percentage",
-        callbackFilter: config.parameters.callbackFilter || 0,
-        exceptionFilter1: config.parameters.exceptionFilter1 || "",
-        exceptionFilter2: config.parameters.exceptionFilter2 || "",
-        minResampleLimit: config.parameters.minResampleLimit || 0,
-        maxResampleLimit: config.parameters.maxResampleLimit || 5,
+        compressionDeviationLimit: parseFloat(p.compressionDeviationLimit ?? 2),
+        compressionDeviationType: p.compressionDeviationType ?? "percentage",
+        exceptionFilterDeviationLimit: parseFloat(p.exceptionFilterDeviationLimit ?? 1),
+        exceptionFilterDeviationType: p.exceptionFilterDeviationType ?? "absolute",
+        minResampleLimit: parseFloat(p.minResampleLimit ?? 0),
+        maxResampleLimit: parseFloat(p.maxResampleLimit ?? 5),
       },
     });
     setModalOpen(true);
@@ -608,19 +611,19 @@ const CompressionSidebarPanel = ({
                   <h4>Parameters:</h4>
                   <form>
                     <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Deviation Limit</label>
+                      <label style={{ display: "block", marginBottom: "5px" }}>Compression Deviation Limit</label>
                       <input
                           type="number"
-                          value={editedConfig.parameters.deviationLimit}
-                          onChange={(e) => handleParamChange("deviationLimit", e.target.value)}
+                          value={editedConfig.parameters.compressionDeviationLimit}
+                          onChange={(e) => handleParamChange("compressionDeviationLimit", e.target.value)}
                           style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                       />
                     </div>
                     <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Deviation Type</label>
+                      <label style={{ display: "block", marginBottom: "5px" }}>Compression Deviation Type</label>
                       <select
-                          value={editedConfig.parameters.deviationType}
-                          onChange={(e) => handleParamChange("deviationType", e.target.value)}
+                          value={editedConfig.parameters.compressionDeviationType}
+                          onChange={(e) => handleParamChange("compressionDeviationType", e.target.value)}
                           style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                       >
                         <option value="percentage">Percentage</option>
@@ -628,52 +631,47 @@ const CompressionSidebarPanel = ({
                       </select>
                     </div>
                     <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Callback Filter</label>
+                      <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter Deviation Limit</label>
                       <input
-                          type="text"
-                          value={editedConfig.parameters.callbackFilter || ""}
-                          onChange={(e) => handleParamChange("callbackFilter", e.target.value)}
+                          type="number"
+                          value={editedConfig.parameters.exceptionFilterDeviationLimit}
+                          onChange={(e) => handleParamChange("exceptionFilterDeviationLimit", e.target.value)}
                           style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                       />
                     </div>
                     <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 1</label>
-                      <input
-                          type="text"
-                          value={editedConfig.parameters.exceptionFilter1 || ""}
-                          onChange={(e) => handleParamChange("exceptionFilter1", e.target.value)}
+                      <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter Deviation Type</label>
+                      <select
+                          value={editedConfig.parameters.exceptionFilterDeviationType}
+                          onChange={(e) => handleParamChange("exceptionFilterDeviationType", e.target.value)}
                           style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
-                      />
+                      >
+                        <option value="percentage">Percentage</option>
+                        <option value="absolute">Absolute</option>
+                      </select>
                     </div>
                     <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Exception Filter 2</label>
+                      <label style={{ display: "block", marginBottom: "5px" }}>Min Resample Interval (s)</label>
                       <input
-                          type="text"
-                          value={editedConfig.parameters.exceptionFilter2 || ""}
-                          onChange={(e) => handleParamChange("exceptionFilter2", e.target.value)}
-                          style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
-                      />
-                    </div>
-                    <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Min Resample Limit</label>
-                      <input
-                          type="text"
-                          value={editedConfig.parameters.minResampleLimit || ""}
+                          type="number"
+                          value={editedConfig.parameters.minResampleLimit}
                           onChange={(e) => handleParamChange("minResampleLimit", e.target.value)}
                           style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                       />
                     </div>
                     <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "5px" }}>Max Resample Limit</label>
+                      <label style={{ display: "block", marginBottom: "5px" }}>Max Resample Interval (s)</label>
                       <input
-                          type="text"
-                          value={editedConfig.parameters.maxResampleLimit || ""}
+                          type="number"
+                          value={editedConfig.parameters.maxResampleLimit}
                           onChange={(e) => handleParamChange("maxResampleLimit", e.target.value)}
                           style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                       />
                     </div>
                   </form>
                 </div>
+
+
 
                 {/* Save button */}
                 <div style={{ marginTop: "10px", textAlign: "left" }}>

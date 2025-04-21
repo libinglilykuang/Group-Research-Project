@@ -15,9 +15,11 @@ function App() {
     const [file, setFile] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    const [lastOptimizedParams, setLastOptimizedParams] = useState(null);
     const configPanelRef = useRef(null);
+    const [editedConfig, setEditedConfig] = useState(null);
 
+    const [modalOpen, setModalOpen] = useState(false);
     const sasToken = "?sv=2017-07-29&ss=t&srt=so&sp=rwdlacu&se=2026-01-01T00:00:00Z&st=2025-01-01T00:00:00Z&spr=https&sig=wK7MJiU907XljD3qFOQ0H4KJOL9pYYL8CteWYq5Rhfc%3D";
     const accountName = "team6ipstorageaccount";
     const tableClient = new TableClient(
@@ -91,13 +93,30 @@ function App() {
                         console.error("Error parsing labels for entity:", entity, err);
                         parsedLabels = [];
                     }
+
+                    let parsedCompressedLabels = [];
+                    try {
+                        parsedCompressedLabels = entity.compressedLabels ? JSON.parse(entity.compressedLabels) : [];
+                        parsedCompressedLabels = parsedCompressedLabels
+                            .map((label, index) => {
+                                const parsed = parseTimestamp(label, index);
+                                return parsed ? parsed.toISOString() : null;
+                            })
+                            .filter(label => label !== null);
+                    } catch (err) {
+                        console.error("Error parsing compressedLabels for entity:", entity, err);
+                        parsedCompressedLabels = [];
+                    }
+
                     entities.push({
                         id: entity.rowKey,
                         name: entity.name,
                         date: entity.date,
                         parameters: JSON.parse(entity.parameters || "{}"),
-                        rawData: entity.rawData || null,
+                        rawData: entity.rawData ? entity.rawData.split("\n").map(Number) : [],
                         labels: parsedLabels,
+                        compressedData: entity.compressedData ? entity.compressedData.split("\n").map(Number) : [],
+                        compressedLabels: parsedCompressedLabels,
                     });
                 }
                 console.log("Loaded configurations:", entities);
@@ -120,18 +139,23 @@ function App() {
             parameters: JSON.stringify(config.parameters),
             rawData: config.includeCSV ? rawData.join("\n") : null,
             labels: config.includeCSV ? JSON.stringify(labels) : null,
+            compressedData: config.includeCSV ? compressedData.join("\n") : null,
+            compressedLabels: config.includeCSV ? JSON.stringify(compressedLabels) : null,
         };
 
         try {
             const entity = {
                 partitionKey: "configurations",
-                rowKey: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                rowKey: `...`,
                 name: newConfig.name,
                 date: newConfig.date,
                 parameters: newConfig.parameters,
                 rawData: newConfig.rawData,
                 labels: newConfig.labels,
+                compressedData: newConfig.compressedData,
+                compressedLabels: newConfig.compressedLabels,
             };
+
             console.log("Saving entity:", entity);
             await tableClient.createEntity(entity);
             setConfigurations((prev) => [...prev, { id: entity.rowKey, ...newConfig, parameters: config.parameters }]);
@@ -154,8 +178,17 @@ function App() {
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
     const handleLoadConfig = (config) => {
-        setRawData(config.rawData ? config.rawData.split("\n").map(Number) : []);
-        const loadedLabels = config.labels || [];
+        setRawData(config.rawData || []);
+
+        let loadedLabels = config.labels || [];
+        if (typeof loadedLabels === "string") {
+            try {
+                loadedLabels = JSON.parse(loadedLabels);
+            } catch (err) {
+                console.error("Failed to parse labels:", loadedLabels, err);
+                loadedLabels = [];
+            }
+        }
         const validLabels = loadedLabels
             .map((label, index) => {
                 const parsed = parseTimestamp(label, index);
@@ -163,11 +196,27 @@ function App() {
             })
             .filter(label => label !== null);
         setLabels(validLabels);
-        setCompressedData([]);
-        setCompressedLabels([]);
-        if (configPanelRef.current) {
-            configPanelRef.current.setParams(config.parameters);
+
+        setCompressedData(config.compressedData || []);
+
+        let loadedCompressedLabels = config.compressedLabels || [];
+        if (typeof loadedCompressedLabels === "string") {
+            try {
+                loadedCompressedLabels = JSON.parse(loadedCompressedLabels);
+            } catch (err) {
+                console.error("Failed to parse compressedLabels:", loadedCompressedLabels, err);
+                loadedCompressedLabels = [];
+            }
         }
+        const validCompressedLabels = loadedCompressedLabels
+            .map((label, index) => {
+                const parsed = parseTimestamp(label, index);
+                return parsed ? parsed.toISOString() : null;
+            })
+            .filter(label => label !== null);
+        setCompressedLabels(validCompressedLabels);
+
+
     };
 
     const compressData = async () => {
@@ -362,6 +411,14 @@ function App() {
                     }}
                     setFile={setFile}
                     onCompress={compressData}
+                    onOptimized={(params) => {
+                        setEditedConfig({
+                            name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
+                            date: new Date().toISOString(),
+                            parameters: params,
+                        });
+                        setModalOpen(true);
+                    }}
                 />
             </div>
             <div

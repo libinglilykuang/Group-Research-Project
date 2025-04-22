@@ -497,7 +497,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             marginRight: 'auto'
         }}>
             {/* Data Source Section */}
-            <div style={{ width: '95%', marginBottom: '30px', padding: '0 20px' }}>
+            <div style={{ width: '90%', marginBottom: '30px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
                     fontSize: '20px',
@@ -507,7 +507,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     borderBottom: '1px solid #eee',
                     paddingLeft: '12px'
                 }}>
-                    📁 Data Source
+                    Data Source
                 </h2>
 
                 {/* Upload area with drag and drop support */}
@@ -597,40 +597,44 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             Select Time Range
                         </button>
                     </div>
-                    {/* 云端数据按钮 */}
-                    <div style={{
-                        marginTop: '16px',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: '12px'
-                    }}>
-                        <button
-                            title="View Cloud Data Table"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowCloudModal(true);
-                            }}
-                            style={{
-                                width: '44px',
-                                height: '44px',
-                                borderRadius: '50%',
-                                backgroundColor: '#2196F3',
-                                border: 'none',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                                cursor: 'pointer',
-                                transition: 'transform 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                            <span style={{ fontSize: '20px', color: 'white' }}>📊</span>
-                        </button>
-                    </div>
 
                 </div>
+                {/* cloud upload */}
+                <div style={{
+                    marginTop: '-24px',
+                    marginBottom: '30px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    marginLeft: '40px',
+                    zIndex: 10
+                }}>
+                    <button
+                        title="View Cloud Data Table"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowCloudModal(true);
+                        }}
+                        style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '50%',
+                            backgroundColor: '#2196F3',
+                            border: '3px solid white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        <span style={{ fontSize: '40px', color: 'white' }}>☁️</span>
+                    </button>
+                </div>
+
             </div>
 
             {/* Parameter configuration section */}

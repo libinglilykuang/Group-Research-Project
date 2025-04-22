@@ -81,6 +81,7 @@
 | [Week 21 : Meeting 1](./meeting_notes/Week21Meeting1.md) | 31/3/25 | Discussed report work |
 | [Week 22 : Meeting 1](./meeting_notes/Week22Meeting1.md) | 08/4/25 | Discussed report work |
 | [Week 23 : Meeting 1](./meeting_notes/Week23Meeting1.md) | 15/4/25 | Discussed report work |
+| [Week 24 : Meeting 1](./meeting_notes/Week24Meeting1.md) | 22/4/25 | Discussed report work |
 
 
 

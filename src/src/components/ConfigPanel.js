@@ -41,8 +41,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [fullLabels, setFullLabels] = useState([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [showTable, setShowTable] = useState(false);
-
+    const [showCloudModal, setShowCloudModal] = useState(false);
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -503,16 +502,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     color: '#333',
                     fontSize: '20px',
                     fontWeight: 'bold',
-                    marginBottom: '20px',
+                    marginBottom: '10px',
                     paddingBottom: '10px',
                     borderBottom: '1px solid #eee',
                     paddingLeft: '12px'
                 }}>
-                    Data Source
-                    <button onClick={() => setShowTable(!showTable)}>
-                        {showTable ? 'Hide Data Table' : 'Show Data Table'}
-                    </button>
-                    {showTable && <DataTable />}
+                    📁 Data Source
                 </h2>
 
                 {/* Upload area with drag and drop support */}
@@ -602,6 +597,39 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             Select Time Range
                         </button>
                     </div>
+                    {/* 云端数据按钮 */}
+                    <div style={{
+                        marginTop: '16px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: '12px'
+                    }}>
+                        <button
+                            title="View Cloud Data Table"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCloudModal(true);
+                            }}
+                            style={{
+                                width: '44px',
+                                height: '44px',
+                                borderRadius: '50%',
+                                backgroundColor: '#2196F3',
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                cursor: 'pointer',
+                                transition: 'transform 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <span style={{ fontSize: '20px', color: 'white' }}>📊</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
@@ -812,6 +840,48 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
             {/* Time range selection modal */}
             {showTimeRangeModal && <TimeRangeModal />}
+            {showCloudModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.4)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 2000
+                }}>
+                    <div style={{
+                        backgroundColor: '#fff',
+                        padding: '24px',
+                        borderRadius: '10px',
+                        width: '90%',
+                        maxWidth: '700px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0 }}>📊 Cloud Data Table</h3>
+                            <button
+                                onClick={() => setShowCloudModal(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '18px',
+                                    cursor: 'pointer',
+                                    color: '#999'
+                                }}
+                            >
+                                ✖
+                            </button>
+                        </div>
+                        <div style={{ marginTop: '16px' }}>
+                            <DataTable />
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 });

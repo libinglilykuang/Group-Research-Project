@@ -177,6 +177,22 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         handleFileSelect(e.target.files[0]);
     };
 
+    const loadCloudData = async (url) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+
+            const fileName = url.split('/').pop();
+            const fakeFile = new File([blob], fileName, { type: blob.type });
+
+            handleFileSelect(fakeFile);  // ✅ 复用原来的逻辑
+            toast.success("Cloud data loaded successfully!");
+        } catch (err) {
+            console.error("Error loading cloud data:", err);
+            toast.error("Failed to load cloud data from cloud.");
+        }
+    };
+
     // Drag and drop handlers
     const handleDragEnter = (e) => {
         e.preventDefault();

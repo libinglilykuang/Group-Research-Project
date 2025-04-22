@@ -570,17 +570,22 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     <div style={{ marginTop: '20px' }}>
                         <button
                             style={{
-                                padding: '12px 20px',
-                                backgroundColor: '#4CAF50',
+                                padding: '10px 20px',
+                                backgroundColor: '#42A5F5',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
+                                borderRadius: '8px',
                                 fontWeight: '600',
                                 fontSize: '15px',
-                                whiteSpace: 'nowrap',
-                                transition: 'all 0.2s'
+                                letterSpacing: '0.3px',
+                                fontFamily: 'Segoe UI, sans-serif',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                                transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer'
                             }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (!file) {

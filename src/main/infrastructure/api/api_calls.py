@@ -1,8 +1,10 @@
 import json
 import pkce
 import datetime
+import csv
+import os
 
-from bottle import route, run, request, redirect
+from bottle import route, run, request, redirect, static_file
 
 import intelligent_plant.app_store_client as app_store
 import intelligent_plant.data_core_client as data_core
@@ -14,6 +16,13 @@ base_url = None
 #in the real world a new client would need to be instanced per user
 client = None
 code_verifier = None
+
+#we will write the data selected in the datasource to the public folder the react front end relies on
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+REACT_PUBLIC = os.path.abspath(
+    os.path.join(BASE_DIR, '..', '..', '..', 'public')
+)
+assert os.path.isdir(REACT_PUBLIC), f"Path not found: {REACT_PUBLIC}"
 
 #load the json config file with the app information
 with open('config.json') as json_config_file:
@@ -63,50 +72,51 @@ def data_sources():
 
 @route('/get_data')
 def get_data():
-    #Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data, and a request to get the data from the API is sent
+    # Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data,
+    # and a request to get the data from the API is sent
     global client
 
-    dsn = '' #data source name
-    id = '' #data source ID
-    totalPointCount = 0 #total number of points in the data set
-    currentPointCount = 0 #number of data points retrieved so far
-    maxPointCount = 0 # number of data points to return - if this is set to 0, the max will be returned (5000)
+    dsn = ''  # data source name
+    startDate = datetime.datetime(2025, 3, 9)
+    endDate = datetime.datetime(2025, 3, 10)
+    pointCount = 0  # number of data points to return - if this is set to 0, the max will be returned (5000)
 
-    returnData = [] #2d array to return to the compression team where items are [time,value]
+    returnData = []  # 2d array to return to the compression team where items are [time,value]
 
-    #choose the data source to get data from
-    dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - HARDCODED FOR 'NOISYSINWAVE', NEEDS TO BE UPDATED BASED ON UI
-    
-    #retrieving tag data for the data source - this is needed for the API compression data query
-    tags = client.get_data_core_client().get_tags(dsn) #getting the dict from the API
+    # choose the data source to get data from
+    dsn = qualifiedNames[2]  # HARDCODED FOR 'NOISYSINWAVE', NEEDS TO BE UPDATED BASED ON UI
 
-    id = tags[0]["Id"] #getting data from the dict
-    totalPointCount = tags[0]["Properties"]['Raw Sample Count']['Value'] #getting total data points
+    # retrieving tag data for the data source - this is needed for the API compression data query
+    tags = client.get_data_core_client().get_tags(dsn)
+    id = tags[0]["Id"]
+    startDate = tags[0]["Properties"]['UTC Earliest Raw Sample Time']['Value']
+    endDate = tags[0]["Properties"]['UTC Latest Raw Sample Time']['Value']
 
-    startDate = tags[0]["Properties"]['UTC Earliest Raw Sample Time']['Value'] #getting start datetime
-    endDate = tags[0]["Properties"]['UTC Latest Raw Sample Time']['Value'] #getting end datetime - these give errors, i dont know why because the code runs fine :(
+    # attempt to query the API
+    try:
+        data = client.get_data_core_client().get_raw_data({dsn: [id]}, startDate, endDate, pointCount)
+        print("API Request Complete!")
+    except Exception as e:
+        print("API Request Failed.")
+        print(e)
+        return "API error"
 
-    print(totalPointCount)
-    print(maxPointCount)
+    values = data[dsn][id]['Values']
+    for v in values:
+        returnData.append([v['UtcSampleTime'], v['NumericValue']])
 
-    while currentPointCount < totalPointCount: #while there are still points to be retrieved
+    # writing to the public folder
+    CSV_PATH = os.path.join(REACT_PUBLIC, "data_points.csv")
 
-        #attempt to query the API
-        try:
-            data = client.get_data_core_client().get_raw_data({dsn:[id]},startDate,endDate,maxPointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
-            print("API Request Complete!")
-        except:
-            print("API Request Failed.")
+    with open(CSV_PATH, "w", newline="") as fp:
+        writer = csv.writer(fp)
+        writer.writerow(["UtcSampleTime", "NumericValue"])
+        writer.writerows(returnData)
+    print("✔ wrote", CSV_PATH)
 
-        #add data point time and value to the array 'returnData'
-        for i in range(len(data[dsn][id]['Values'])):
-            returnData.append([data[dsn][id]['Values'][i]['UtcSampleTime'],data[dsn][id]['Values'][i]['NumericValue']])
-            
-            currentPointCount += 1
-        startDate = returnData[len(data[dsn][id]['Values'])-1][0]
-
-    #return the array as a string
+    # return the array as a string
     return str(returnData)
+
 
 @route('/refresh')
 def info():

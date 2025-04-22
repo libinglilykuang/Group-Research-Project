@@ -1,8 +1,10 @@
 import React, { useState, forwardRef, useImperativeHandle, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
+import DataTable from './DataTable.js';
 
-const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, onOptimized }, ref) => {
+
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
         compressionDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
@@ -39,7 +41,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
     const [fullLabels, setFullLabels] = useState([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [lastOptimizedParams, setLastOptimizedParams] = useState(null);
+    const [showTable, setShowTable] = useState(false);
+
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -268,36 +271,20 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
             setError('Please upload a file first');
             return;
         }
-
         setIsOptimizing(true);
         setError('');
         setMessage(`Optimizing parameters for ${file.name}...`);
-
         setTimeout(() => {
-            const optimizedParams = {
-                compressionDeviationLimit: '1.5',
-                compressionDeviationType: 'percentage',
-                exceptionFilterDeviationLimit: '0.8',
-                exceptionFilterDeviationType: 'absolute',
-                minResampleLimit: '1',
-                maxResampleLimit: '8',
-            };
-
-            if (ref?.current?.setParams) {
-                ref.current.setParams(optimizedParams);
-            }
-
-            const finalParams = ref?.current?.getParams?.();
-            setLastOptimizedParams(finalParams);
-
-            onOptimized?.(finalParams);
-
+            setCompressionDeviationLimit('1.5');
+            setCompressionDeviationType('percentage');
+            setExceptionFilterDeviationLimit('0.8');
+            setExceptionFilterDeviationType('absolute');
+            setMinResampleLimit('1');
+            setMaxResampleLimit('8');
             setIsOptimizing(false);
             setMessage(`Optimization complete for ${file.name}! Parameters updated.`);
         }, 2000);
-
     };
-
 
     // Time range modal component
     const TimeRangeModal = () => (
@@ -384,7 +371,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
             setFullData([]);
             setFullLabels([]);
             setIsOptimizing(false);
-            setLastOptimizedParams(null); // ✅ 清除优化参数记录
         },
         getParams: () => ({
             compressionDeviationLimit: compressionDeviationLimit || DEFAULT_VALUES.compressionDeviationLimit,
@@ -394,7 +380,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
             minResampleLimit: minResampleLimit || DEFAULT_VALUES.minResampleLimit,
             maxResampleLimit: maxResampleLimit || DEFAULT_VALUES.maxResampleLimit
         }),
-        getLastOptimizedParams: () => lastOptimizedParams, // ✅ 新增方法
         setParams: (params) => {
             if (params.compressionDeviationLimit !== undefined)
                 handleCompressionDeviationLimitChange({ target: { value: params.compressionDeviationLimit } });
@@ -415,7 +400,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
             parseCSV(file);
         }
     }));
-
 
     // Style definitions
     const cardStyle = {
@@ -525,6 +509,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
                     paddingLeft: '12px'
                 }}>
                     Data Source
+                    <button onClick={() => setShowTable(!showTable)}>
+                        {showTable ? 'Hide Data Table' : 'Show Data Table'}
+                    </button>
+                    {showTable && <DataTable />}
                 </h2>
 
                 {/* Upload area with drag and drop support */}
@@ -799,6 +787,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress, on
                     disabled={isOptimizing}
                 >
                     Compress Data
+
                 </button>
 
                 <button

@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useImperativeHandle, useCallback } from 'react';
+import React, { useState,useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
@@ -42,6 +42,25 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [showCloudModal, setShowCloudModal] = useState(false);
+
+    useEffect(() => {
+        const saved = sessionStorage.getItem('lastOptimizedParams');
+        if (saved) {
+            const params = JSON.parse(saved);
+            if (params.compressionDeviationLimit !== undefined)
+                setCompressionDeviationLimit(params.compressionDeviationLimit);
+            if (params.compressionDeviationType !== undefined)
+                setCompressionDeviationType(params.compressionDeviationType);
+            if (params.exceptionFilterDeviationLimit !== undefined)
+                setExceptionFilterDeviationLimit(params.exceptionFilterDeviationLimit);
+            if (params.exceptionFilterDeviationType !== undefined)
+                setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
+            if (params.minResampleLimit !== undefined)
+                setMinResampleLimit(params.minResampleLimit);
+            if (params.maxResampleLimit !== undefined)
+                setMaxResampleLimit(params.maxResampleLimit);
+        }
+    }, []);
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -177,22 +196,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         handleFileSelect(e.target.files[0]);
     };
 
-    const loadCloudData = async (url) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-
-            const fileName = url.split('/').pop();
-            const fakeFile = new File([blob], fileName, { type: blob.type });
-
-            handleFileSelect(fakeFile);  // ✅ 复用原来的逻辑
-            toast.success("Cloud data loaded successfully!");
-        } catch (err) {
-            console.error("Error loading cloud data:", err);
-            toast.error("Failed to load cloud data from cloud.");
-        }
-    };
-
     // Drag and drop handlers
     const handleDragEnter = (e) => {
         e.preventDefault();
@@ -298,6 +301,16 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setMaxResampleLimit('8');
             setIsOptimizing(false);
             setMessage(`Optimization complete for ${file.name}! Parameters updated.`);
+
+            const optimizedParams = {
+                compressionDeviationLimit: '1.5',
+                compressionDeviationType: 'percentage',
+                exceptionFilterDeviationLimit: '0.8',
+                exceptionFilterDeviationType: 'absolute',
+                minResampleLimit: '1',
+                maxResampleLimit: '8'
+            };
+            sessionStorage.setItem('lastOptimizedParams', JSON.stringify(optimizedParams));
         }, 2000);
     };
 
@@ -388,26 +401,46 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setIsOptimizing(false);
         },
         getParams: () => ({
-            compressionDeviationLimit: compressionDeviationLimit || DEFAULT_VALUES.compressionDeviationLimit,
-            compressionDeviationType: compressionDeviationType || DEFAULT_VALUES.compressionDeviationType,
-            exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_VALUES.exceptionFilterDeviationLimit,
-            exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_VALUES.exceptionFilterDeviationType,
-            minResampleLimit: minResampleLimit || DEFAULT_VALUES.minResampleLimit,
-            maxResampleLimit: maxResampleLimit || DEFAULT_VALUES.maxResampleLimit
+            compressionDeviationLimit:
+                compressionDeviationLimit !== '' && !isNaN(compressionDeviationLimit)
+                    ? parseFloat(compressionDeviationLimit)
+                    : DEFAULT_VALUES.compressionDeviationLimit,
+
+            compressionDeviationType:
+                compressionDeviationType !== '' ? compressionDeviationType : DEFAULT_VALUES.compressionDeviationType,
+
+            exceptionFilterDeviationLimit:
+                exceptionFilterDeviationLimit !== '' && !isNaN(exceptionFilterDeviationLimit)
+                    ? parseFloat(exceptionFilterDeviationLimit)
+                    : DEFAULT_VALUES.exceptionFilterDeviationLimit,
+
+            exceptionFilterDeviationType:
+                exceptionFilterDeviationType !== '' ? exceptionFilterDeviationType : DEFAULT_VALUES.exceptionFilterDeviationType,
+
+            minResampleLimit:
+                minResampleLimit !== '' && !isNaN(minResampleLimit)
+                    ? parseFloat(minResampleLimit)
+                    : DEFAULT_VALUES.minResampleLimit,
+
+            maxResampleLimit:
+                maxResampleLimit !== '' && !isNaN(maxResampleLimit)
+                    ? parseFloat(maxResampleLimit)
+                    : DEFAULT_VALUES.maxResampleLimit
         }),
+
         setParams: (params) => {
             if (params.compressionDeviationLimit !== undefined)
-                handleCompressionDeviationLimitChange({ target: { value: params.compressionDeviationLimit } });
+                setCompressionDeviationLimit(String(params.compressionDeviationLimit));
             if (params.compressionDeviationType !== undefined)
                 setCompressionDeviationType(params.compressionDeviationType);
             if (params.exceptionFilterDeviationLimit !== undefined)
-                handleExceptionFilterDeviationLimitChange({ target: { value: params.exceptionFilterDeviationLimit } });
+                setExceptionFilterDeviationLimit(String(params.exceptionFilterDeviationLimit));
             if (params.exceptionFilterDeviationType !== undefined)
                 setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
             if (params.minResampleLimit !== undefined)
-                handleMinResampleLimitChange({ target: { value: params.minResampleLimit } });
+                setMinResampleLimit(String(params.minResampleLimit));
             if (params.maxResampleLimit !== undefined)
-                handleMaxResampleLimitChange({ target: { value: params.maxResampleLimit } });
+                setMaxResampleLimit(String(params.maxResampleLimit));
         },
         loadFile: (file) => {
             setFileState(file);

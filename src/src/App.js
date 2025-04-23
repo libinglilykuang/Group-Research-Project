@@ -15,11 +15,11 @@ function App() {
     const [file, setFile] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [lastOptimizedParams, setLastOptimizedParams] = useState(null);
     const configPanelRef = useRef(null);
-    const [editedConfig, setEditedConfig] = useState(null);
-
+    const [setEditedConfig] = useState(null);
+    const lastParamsRef = useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
+
     const sasToken = "?sv=2017-07-29&ss=t&srt=so&sp=rwdlacu&se=2026-01-01T00:00:00Z&st=2025-01-01T00:00:00Z&spr=https&sig=wK7MJiU907XljD3qFOQ0H4KJOL9pYYL8CteWYq5Rhfc%3D";
     const accountName = "team6ipstorageaccount";
     const tableClient = new TableClient(
@@ -130,13 +130,20 @@ function App() {
         };
         loadConfigurations();
     }, []);
+    useEffect(() => {
+        if (lastParamsRef.current && configPanelRef.current) {
+            console.log("Restoring last used parameters:", lastParamsRef.current);
+            configPanelRef.current.setParams(lastParamsRef.current);
+        }
+    }, []);
 
     const handleSave = async (config) => {
+        const realParams = configPanelRef.current?.getParams?.();
         const newConfig = {
             ...config,
             name: config.name || `Configuration ${configurations.length + 1}`,
             date: new Date().toISOString(),
-            parameters: JSON.stringify(config.parameters),
+            parameters: JSON.stringify(realParams),
             rawData: config.includeCSV ? rawData.join("\n") : null,
             labels: config.includeCSV ? JSON.stringify(labels) : null,
             compressedData: config.includeCSV ? compressedData.join("\n") : null,
@@ -146,7 +153,7 @@ function App() {
         try {
             const entity = {
                 partitionKey: "configurations",
-                rowKey: `...`,
+                rowKey: `${Date.now()}`, // or your UUID
                 name: newConfig.name,
                 date: newConfig.date,
                 parameters: newConfig.parameters,
@@ -156,9 +163,29 @@ function App() {
                 compressedLabels: newConfig.compressedLabels,
             };
 
-            console.log("Saving entity:", entity);
             await tableClient.createEntity(entity);
-            setConfigurations((prev) => [...prev, { id: entity.rowKey, ...newConfig, parameters: config.parameters }]);
+
+            setConfigurations((prev) => [
+                ...prev,
+                {
+                    id: entity.rowKey,
+                    ...newConfig,
+                    parameters: realParams,
+                    rawData: typeof newConfig.rawData === "string"
+                        ? newConfig.rawData.split("\n").map(Number)
+                        : newConfig.rawData || [],
+                    labels: typeof newConfig.labels === "string"
+                        ? JSON.parse(newConfig.labels)
+                        : newConfig.labels || [],
+                    compressedData: typeof newConfig.compressedData === "string"
+                        ? newConfig.compressedData.split("\n").map(Number)
+                        : newConfig.compressedData || [],
+                    compressedLabels: typeof newConfig.compressedLabels === "string"
+                        ? JSON.parse(newConfig.compressedLabels)
+                        : newConfig.compressedLabels || [],
+                },
+            ]);
+
             alert("Optimal configuration saved!");
         } catch (err) {
             console.error("Error saving configuration to Azure:", err);
@@ -179,44 +206,17 @@ function App() {
 
     const handleLoadConfig = (config) => {
         setRawData(config.rawData || []);
-
-        let loadedLabels = config.labels || [];
-        if (typeof loadedLabels === "string") {
-            try {
-                loadedLabels = JSON.parse(loadedLabels);
-            } catch (err) {
-                console.error("Failed to parse labels:", loadedLabels, err);
-                loadedLabels = [];
-            }
-        }
-        const validLabels = loadedLabels
-            .map((label, index) => {
-                const parsed = parseTimestamp(label, index);
-                return parsed ? parsed.toISOString() : null;
-            })
-            .filter(label => label !== null);
-        setLabels(validLabels);
-
+        setLabels(config.labels || []);
         setCompressedData(config.compressedData || []);
+        setCompressedLabels(config.compressedLabels || []);
 
-        let loadedCompressedLabels = config.compressedLabels || [];
-        if (typeof loadedCompressedLabels === "string") {
-            try {
-                loadedCompressedLabels = JSON.parse(loadedCompressedLabels);
-            } catch (err) {
-                console.error("Failed to parse compressedLabels:", loadedCompressedLabels, err);
-                loadedCompressedLabels = [];
-            }
+        if (config.parameters && configPanelRef.current?.setParams) {
+            const parsed = typeof config.parameters === "string"
+                ? JSON.parse(config.parameters)
+                : config.parameters;
+            configPanelRef.current.setParams(parsed);
+            lastParamsRef.current = parsed;
         }
-        const validCompressedLabels = loadedCompressedLabels
-            .map((label, index) => {
-                const parsed = parseTimestamp(label, index);
-                return parsed ? parsed.toISOString() : null;
-            })
-            .filter(label => label !== null);
-        setCompressedLabels(validCompressedLabels);
-
-
     };
 
     const compressData = async () => {
@@ -226,6 +226,7 @@ function App() {
         }
 
         const params = configPanelRef.current.getParams();
+        lastParamsRef.current = params;
         const {
             compressionDeviationLimit,
             compressionDeviationType,
@@ -238,7 +239,6 @@ function App() {
             .map(timestamp => timestamp.toISOString());
 
         if (parsedTimestamps.length !== rawData.length) {
-            setError("Mismatch between raw data and timestamps after parsing. Please check the data.");
             return;
         }
 
@@ -253,13 +253,9 @@ function App() {
             },
         };
 
-        console.log("Request Data:", JSON.stringify(requestData, null, 2));
-
         try {
             setLoading(true);
             setError(null);
-
-            console.log(`Fetching from: ${FUNCTION_URL}?code=${FUNCTION_KEY}`);
 
             const response = await fetch(`${FUNCTION_URL}?code=${FUNCTION_KEY}`, {
                 method: "POST",
@@ -269,15 +265,12 @@ function App() {
                 body: JSON.stringify(requestData),
             });
 
-            console.log("Response Status:", response.status);
-
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
             }
 
             const result = await response.json();
-            console.log("Response Data:", result);
 
             if (!Array.isArray(result) || !result.every(item => "timestamp" in item && "value" in item)) {
                 throw new Error("Unexpected response format from compression endpoint");

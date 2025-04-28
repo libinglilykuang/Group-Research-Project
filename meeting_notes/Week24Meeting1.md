@@ -1,6 +1,6 @@
-## Week 23
+## Week 24
 
-### 1st Meeting: 15/04/25
+### 1st Meeting: 22/04/25
 
 ### Attendance
 7/8 - Mayukhi, Frazer, Kasia, Will, Brendan, Sai and Libing <br>

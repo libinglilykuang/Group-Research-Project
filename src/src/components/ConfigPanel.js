@@ -2,6 +2,7 @@ import React, { useState,useEffect, forwardRef, useImperativeHandle, useCallback
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
+import QualifiedNames from './QualifiedNames.js'; 
 
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
@@ -42,6 +43,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [showCloudModal, setShowCloudModal] = useState(false);
+    const [showDataSourcesModal, setShowDataSourcesModal] = useState(false);
 
     useEffect(() => {
         const saved = sessionStorage.getItem('lastOptimizedParams');

@@ -6,6 +6,7 @@ import Papa from "papaparse";
 export default function CsvTable() {
   const [rows, setRows] = useState([]);
 
+  
   useEffect(() => {
     // because the CSV is inside public/, you can fetch it like any image
     fetch(process.env.PUBLIC_URL + "/data_points.csv")

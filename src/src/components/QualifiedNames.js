@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import Papa from "papaparse";
 
 /**
- * Displays the list of qualified names stored in public/qualified_names.csv.
- * The component strips the long GUID prefix (everything up to and including
- * the first period) so only the readable part like "Alarm Data" is shown.
+ * Displays each qualified name as a large vertical button with inline styles
+ * so it works even if Tailwind isn’t enabled.
  */
-export default function QualifiedNames() {
+export default function QualifiedNames({ onSelect }) {
   const [names, setNames] = useState([]);
 
   useEffect(() => {
     fetch(process.env.PUBLIC_URL + "/qualified_names.csv")
       .then((res) => res.text())
       .then((csv) => {
-        const { data } = Papa.parse(csv, {
-          header: true,
-          skipEmptyLines: true,
-        });
-        // take everything after the first '.' (if present)
+        const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
         const cleaned = data.map((row) => {
           const qn = row.QualifiedName || "";
           const dot = qn.indexOf(".");
@@ -30,22 +26,41 @@ export default function QualifiedNames() {
 
   if (!names.length) return <p>Loading…</p>;
 
+  const btnStyle = {
+    width: "100%",
+    textAlign: "left",
+    padding: "16px 24px",
+    fontSize: "18px",
+    fontWeight: 600,
+    border: "1px solid #ccc",
+    borderRadius: "12px",
+    marginBottom: "12px",
+    backgroundColor: "#f9f9f9",
+    cursor: "pointer",
+    transition: "background-color 0.2s, transform 0.1s",
+  };
+
+  const btnHover = {
+    backgroundColor: "#e9e9e9",
+  };
+
   return (
-    <div className="max-h-80 overflow-y-auto w-full border border-gray-300 rounded-2xl p-2 shadow-sm">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr>
-            <th className="border px-2 py-1 bg-gray-100 text-left">Qualified Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {names.map((n, i) => (
-            <tr key={i}>
-              <td className="border px-2 py-1">{n}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ width: "100%" }}>
+      {names.map((n, i) => (
+        <button
+          key={i}
+          style={btnStyle}
+          onMouseEnter={(e) => Object.assign(e.currentTarget.style, btnHover)}
+          onMouseLeave={(e) => Object.assign(e.currentTarget.style, { backgroundColor: "#f9f9f9" })}
+          onClick={() => onSelect && onSelect(n)}
+        >
+          {n}
+        </button>
+      ))}
     </div>
   );
 }
+
+QualifiedNames.propTypes = {
+  onSelect: PropTypes.func,
+};

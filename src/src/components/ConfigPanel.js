@@ -693,6 +693,32 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
             </div>
 
+            <div style={{
+                width: '95%', marginBottom: '20px', padding: '0 20px'
+            }}>
+            <button
+                title="View Data Sources"
+                onClick={() => setShowDataSourcesModal(true)}
+                style={{
+                    display: 'block',
+                    margin: '20px auto 0',
+                    padding: '10px 22px',
+                    backgroundColor: '#FF9800',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                    transition: 'transform 0.2s ease'
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+                Data Sources
+            </button>
+
             {/* Parameter configuration section */}
             <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>
                 <div style={{ padding: '20px' }}>
@@ -941,7 +967,50 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     </div>
                 </div>
             )}
+            
 
+            {showDataSourcesModal && (
+            <div style={{
+                position: 'fixed',
+                top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 2000
+            }}>
+                <div style={{
+                    backgroundColor: '#fff',
+                    padding: '24px',
+                    borderRadius: '10px',
+                    width: '90%',
+                    maxWidth: '500px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}>📋 Data Sources</h3>
+                    <button
+                    onClick={() => setShowDataSourcesModal(false)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '18px',
+                        cursor: 'pointer',
+                        color: '#999'
+                    }}
+                    >
+                    ✖
+                    </button>
+                </div>
+                <div style={{ marginTop: '16px' }}>
+                    <QualifiedNames />
+                </div>
+                </div>
+            </div>
+            )}
+            </div>
         </div>
     );
 });

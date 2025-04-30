@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
 import QualifiedNames from './QualifiedNames.js'; 
+import ZoomableChart from './Chart.js';
 
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
@@ -44,6 +45,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [isDragging, setIsDragging] = useState(false);
     const [showCloudModal, setShowCloudModal] = useState(false);
     const [showDataSourcesModal, setShowDataSourcesModal] = useState(false);
+    const [chartVisible, setChartVisible] = useState(false);    //new for chart
 
     useEffect(() => {
         const saved = sessionStorage.getItem('lastOptimizedParams');
@@ -315,6 +317,22 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             sessionStorage.setItem('lastOptimizedParams', JSON.stringify(optimizedParams));
         }, 2000);
     };
+
+    const loadUncompressedTestData = () => {
+          fetch(process.env.PUBLIC_URL + '/data_points.csv')
+            .then((res) => res.text())
+            .then((csv) => {
+              const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+              const labels = data.map((row) => row.UtcSampleTime);
+              const raw   = data.map((row) => parseFloat(row.NumericValue));
+              setLabels(labels);
+              setRawData(raw);   
+              setChartVisible(true);
+              setShowDataSourcesModal(false);
+            })
+            .catch(console.error);
+        };
+
 
     // Time range modal component
     const TimeRangeModal = () => (
@@ -1005,7 +1023,9 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     </button>
                 </div>
                 <div style={{ marginTop: '16px' }}>
-                    <QualifiedNames />
+                <QualifiedNames onSelect={(name) => {                                   //new for chart
+                    if (name === 'Uncompressed Test Data') loadUncompressedTestData();
+                }} />
                 </div>
                 </div>
             </div>

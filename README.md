@@ -78,12 +78,12 @@
 | [Week 19 : Meeting 1](./meeting_notes/Week19Meeting1.md) | 17/3/25 | Progress with compression & UI |
 | [Week 19 : Meeting 2](./meeting_notes/Week19Meeting2.md) | 21/3/25 | Progress with compression & UI |
 | [Week 20 : Meeting 1](./meeting_notes/Week20Meeting1.md) | 28/3/25 | Final meeting of term |
-| [Week 21 : Meeting 1](./meeting_notes/Week21Meeting1.md) | 31/3/25 | Discussed report work |
-| [Week 22 : Meeting 1](./meeting_notes/Week22Meeting1.md) | 08/4/25 | Discussed report work |
-| [Week 23 : Meeting 1](./meeting_notes/Week23Meeting1.md) | 15/4/25 | Discussed report work |
-| [Week 24 : Meeting 1](./meeting_notes/Week24Meeting1.md) | 22/4/25 | Discussed report work |
+| [Week 21 : Meeting 1](./meeting_notes/Week21Meeting1.md) | 31/3/25 | EASTER HOLS - Discussed report work |
+| [Week 22 : Meeting 1](./meeting_notes/Week22Meeting1.md) | 08/4/25 | EASTER HOLS - Discussed report work |
+| [Week 23 : Meeting 1](./meeting_notes/Week23Meeting1.md) | 15/4/25 | EASTER HOLS - Discussed report work |
+| [Week 24 : Meeting 1](./meeting_notes/Week24Meeting1.md) | 22/4/25 | EASTER HOLS - Discussed report work |
 | [Week 25 : Meeting 1](./meeting_notes/Week25Meeting1.md) | 28/4/25 | Catch up with industry |
-| [Week 25 : Meeting 2](./meeting_notes/Week25Meeting2.md) | 28/4/25 | Making video |
+| [Week 25 : Meeting 2](./meeting_notes/Week25Meeting2.md) | 30/4/25 | Making video |
 
 
 

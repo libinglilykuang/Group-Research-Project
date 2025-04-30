@@ -11,8 +11,8 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
         const compressionRatio = compressedDataPoints === 0
             ? 'Infinity'
             : (rawDataPoints / compressedDataPoints).toFixed(2);
-        const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2);
-        const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2);
+        const storageSizeRaw = (rawDataPoints * 4 / 1024).toFixed(2); // Changed from MB to KB
+        const storageSizeCompressed = (compressedDataPoints * 4 / 1024).toFixed(2); // Changed from MB to KB
         let errorRate = '0.00';
         if (rawData.length > 0 && compressedData.length > 0) {
             const rawSum = rawData.reduce((sum, val) => sum + val, 0);
@@ -26,8 +26,8 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             { name: 'Number of Data Points (Raw)', value: rawDataPoints.toString(), testId: 'metric-value-raw-points' },
             { name: 'Number of Data Points (Compressed)', value: compressedDataPoints.toString(), testId: 'metric-value-compressed-points' },
             { name: 'Compression Ratio', value: compressionRatio, testId: 'metric-value-ratio' },
-            { name: 'Storage Size (Raw) (MB)', value: storageSizeRaw },
-            { name: 'Storage Size (Compressed) (MB)', value: storageSizeCompressed },
+            { name: 'Storage Size (Raw) (KB)', value: storageSizeRaw },
+            { name: 'Storage Size (Compressed) (KB)', value: storageSizeCompressed },
             { name: 'Data Accuracy (Error Rate) (%)', value: errorRate, testId: 'metric-value-error-rate' },
         ];
     };

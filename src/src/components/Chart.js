@@ -12,14 +12,6 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
         labels: isEmpty ? [] : labels,
         datasets: [
             {
-                label: 'Raw Data',
-                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })),
-                borderColor: '#82ca9d',
-                borderWidth: 2,
-                fill: false,
-                pointRadius: 2,
-            },
-            {
                 label: 'Compressed Data',
                 data: !compressedData?.length || !compressedLabels?.length ? [] :
                     compressedData.map((value, index) => ({ x: compressedLabels[index], y: value })),
@@ -27,6 +19,14 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                 borderWidth: 2,
                 fill: false,
                 pointRadius: 5,
+            },
+            {
+                label: 'Raw Data',
+                data: isEmpty ? [] : rawData.map((value, index) => ({ x: labels[index], y: value })),
+                borderColor: '#82ca9d',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 2,
             },
         ],
     };

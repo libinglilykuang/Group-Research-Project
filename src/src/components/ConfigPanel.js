@@ -566,7 +566,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             marginRight: 'auto'
         }}>
             {/* Data Source Section */}
-            <div style={{ width: '90%', marginBottom: '30px', padding: '0 20px' }}>
+            <div style={{ width: '82%', marginBottom: '30px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
                     fontSize: '20px',
@@ -712,15 +712,26 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             </div>
 
             <div style={{
-                width: '95%', marginBottom: '20px', padding: '0 20px'
+                width: '90%', marginBottom: '20px', padding: '0 20px'
             }}>
 
             {/* Parameter configuration section */}
-            <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>
+            <div style={{ width: '100%', marginBottom: '20px', padding: '0 20px' }}>
                 <div style={{ padding: '20px' }}>
+                    <h2 style={{
+                        color: '#333',
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        marginBottom: '10px',
+                        paddingBottom: '10px',
+                        borderBottom: '1px solid #eee',
+                        paddingLeft: '12px'
+                    }}>
+                        Compression Parameters
+                    </h2>
                     {/* Compression Parameters */}
                     <div style={cardStyle}>
-                        <h3 style={sectionTitle}>📉 Compression Data</h3>
+                        <h3 style={sectionTitle}>Compression Data</h3>
                         <div style={rowStyle}>
                             <div style={columnStyle}>
                                 <label style={labelStyle}>Compression Deviation Limit:</label>
@@ -757,7 +768,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
                     {/* Exception Filter */}
                     <div style={cardStyle}>
-                        <h3 style={sectionTitle}>🚨 Exception Filter</h3>
+                        <h3 style={sectionTitle}>Exception Filter</h3>
                         <div style={rowStyle}>
                             <div style={columnStyle}>
                                 <label style={labelStyle}>Exception Filter Limit:</label>
@@ -794,7 +805,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
                     {/* Resampling Parameters */}
                     <div style={cardStyle}>
-                        <h3 style={sectionTitle}>⏱ Resampling Parameters</h3>
+                        <h3 style={sectionTitle}>Resampling Parameters</h3>
                         <div style={rowStyle}>
                             <div style={columnStyle}>
                                 <label style={labelStyle}>Min Resample Interval (s):</label>

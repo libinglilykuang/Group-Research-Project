@@ -687,7 +687,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         title="View Cloud Data Table"
                         onClick={(e) => {
                             e.stopPropagation();
-                            setShowCloudModal(true);
+                            setShowDataSourcesModal(true);
                         }}
                         style={{
                             width: '60px',
@@ -714,28 +714,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             <div style={{
                 width: '95%', marginBottom: '20px', padding: '0 20px'
             }}>
-            <button
-                title="View Data Sources"
-                onClick={() => setShowDataSourcesModal(true)}
-                style={{
-                    display: 'block',
-                    margin: '20px auto 0',
-                    padding: '10px 22px',
-                    backgroundColor: '#FF9800',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    fontSize: '15px',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                    transition: 'transform 0.2s ease'
-                }}
-                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-                Data Sources
-            </button>
 
             {/* Parameter configuration section */}
             <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>
@@ -1023,9 +1001,13 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     </button>
                 </div>
                 <div style={{ marginTop: '16px' }}>
-                <QualifiedNames onSelect={(name) => {                                   //new for chart
-                    if (name === 'Uncompressed Test Data') loadUncompressedTestData();
-                }} />
+                    <QualifiedNames onSelect={(name) => {
+                        if (name === 'Uncompressed Test Data') {
+                            loadUncompressedTestData();
+                            setShowCloudModal(true);
+                        }
+                    }} />
+
                 </div>
                 </div>
             </div>

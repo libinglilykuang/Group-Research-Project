@@ -19,6 +19,7 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                 borderWidth: 2,
                 fill: false,
                 pointRadius: 5,
+                spanGaps: false,
             },
             {
                 label: 'Raw Data',

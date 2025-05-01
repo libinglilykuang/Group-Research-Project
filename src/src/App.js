@@ -209,6 +209,9 @@ function App() {
         setLabels(config.labels || []);
         setCompressedData(config.compressedData || []);
         setCompressedLabels(config.compressedLabels || []);
+        if (configPanelRef.current?.loadFromCloud) {
+            configPanelRef.current.loadFromCloud(config.labels || [], config.rawData || []);
+        }
 
         if (config.parameters && configPanelRef.current?.setParams) {
             const parsed = typeof config.parameters === "string"
@@ -280,7 +283,8 @@ function App() {
                 setError("No data points remained after compression. Try adjusting the parameters.");
                 setCompressedData([]);
                 setCompressedLabels([]);
-            } else {
+            }
+            else {
                 const rawDataForChart = rawData
                     .map((value, index) => {
                         const parsedTime = parseTimestamp(labels[index], index);
@@ -293,10 +297,13 @@ function App() {
                     .filter(item => item !== null)
                     .sort((a, b) => a.time - b.time);
 
-                const compressedDataForChart = result
+                const params = configPanelRef.current?.getParams?.() ?? {};
+                const maxGapSeconds = params.maxResampleLimit ?? 8;
+
+                const rawCompressed = result
                     .map((item, index) => {
                         const parsedTime = parseTimestamp(item.timestamp, index);
-                        if (!parsedTime) return null;
+                        if (!parsedTime || isNaN(item.value)) return null;
                         return {
                             time: parsedTime,
                             value: item.value,
@@ -305,9 +312,42 @@ function App() {
                     .filter(item => item !== null)
                     .sort((a, b) => a.time - b.time);
 
-                setCompressedData(compressedDataForChart.map(item => item.value));
-                setCompressedLabels(compressedDataForChart.map(item => item.time.toISOString()));
+                const compressedWithGaps = [];
+                const connectedTimestamps = new Set();
+
+                if (rawCompressed.length > 0) {
+                    compressedWithGaps.push({
+                        time: rawCompressed[0].time,
+                        value: rawCompressed[0].value,
+                    });
+                    connectedTimestamps.add(rawCompressed[0].time.toISOString());
+
+                    for (let i = 1; i < rawCompressed.length; i++) {
+                        const prev = rawCompressed[i - 1];
+                        const current = rawCompressed[i];
+
+                        const currTsStr = current.time.toISOString();
+
+                        if (connectedTimestamps.has(currTsStr)) {
+                            compressedWithGaps.push({
+                                time: new Date((prev.time.getTime() + current.time.getTime()) / 2),
+                                value: null,
+                            });
+                        }
+
+                        compressedWithGaps.push({
+                            time: current.time,
+                            value: current.value,
+                        });
+
+                        connectedTimestamps.add(currTsStr);
+                    }
+                }
+
+                setCompressedData(compressedWithGaps.map(item => item.value));
+                setCompressedLabels(compressedWithGaps.map(item => item.time.toISOString()));
             }
+
         } catch (err) {
             console.error("Error compressing data with Azure Function:", err);
             setError(`Failed to compress data: ${err.message}`);

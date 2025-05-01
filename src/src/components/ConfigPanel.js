@@ -329,6 +329,19 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
               setRawData(raw);   
               setChartVisible(true);
               setShowDataSourcesModal(false);
+
+                setFullLabels(labels);
+                setFullData(raw);
+                setLabels(labels);
+                setRawData(raw);
+                setAllTimes(labels.map(formatTime));
+                setStartTime(labels[0]);
+                setEndTime(labels[labels.length - 1]);
+                setFileState({ name: 'cloud.csv' });
+                setFile({ name: 'cloud.csv' });
+                setMessage(`Loaded ${labels.length} points from cloud.csv`);
+                setChartVisible(true);
+                setShowDataSourcesModal(false);
             })
             .catch(console.error);
         };
@@ -466,6 +479,16 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setFileState(file);
             setFile(file);
             parseCSV(file);
+        },
+        loadFromCloud: (labels, data) => {
+            setFullLabels(labels);
+            setFullData(data);
+            setLabels(labels);
+            setRawData(data);
+            setStartTime(labels[0] || '');
+            setEndTime(labels[labels.length - 1] || '');
+            setAllTimes(labels.map(formatTime));
+            setFileState({ name: "cloud.csv" });
         }
     }));
 

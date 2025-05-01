@@ -35,6 +35,7 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
     const options = {
         responsive: true,
         maintainAspectRatio: false,
+        animation: false,
         scales: {
             x: {
                 type: 'category',

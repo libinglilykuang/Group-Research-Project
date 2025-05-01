@@ -143,11 +143,25 @@ const CompressionSidebarPanel = ({
 
       const zip = new JSZip();
 
-      const compressedStr = fullEntity.compressedData || "";
-      if (compressedStr.trim()) {
-        const csvBlob = new Blob([compressedStr], { type: "text/csv;charset=utf-8" });
-        zip.file("compressed-data.csv", csvBlob);
+      const compressedValues = (fullEntity.compressedData || "").split("\n");
+      let compressedLabels = [];
+
+      try {
+        compressedLabels = JSON.parse(fullEntity.compressedLabels || "[]");
+      } catch (e) {
+        console.warn("Invalid compressedLabels JSON", e);
       }
+
+      const csvLines = ["Timestamp,Value"];
+      for (let i = 0; i < compressedValues.length; i++) {
+        const label = compressedLabels[i] ?? "";
+        const value = compressedValues[i];
+        csvLines.push(`${label},${value}`);
+      }
+
+      const csvBlob = new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8" });
+      zip.file("compressed-data.csv", csvBlob);
+
 
       const selectedParamKeys = Object.keys(selectedParameters).filter(
           (key) => selectedParameters[key]

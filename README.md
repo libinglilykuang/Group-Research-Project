@@ -84,6 +84,7 @@
 | [Week 24 : Meeting 1](./meeting_notes/Week24Meeting1.md) | 22/4/25 | EASTER HOLS - Discussed report work |
 | [Week 25 : Meeting 1](./meeting_notes/Week25Meeting1.md) | 28/4/25 | Catch up with industry |
 | [Week 25 : Meeting 2](./meeting_notes/Week25Meeting2.md) | 30/4/25 | Making video |
+| [Week 25 : Meeting 3](./meeting_notes/Week25Meeting3.md) | 02/05/25 | Lab work |
 
 
 

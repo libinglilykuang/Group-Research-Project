@@ -200,6 +200,30 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         handleFileSelect(e.target.files[0]);
     };
 
+    const handleJsonUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const json = JSON.parse(event.target.result);
+                if (typeof json === 'object' && json !== null) {
+                    setMessage(`Loaded parameter config from ${file.name}`);
+                    if (ref?.current?.setParams) {
+                        ref.current.setParams(json);
+                    }
+                } else {
+                    setError('Invalid JSON parameter format');
+                }
+            } catch (err) {
+                setError('Failed to read JSON file: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    };
+
+
     // Drag and drop handlers
     const handleDragEnter = (e) => {
         e.preventDefault();
@@ -741,17 +765,59 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             {/* Parameter configuration section */}
             <div style={{ width: '100%', marginBottom: '20px', padding: '0 20px' }}>
                 <div style={{ padding: '20px' }}>
-                    <h2 style={{
-                        color: '#333',
-                        fontSize: '20px',
-                        fontWeight: 'bold',
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
                         marginBottom: '10px',
                         paddingBottom: '10px',
                         borderBottom: '1px solid #eee',
-                        paddingLeft: '12px'
+                        paddingLeft: '12px',
+                        paddingRight: '12px'
                     }}>
-                        Compression Parameters
-                    </h2>
+                        <h2 style={{
+                            color: '#333',
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            margin: 0
+                        }}>
+                            Compression Parameters
+                        </h2>
+
+                        <div>
+                            <button
+                                onClick={() => document.getElementById('json-param-upload').click()}
+                                style={{
+                                    padding: '6px 14px',
+                                    backgroundColor: '#e3f2fd',
+                                    color: '#1976d2',
+                                    border: '1px solid #90caf9',
+                                    borderRadius: '10px',
+                                    fontSize: '15px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#bbdefb';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                }}
+                            >
+                                🗂️ Import Config
+                            </button>
+
+                            <input
+                                id="json-param-upload"
+                                type="file"
+                                accept=".json"
+                                onChange={handleJsonUpload}
+                                style={{ display: 'none' }}
+                            />
+                        </div>
+                    </div>
+
                     {/* Compression Parameters */}
                     <div style={cardStyle}>
                         <h3 style={sectionTitle}>Compression Data</h3>
@@ -931,7 +997,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     disabled={isOptimizing}
                 >
                     Compress Data
-
                 </button>
 
                 <button
@@ -977,7 +1042,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0 }}>📊 Cloud Data Table</h3>
+                            <h3 style={{ margin: 0 }}> Cloud Data Table</h3>
                             <button
                                 onClick={() => setShowCloudModal(false)}
                                 style={{
@@ -997,7 +1062,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     </div>
                 </div>
             )}
-            
 
             {showDataSourcesModal && (
             <div style={{
@@ -1020,7 +1084,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}>📋 Data Sources</h3>
+                    <h3 style={{ margin: 0 }}> Select Data from Cloud </h3>
                     <button
                     onClick={() => setShowDataSourcesModal(false)}
                     style={{

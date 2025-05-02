@@ -31,7 +31,6 @@ export default function QualifiedNames({ onSelect }) {
     textAlign: "left",
     padding: "16px 24px",
     fontSize: "18px",
-    fontWeight: 600,
     border: "1px solid #ccc",
     borderRadius: "12px",
     marginBottom: "12px",

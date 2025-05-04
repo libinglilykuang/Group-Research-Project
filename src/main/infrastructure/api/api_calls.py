@@ -11,61 +11,99 @@ app_id = None
 app_secret = None
 base_url = None
 
-#in the real world a new client would need to be instanced per user
+# in the real world a new client would need to be instanced per user
 client = None
 code_verifier = None
 
+<<<<<<< Updated upstream
 #load the json config file with the app information
 with open('config.json') as json_config_file:
+=======
+# we will write the data selected in the datasource to the public folder the react front end relies on
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+REACT_PUBLIC = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "..", "public"))
+assert os.path.isdir(REACT_PUBLIC), f"Path not found: {REACT_PUBLIC}"
+
+# load the json config file with the app information
+with open("config.json") as json_config_file:
+>>>>>>> Stashed changes
     config = json.load(json_config_file)
 
-    app_id = config['app']['id']
-    app_secret = config['app']['secret']
-    base_url = config['app_store']['base_url']
+    app_id = config["app"]["id"]
+    app_secret = config["app"]["secret"]
+    base_url = config["app_store"]["base_url"]
 
-@route('/auth')
+
+@route("/auth")
 def auth():
     """After logging in the browser is redirected here where the server complete authorization"""
     global client
     auth_code = request.query.code
 
-    client = app_store.complete_authorization_code_grant_flow(auth_code, app_id, app_secret, "http://localhost:8080/auth", code_verifier=code_verifier, base_url=base_url)
+    client = app_store.complete_authorization_code_grant_flow(
+        auth_code,
+        app_id,
+        app_secret,
+        "http://localhost:8080/auth",
+        code_verifier=code_verifier,
+        base_url=base_url,
+    )
 
-    #print(client.refresh_token)
+    # print(client.refresh_token)
 
-    redirect('/data_sources')
+    redirect("/data_sources")
 
-@route('/info')
+
+@route("/info")
 def info():
     """Once authorized the user is redirected here which displays there app store user info"""
     data = client.get_user_info()
     print("info")
     return str(data)
 
-@route('/data_sources')
+
+@route("/data_sources")
 def data_sources():
-    #once authorised, the data sources names are retrieved from the API and stored in a list
+    # once authorised, the data sources names are retrieved from the API and stored in a list
     global client
     global qualifiedNames
     global dsnNames
-    qualifiedNames = [] #list of qualified names
-    dsnNames = {} #dictionary where keys are qualified names and values are plain text names
+    qualifiedNames = []  # list of qualified names
+    dsnNames = (
+        {}
+    )  # dictionary where keys are qualified names and values are plain text names
 
     sources = client.get_data_core_client().get_data_sources()
 
     for i in range(len(sources)):
         for k, v in sources[i].items():
+<<<<<<< Updated upstream
             if k == 'Name':
                 qualifiedNames.append(v['QualifiedName'])
                 dsnNames[v['QualifiedName']] = v['Name']
+=======
+            if k == "Name":
+                qualifiedNames.append(v["QualifiedName"])
+                dsnNames[v["QualifiedName"]] = v["Name"]
 
-    redirect('/get_data')
+    QUALIFIED_CSV_PATH = os.path.join(REACT_PUBLIC, "qualified_names.csv")
+    with open(QUALIFIED_CSV_PATH, "w", newline="") as fp:
+        writer = csv.writer(fp)
+        writer.writerow(["QualifiedName"])
+        for qn in qualifiedNames:
+            writer.writerow([qn])
+    print("✔ wrote", QUALIFIED_CSV_PATH)
+>>>>>>> Stashed changes
 
-@route('/get_data')
+    redirect("/get_data")
+
+
+@route("/get_data")
 def get_data():
     #Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data, and a request to get the data from the API is sent
     global client
 
+<<<<<<< Updated upstream
     dsn = '' #data source name
     id = '' #data source ID
     totalPointCount = 0 #total number of points in the data set
@@ -88,6 +126,42 @@ def get_data():
 
     print(totalPointCount)
     print(maxPointCount)
+=======
+    dsn = ""  # data source name
+    startDate = datetime.datetime(2025, 3, 9)
+    endDate = datetime.datetime(2025, 3, 10)
+    pointCount = 0  # number of data points to return - if this is set to 0, the max will be returned (5000)
+
+    returnData = (
+        []
+    )  # 2d array to return to the compression team where items are [time,value]
+
+    # choose the data source to get data from
+    dsn = qualifiedNames[
+        1
+    ]  # HARDCODED FOR 'NOISYSINWAVE', NEEDS TO BE UPDATED BASED ON UI
+
+    # retrieving tag data for the data source - this is needed for the API compression data query
+    tags = client.get_data_core_client().get_tags(dsn)
+    id = tags[0]["Id"]
+    startDate = tags[0]["Properties"]["UTC Earliest Raw Sample Time"]["Value"]
+    endDate = tags[0]["Properties"]["UTC Latest Raw Sample Time"]["Value"]
+
+    # attempt to query the API
+    try:
+        data = client.get_data_core_client().get_raw_data(
+            {dsn: [id]}, startDate, endDate, pointCount
+        )
+        print("API Request Complete!")
+    except Exception as e:
+        print("API Request Failed.")
+        print(e)
+        return "API error"
+
+    values = data[dsn][id]["Values"]
+    for v in values:
+        returnData.append([v["UtcSampleTime"], v["NumericValue"]])
+>>>>>>> Stashed changes
 
     while currentPointCount < totalPointCount: #while there are still points to be retrieved
 
@@ -108,7 +182,12 @@ def get_data():
     #return the array as a string
     return str(returnData)
 
+<<<<<<< Updated upstream
 @route('/refresh')
+=======
+
+@route("/refresh")
+>>>>>>> Stashed changes
 def info():
     """Refresh the client session using the refresh token"""
     global client
@@ -117,12 +196,22 @@ def info():
     print("New access token: ", client.access_token)
     return "Refreshed"
 
-@route('/')
+
+@route("/")
 def index():
     """Users land here at the route and get redirected to the app store login page"""
     global code_verifier
     code_verifier, code_challenge = pkce.generate_pkce_pair()
-    url = app_store.get_authorization_code_grant_flow_url(app_id, "http://localhost:8080/auth", ["UserInfo", "DataRead"], code_challenge=code_challenge, code_challenge_method='S256', access_type='offline', base_url=base_url)
+    url = app_store.get_authorization_code_grant_flow_url(
+        app_id,
+        "http://localhost:8080/auth",
+        ["UserInfo", "DataRead"],
+        code_challenge=code_challenge,
+        code_challenge_method="S256",
+        access_type="offline",
+        base_url=base_url,
+    )
     redirect(url)
 
-run(host='localhost', port=8080, debug = True)
+
+run(host="localhost", port=8080, debug=True)

@@ -236,11 +236,26 @@ function App() {
     }
   };
 
+<<<<<<< Updated upstream
   const compressData = async () => {
     if (!rawData.length || !labels.length) {
       setError("Please upload a file first");
       return;
     }
+=======
+        try {
+            const entity = {
+                partitionKey: "configurations",
+                rowKey: `${Date.now()}`,
+                name: newConfig.name,
+                date: newConfig.date,
+                parameters: newConfig.parameters,
+                rawData: newConfig.rawData,
+                labels: newConfig.labels,
+                compressedData: newConfig.compressedData,
+                compressedLabels: newConfig.compressedLabels,
+            };
+>>>>>>> Stashed changes
 
     const params = configPanelRef.current.getParams();
     const {

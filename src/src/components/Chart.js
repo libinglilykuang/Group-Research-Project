@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 
 import {
@@ -28,8 +28,33 @@ ChartJS.register(
 const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compressedLabels = [] }) => {
     const chartRef = useRef(null);
 
-    // Cache the previous allowed min/max range for zoom rollback
-    const previousMinMaxRef = useRef({ min: null, max: null });
+    const initialY = useMemo(() => {
+        const allY = [...rawData, ...compressedData];
+        const min = Math.min(...allY);
+        const max = Math.max(...allY);
+        const padding = (max - min) * 0.05;
+        return {
+            min: min,
+            max: max,
+            paddedMin: min - padding,
+            paddedMax: max + padding
+        };
+    }, [rawData, compressedData]);
+
+    const initialX = useMemo(() => {
+        const startIndex = 0;
+        const endIndex = labels.length - 1;
+        const extra = 5;
+        const paddedStart = Math.max(startIndex - extra, 0);
+        const paddedEnd = Math.min(endIndex + extra, labels.length - 1);
+        return {
+            min: labels[startIndex],
+            max: labels[endIndex],
+            paddedMin: labels[paddedStart],
+            paddedMax: labels[paddedEnd]
+        };
+    }, [labels]);
+
 
     const chartData = {
         labels,
@@ -102,63 +127,80 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                     mode: 'xy',
                     wheel: { enabled: true },
                     pinch: { enabled: true },
+                    limits: {
+                        x: {
+                            min: initialX.paddedMin,
+                            max: initialX.paddedMax,
+                            minRange: 3
+                        },
+                        y: {
+                            min: initialY.paddedMin,
+                            max: initialY.paddedMax,
+                            minRange: (initialY.max - initialY.min) * 0.01
+                        }
+                    },
+
                     // Handle zoom completion logic
                     onZoomComplete: ({ chart }) => {
                         const xScale = chart.scales.x;
+                        const yScale = chart.scales.y;
                         const labels = xScale.getLabels();
 
-                        // Count how many tick labels are currently visible
-                        let visibleCount = 0;
-                        for (let i = 0; i < labels.length; i++) {
-                            const px = xScale.getPixelForTick(i);
-                            if (px >= xScale.left && px <= xScale.right) {
-                                visibleCount++;
-                            }
+                        let updated = false;
+
+                        if (xScale.min < initialX.paddedMin) {
+                            xScale.options.min = initialX.paddedMin;
+                            updated = true;
+                        }
+                        if (xScale.max > initialX.paddedMax) {
+                            xScale.options.max = initialX.paddedMax;
+                            updated = true;
                         }
 
+                        if (yScale.min < initialY.paddedMin) {
+                            yScale.options.min = initialY.paddedMin;
+                            updated = true;
+                        }
+                        if (yScale.max > initialY.paddedMax) {
+                            yScale.options.max = initialY.paddedMax;
+                            updated = true;
+                        }
+
+                        const visibleCount = labels.filter((_, i) => {
+                            const px = xScale.getPixelForTick(i);
+                            return px >= xScale.left && px <= xScale.right;
+                        }).length;
+
                         if (visibleCount <= 3) {
-                            // Prevent further zoom: lock to 3-point range around the center
                             const centerIndex = Math.floor(labels.length / 2);
                             const minIndex = Math.max(centerIndex - 1, 0);
                             const maxIndex = Math.min(centerIndex + 1, labels.length - 1);
 
                             xScale.options.min = labels[minIndex];
                             xScale.options.max = labels[maxIndex];
-                            chart.update();
-                        } else {
-                            const firstValidIndex = labels.findIndex(label =>
-                                chart.data.datasets.some(ds => ds.data.some(d => d.x === label))
-                            );
-                            const lastValidIndex = labels.length - 1 - [...labels].reverse().findIndex(label =>
-                                chart.data.datasets.some(ds => ds.data.some(d => d.x === label))
-                            );
-
-                            if (xScale.min < firstValidIndex || xScale.max > lastValidIndex) {
-                                xScale.options.min = labels[firstValidIndex];
-                                xScale.options.max = labels[lastValidIndex];
-                                chart.update();
-                            } else {
-                                previousMinMaxRef.current.min = xScale.min;
-                                previousMinMaxRef.current.max = xScale.max;
-                            }
+                            updated = true;
                         }
+
+                        if (updated) chart.update();
                     }
+
                 }
             },
+
             legend: {
                 position: 'top',
                 labels: { padding: 20 }
             }
         },
         layout: {
-            padding: { left: 20, right: 20, top: 20, bottom: 20 }
+            padding: { left: 20, right: 20, top: 0, bottom: 0 }
         }
     };
 
     return (
         <div style={{
             width: '100%',
-            height: '500px',
+            height: '100%',
             padding: '0px 20px',
             boxSizing: 'border-box',
             margin: '0px auto',

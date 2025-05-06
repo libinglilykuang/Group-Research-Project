@@ -94,13 +94,13 @@ describe('CompressionSidebarPanel', () => {
 
     it('opens sidebar when button clicked (1.2.2)', () => {
         render(<CompressionSidebarPanel {...defaultProps} isOpen={false} />);
-        fireEvent.click(screen.getByAltText('Open Menu'));
+        fireEvent.click(screen.getByTitle('Open Sidebar'));
         expect(defaultProps.toggleSidebar).toHaveBeenCalled();
     });
 
     it('closes sidebar when button clicked again (1.2.3)', () => {
         render(<CompressionSidebarPanel {...defaultProps} isOpen={true} />);
-        fireEvent.click(screen.getByAltText('Close'));
+        fireEvent.click(screen.getByTitle('Close Sidebar'));
         expect(defaultProps.toggleSidebar).toHaveBeenCalled();
     });
 

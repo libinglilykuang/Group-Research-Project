@@ -272,14 +272,11 @@ const CompressionSidebarPanel = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-          menuRef.current &&
-          !menuRef.current.contains(event.target) &&
-          !event.target.closest('button[data-action="edit"]') &&
-          !event.target.closest('button[data-action="download"]') &&
-          !event.target.closest('button[data-action="delete"]') &&
-          !event.target.closest('button[data-action="load"]')
-      ) {
+      // 只要点击的不是当前打开的菜单或它的子按钮，就关闭菜单
+      const isMenuButton = event.target.closest('button[data-action]');
+      const isMenu = event.target.closest('.menu');
+
+      if (!isMenu && !isMenuButton) {
         setActiveMenuIndex(null);
       }
     };
@@ -289,6 +286,7 @@ const CompressionSidebarPanel = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
 
   return (
       <div>
@@ -817,6 +815,26 @@ const CompressionSidebarPanel = ({
                   <p style={{ marginBottom: "10px", fontWeight: "500" }}>
                     Select parameters to include in the download:
                   </p>
+                  <button
+                      onClick={() => {
+                        const allSelected = {};
+                        Object.keys(selectedConfig?.parameters || {}).forEach(key => {
+                          allSelected[key] = true;
+                        });
+                        setSelectedParameters(allSelected);
+                      }}
+                      style={{
+                        marginBottom: "12px",
+                        padding: "6px 10px",
+                        fontSize: "14px",
+                        backgroundColor: "#f0f0f0",
+                        border: "1px solid #ccc",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                  >
+                    Select All
+                  </button>
 
                   {Object.keys(selectedConfig?.parameters || {}).map((param) => (
                       <div key={param} style={{ marginBottom: "10px" }}>

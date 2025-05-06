@@ -2,9 +2,6 @@ import React, { useState,useEffect, forwardRef, useImperativeHandle, useCallback
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
-import QualifiedNames from './QualifiedNames.js'; 
-import ZoomableChart from './Chart.js';
-
 
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
     // Parameter validation ranges
@@ -45,7 +42,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [isDragging, setIsDragging] = useState(false);
     const [showCloudModal, setShowCloudModal] = useState(false);
     const [showDataSourcesModal, setShowDataSourcesModal] = useState(false);
-    const [chartVisible, setChartVisible] = useState(false);    //new for chart
+    const [chartVisible, setChartVisible] = useState(false);
+    const [availableSources, setAvailableSources] = useState([]);
+    const [allRawRows, setAllRawRows] = useState([]);
+    const [selectedSource, setSelectedSource] = useState(null);
 
     useEffect(() => {
         const saved = sessionStorage.getItem('lastOptimizedParams');
@@ -65,6 +65,25 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 setMaxResampleLimit(params.maxResampleLimit);
         }
     }, []);
+
+    useEffect(() => {
+        fetch(process.env.PUBLIC_URL + '/data_points.csv')
+            .then((res) => res.text())
+            .then(csv => {
+                const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+
+                setAllRawRows(data);
+
+                const uniqueSources = Array.from(new Set(data.map(row => row.DataSource)))
+                    .map(qn => ({ qualifiedName: qn }));
+
+                setAvailableSources(uniqueSources);
+            })
+            .catch(err => {
+                console.error("Failed to parse data_points.csv", err);
+            });
+    }, []);
+
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -293,7 +312,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
     // Handle compression with proper error checking
     const handleCompress = () => {
-        if (!file) {
+        if (!fullLabels.length || !fullData.length) {
             setError('Please upload a file first');
             return;
         }
@@ -313,13 +332,13 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
     // Handle parameter optimization
     const handleOptimize = () => {
-        if (!file) {
+        if (!fullLabels.length || !fullData.length) {
             setError('Please upload a file first');
             return;
         }
         setIsOptimizing(true);
         setError('');
-        setMessage(`Optimizing parameters for ${file.name}...`);
+        setMessage(`Optimization complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
         setTimeout(() => {
             setCompressionDeviationLimit('1.5');
             setCompressionDeviationType('percentage');
@@ -328,7 +347,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setMinResampleLimit('1');
             setMaxResampleLimit('8');
             setIsOptimizing(false);
-            setMessage(`Optimization complete for ${file.name}! Parameters updated.`);
+            setMessage(`Optimization complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
 
             const optimizedParams = {
                 compressionDeviationLimit: '1.5',
@@ -512,7 +531,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setStartTime(labels[0] || '');
             setEndTime(labels[labels.length - 1] || '');
             setAllTimes(labels.map(formatTime));
-            setFileState({ name: "cloud.csv" });
+            const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+            setFileState(fakeFile);
+            setFile(fakeFile);
+
         }
     }));
 
@@ -1057,7 +1079,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             </button>
                         </div>
                         <div style={{ marginTop: '16px' }}>
-                            <DataTable />
+                            <DataTable selectedSource={selectedSource} />
                         </div>
                     </div>
                 </div>
@@ -1098,15 +1120,59 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     ✖
                     </button>
                 </div>
-                <div style={{ marginTop: '16px' }}>
-                    <QualifiedNames onSelect={(name) => {
-                        if (name === 'Uncompressed Test Data') {
-                            loadUncompressedTestData();
-                            setShowCloudModal(true);
-                        }
-                    }} />
 
-                </div>
+                    <div>
+                        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
+                            <tbody>
+                            {availableSources.map((s, i) => {
+                                const shortName = s.qualifiedName.split(".").slice(-1)[0];
+                                return (
+                                    <tr key={i}>
+                                        <td
+                                            onClick={() => {
+                                                const filtered = allRawRows.filter(row => row.DataSource === s.qualifiedName);
+                                                const labels = filtered.map(row => row.UtcSampleTime);
+                                                const raw = filtered.map(row => parseFloat(row.NumericValue));
+
+                                                setLabels(labels);
+                                                setRawData(raw);
+                                                setFullLabels(labels);
+                                                setFullData(raw);
+                                                setAllTimes(labels.map(formatTime));
+                                                setStartTime(labels[0]);
+                                                setEndTime(labels[labels.length - 1]);
+                                                setMessage(`Loaded ${labels.length} points from ${s.qualifiedName}`);
+                                                setChartVisible(true);
+                                                setSelectedSource(s.qualifiedName);
+                                                setShowCloudModal(true);
+                                                setShowDataSourcesModal(false);
+                                            }}
+                                            style={{
+                                                padding: "14px 18px",
+                                                borderTop: "1px solid #eee",
+                                                borderBottom: "1px solid #eee",
+                                                cursor: "pointer",
+                                                color: "#0d47a1",
+                                                fontWeight: 500,
+                                                fontSize: "18px",
+                                                transition: "all 0.2s ease",
+                                                backgroundColor: "transparent"
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+
+                                        >
+                                            {shortName}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            </tbody>
+                        </table>
+
+                    </div>
+
+
                 </div>
             </div>
             )}

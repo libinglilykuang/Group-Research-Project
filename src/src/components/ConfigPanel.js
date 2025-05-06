@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
 
-const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
         compressionDeviationLimit: { min: 0, max: 10, unit: '', step: 0.1 },
@@ -326,7 +326,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             return;
         }
         setError('');
-        setMessage('Compressing data...');
         onCompress();
     };
 
@@ -811,15 +810,16 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             borderRadius: '6px',
                             fontSize: '16px',
                             fontWeight: '600',
-                            cursor: isOptimizing ? 'not-allowed' : 'pointer',
+                            cursor: isCompressing ? 'not-allowed' : 'pointer',
                             transition: 'all 0.2s',
-                            opacity: isOptimizing ? 0.7 : 1
+                            opacity: isCompressing ? 0.6 : 1
                         }}
                         onClick={handleCompress}
-                        disabled={isOptimizing}
+                        disabled={isCompressing}
                     >
-                        Compress
+                        {isCompressing ? "Compressing" : "Compress"}
                     </button>
+
 
                     <button
                         style={{

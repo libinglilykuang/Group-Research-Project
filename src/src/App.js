@@ -19,6 +19,7 @@ function App() {
     const [setEditedConfig] = useState(null);
     const lastParamsRef = useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
 
     const sasToken = "?sv=2017-07-29&ss=t&srt=so&sp=rwdlacu&se=2026-01-01T00:00:00Z&st=2025-01-01T00:00:00Z&spr=https&sig=wK7MJiU907XljD3qFOQ0H4KJOL9pYYL8CteWYq5Rhfc%3D";
     const accountName = "team6ipstorageaccount";
@@ -250,7 +251,7 @@ function App() {
             .map(timestamp => timestamp.toISOString());
 
         if (parsedTimestamps.length !== rawData.length) {
-            return;
+            throw new Error("Mismatch between timestamps and raw data");
         }
 
         const requestData = {
@@ -265,7 +266,7 @@ function App() {
         };
 
         try {
-            setLoading(true);
+            setIsCompressing(true);
             setError(null);
 
             const response = await fetch(`${FUNCTION_URL}?code=${FUNCTION_KEY}`, {
@@ -360,7 +361,7 @@ function App() {
             console.error("Error compressing data with Azure Function:", err);
             setError(`Failed to compress data: ${err.message}`);
         } finally {
-            setLoading(false);
+            setIsCompressing(false);
         }
     };
 
@@ -475,6 +476,7 @@ function App() {
                         }}
                         setFile={setFile}
                         onCompress={compressData}
+                        isCompressing={isCompressing}
                         onOptimized={(params) => {
                             setEditedConfig({
                                 name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
@@ -484,6 +486,7 @@ function App() {
                             setModalOpen(true);
                         }}
                     />
+
                 </div>
 
                 {/* 右侧指标表变窄 */}

@@ -400,9 +400,9 @@ const CompressionSidebarPanel = ({
                     }}
                 >
                   <img
-                      src="/icons/start-new-config.png"
+                      src="/icons/new-config.png"
                       alt="New Config"
-                      style={{ width: "20px", height: "20px", marginRight: "10px" }}
+                      style={{ width: "30px", height: "30px", marginRight: "10px" }}
                   />
                   <span>Start New Configuration</span>
                 </button>

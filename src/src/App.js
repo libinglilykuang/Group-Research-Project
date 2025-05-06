@@ -437,7 +437,7 @@ function App() {
             </div>
 
             <div style={{ width: "100%", maxWidth: "1000px" }}>
-            <CompressionSidebarPanel
+                <CompressionSidebarPanel
                     configurations={configurations}
                     setConfigurations={setConfigurations}
                     onNewConfig={handleNewConfig}
@@ -447,7 +447,8 @@ function App() {
                     compressedData={compressedData}
                 />
             </div>
-            {/* 顶部：ConfigPanel 和 MetricsTable 左右并排 */}
+
+            {/* Top section: ConfigPanel and MetricsTable side by side */}
             <div style={{
                 width: "93%",
                 display: "flex",
@@ -457,7 +458,7 @@ function App() {
                 gap: "0px",
                 height: '360px',
             }}>
-                {/* 左侧 ConfigPanel 稍微宽一点 */}
+                {/* Left: ConfigPanel (wider) */}
                 <div style={{
                     flex: 1.5,
                     overflowY: 'hidden',
@@ -486,10 +487,9 @@ function App() {
                             setModalOpen(true);
                         }}
                     />
-
                 </div>
 
-                {/* 右侧指标表变窄 */}
+                {/* Right: MetricsTable (narrower) */}
                 <div style={{
                     flex: 0.5,
                     display: "flex",
@@ -506,11 +506,9 @@ function App() {
                         onSave={handleSave}
                     />
                 </div>
-
             </div>
 
-
-            {/* 下方图表 */}
+            {/* Bottom chart section */}
             <div
                 style={{
                     width: "90%",
@@ -530,7 +528,6 @@ function App() {
                     compressedLabels={compressedDataForChart.map(item => item.time.toISOString())}
                 />
             </div>
-
         </div>
     );
 }

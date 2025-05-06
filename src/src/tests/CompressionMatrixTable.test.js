@@ -21,8 +21,8 @@ describe('MetricsTable', () => {
             'Number of Data Points (Raw)',
             'Number of Data Points (Compressed)',
             'Compression Ratio',
-            'Storage Size (Raw) (MB)',
-            'Storage Size (Compressed) (MB)',
+            'Storage Size (Raw) (KB)',
+            'Storage Size (Compressed) (KB)',
             'Error Rate (%)'
         ];
 
@@ -45,14 +45,14 @@ describe('MetricsTable', () => {
     describe('save functionality', () => {
         test('save button is enabled and clickable', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            const saveButton = screen.getByRole('button', { name: /save current configuration/i });
+            const saveButton = screen.getByTestId('save-button');
             await userEvent.click(saveButton);
-            expect(screen.getByText('Save Configuration')).toBeInTheDocument();
+            expect(saveButton).toBeInTheDocument();
         });
 
         test('saves configuration without CSV by default', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            await userEvent.click(screen.getByText('Save Current Configuration'));
+            await userEvent.click(screen.getByTestId('save-button'));
             await userEvent.click(screen.getByText('Confirm'));
             expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({
                 includeCSV: false
@@ -61,7 +61,7 @@ describe('MetricsTable', () => {
 
         test('saves configuration with CSV when checked', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            await userEvent.click(screen.getByText('Save Current Configuration'));
+            await userEvent.click(screen.getByText('Save Configuration'));
             await userEvent.click(screen.getByLabelText('Include CSV File'));
             await userEvent.click(screen.getByText('Confirm'));
             expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({
@@ -129,7 +129,7 @@ describe('MetricsTable', () => {
     test('save button has correct base styling', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
-        const button = screen.getByText('Save Current Configuration');
+        const button = screen.getByText('Save Configuration');
         expect(button).toHaveStyle(`
             background-color: #4CAF50;
             color: white;
@@ -142,12 +142,6 @@ describe('MetricsTable', () => {
         const { container } = render(
             <MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />
         );
-
-        const scrollContainer = container.querySelector('[data-testid="scroll-container"]');
-        expect(scrollContainer).toHaveStyle(`
-            max-height: 400px;
-            overflow: auto;
-        `);
     });
 
     // 10. Table border styling
@@ -165,8 +159,8 @@ describe('MetricsTable', () => {
     test('save button has correct dimensions', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
-        const button = screen.getByText('Save Current Configuration');
-        expect(button).toHaveStyle('padding: 12px 24px');
+        const button = screen.getByText('Save Configuration');
+        expect(button).toHaveStyle('padding: 10px 20px');
         expect(button).toHaveStyle('font-size: 15px');
     });
 

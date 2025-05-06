@@ -171,11 +171,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                     >
                         ⬇️
                     </button>
-
-
-
                 </div>
-
             </div>
 
             {isSaveModalOpen && (

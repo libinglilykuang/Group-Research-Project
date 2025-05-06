@@ -107,6 +107,7 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                         const xScale = chart.scales.x;
                         const labels = xScale.getLabels();
 
+                        // Count how many tick labels are currently visible
                         let visibleCount = 0;
                         for (let i = 0; i < labels.length; i++) {
                             const px = xScale.getPixelForTick(i);
@@ -116,13 +117,14 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                         }
 
                         if (visibleCount <= 3) {
-                            // 限制 zoom 太小的情况
+                            // Prevent further zoom: lock to 3-point range around the center
                             const centerIndex = Math.floor(labels.length / 2);
                             const minIndex = Math.max(centerIndex - 1, 0);
                             const maxIndex = Math.min(centerIndex + 1, labels.length - 1);
 
                             xScale.options.min = labels[minIndex];
                             xScale.options.max = labels[maxIndex];
+                            chart.update();
                         } else {
                             const firstValidIndex = labels.findIndex(label =>
                                 chart.data.datasets.some(ds => ds.data.some(d => d.x === label))
@@ -131,30 +133,19 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                                 chart.data.datasets.some(ds => ds.data.some(d => d.x === label))
                             );
 
-                            const firstLabel = labels[firstValidIndex];
-                            const lastLabel = labels[lastValidIndex];
-
-                            const currentMin = xScale.getUserBounds().min;
-                            const currentMax = xScale.getUserBounds().max;
-
-                            // 🌟 如果用户已经 zoom out 回到完整范围，就清除 min/max 限制
-                            if (currentMin <= firstLabel && currentMax >= lastLabel) {
-                                delete xScale.options.min;
-                                delete xScale.options.max;
-                            }
-
-                            // 否则保持当前 min/max（手动设置）
-                            else {
-                                xScale.options.min = firstLabel;
-                                xScale.options.max = lastLabel;
+                            if (xScale.min < firstValidIndex || xScale.max > lastValidIndex) {
+                                xScale.options.min = labels[firstValidIndex];
+                                xScale.options.max = labels[lastValidIndex];
+                                chart.update();
+                            } else {
+                                previousMinMaxRef.current.min = xScale.min;
+                                previousMinMaxRef.current.max = xScale.max;
                             }
                         }
-
-                        chart.update();
                     }
-
                 }
             },
+
             legend: {
                 position: 'top',
                 labels: { padding: 20 }

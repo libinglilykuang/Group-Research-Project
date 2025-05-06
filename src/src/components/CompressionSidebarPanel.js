@@ -272,7 +272,6 @@ const CompressionSidebarPanel = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // 只要点击的不是当前打开的菜单或它的子按钮，就关闭菜单
       const isMenuButton = event.target.closest('button[data-action]');
       const isMenu = event.target.closest('.menu');
 
@@ -280,13 +279,11 @@ const CompressionSidebarPanel = ({
         setActiveMenuIndex(null);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   return (
       <div>

@@ -28,7 +28,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             { name: 'Compression Ratio', value: compressionRatio, testId: 'metric-value-ratio' },
             { name: 'Storage Size (Raw) (KB)', value: storageSizeRaw },
             { name: 'Storage Size (Compressed) (KB)', value: storageSizeCompressed },
-            { name: 'Data Accuracy (Error Rate) (%)', value: errorRate, testId: 'metric-value-error-rate' },
+            { name: 'Error Rate (%)', value: errorRate, testId: 'metric-value-error-rate' },
         ];
     };
 
@@ -54,19 +54,32 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             setSaveModalOpen(false);
         }
     };
+    const handleDownloadConfig = () => {
+        const metricsData = metrics.reduce((acc, metric) => {
+            acc[metric.name] = metric.value;
+            return acc;
+        }, {});
+        const blob = new Blob([JSON.stringify(metricsData, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'metrics.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
 
     return (
         <div
             data-testid="scroll-container"
             style={{
-                maxHeight: '400px',
-                overflow: 'auto',
                 border: '1px solid #ccc',
                 borderRadius: '8px',
-                padding: '1rem',
+                padding: '0px',
+                margin: '0',
                 width: '100%',
                 boxSizing: 'border-box',
-                margin: '0 auto',
                 maxWidth: '95vw'
             }}
         >
@@ -76,7 +89,6 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                         role="table"
                         style={{
                             width: '100%',
-                            minWidth: '500px',
                             borderCollapse: 'collapse',
                             marginBottom: '20px',
                             tableLayout: 'fixed'
@@ -84,8 +96,8 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                     >
                         <thead>
                         <tr>
-                            <th style={thStyle}>Metric</th>
-                            <th style={thStyle}>Value</th>
+                            <th style={{ ...thStyle, width: '120px' }}>Metric</th>
+                            <th style={{ ...thStyle, width: '20px' }}>Value</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -107,33 +119,59 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             )}
 
             <div style={{ textAlign: 'center' }}>
-                <button
-                    onClick={handleSave}
-                    style={{
-                        padding: '12px 24px',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                        marginTop: '10px'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#45a049';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#4CAF50';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                    data-testid="save-button"
-                >
-                    Save Current Configuration
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                    <button
+                        onClick={handleSave}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '15px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            marginTop: '0px'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#45a049';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#4CAF50';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                        data-testid="save-button"
+                    >
+                        Save Configuration
+                    </button>
+
+                    <button
+                        onClick={handleDownloadConfig}
+                        title="Download Matrices"
+                        style={{
+                            padding: '6px 14px',
+                            backgroundColor: '#e3f2fd',
+                            color: '#1976d2',
+                            border: '1px solid #90caf9',
+                            borderRadius: '10px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#bbdefb';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#e3f2fd';
+                        }}
+                    >
+                        ⬇️
+                    </button>
+                </div>
             </div>
 
             {isSaveModalOpen && (
@@ -219,7 +257,7 @@ const thStyle = {
     textAlign: 'left',
     backgroundColor: '#f8f9fa',
     color: '#212529',
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: 600,
     borderBottom: '2px solid #dee2e6',
     borderTop: '1px solid #dee2e6',
@@ -228,7 +266,8 @@ const thStyle = {
 
 const tdStyle = {
     border: '1px solid #ddd',
-    padding: '8px',
+    padding: '7px',
+    fontSize: '14px',
     wordBreak: 'break-word'
 };
 

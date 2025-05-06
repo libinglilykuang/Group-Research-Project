@@ -52,18 +52,18 @@ describe('ZoomableChart Component', () => {
 
         const chartProps = Line.mock.calls[0][0];
         expect(chartProps.data.labels).toEqual(mockLabels);
-        expect(chartProps.data.datasets[0].data).toEqual([
+        expect(chartProps.data.datasets[1].data).toEqual([
             { x: '1', y: 1 },
             { x: '2', y: 2 },
             { x: '3', y: 3 },
             { x: '4', y: 4 },
             { x: '5', y: 5 }
-        ]);
-        expect(chartProps.data.datasets[1].data).toEqual([
+            ]);
+        expect(chartProps.data.datasets[0].data).toEqual([
             { x: '1', y: 1.5 },
             { x: '3', y: 3.5 },
             { x: '5', y: 5 }
-        ]);
+            ]);
     });
 
     // Chart options configuration validation
@@ -96,8 +96,8 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].data).toEqual([]);
-        expect(chartProps.data.datasets[1].data.length).toBe(3);
+        expect(chartProps.data.datasets[1].data).toEqual([]);
+        expect(chartProps.data.datasets[0].data.length).toBe(3)
     });
 
     // Handle empty compressedData array
@@ -112,8 +112,8 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].data.length).toBe(5);
-        expect(chartProps.data.datasets[1].data).toEqual([]);
+        expect(chartProps.data.datasets[1].data.length).toBe(5);
+        expect(chartProps.data.datasets[0].data).toEqual([]);
     });
 
     // Snapshot testing
@@ -141,8 +141,8 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].borderColor).toBe('#82ca9d');
-        expect(chartProps.data.datasets[1].borderColor).toBe('#8884d8');
+        expect(chartProps.data.datasets[0].borderColor).toBe('#8884d8');
+        expect(chartProps.data.datasets[1].borderColor).toBe('#82ca9d');
     });
 
     // Dataset point radius configuration
@@ -157,8 +157,8 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].pointRadius).toBe(2);
-        expect(chartProps.data.datasets[1].pointRadius).toBe(5);
+        expect(chartProps.data.datasets[0].pointRadius).toBe(4);
+        expect(chartProps.data.datasets[1].pointRadius).toBe(2);
     });
 
     // Aspect ratio configuration

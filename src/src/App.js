@@ -19,6 +19,7 @@ function App() {
     const [setEditedConfig] = useState(null);
     const lastParamsRef = useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
 
     const sasToken = "?sv=2017-07-29&ss=t&srt=so&sp=rwdlacu&se=2026-01-01T00:00:00Z&st=2025-01-01T00:00:00Z&spr=https&sig=wK7MJiU907XljD3qFOQ0H4KJOL9pYYL8CteWYq5Rhfc%3D";
     const accountName = "team6ipstorageaccount";
@@ -130,11 +131,19 @@ function App() {
         };
         loadConfigurations();
     }, []);
+
     useEffect(() => {
         if (lastParamsRef.current && configPanelRef.current) {
             console.log("Restoring last used parameters:", lastParamsRef.current);
             configPanelRef.current.setParams(lastParamsRef.current);
         }
+    }, []);
+
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.height = '100vh';
+        document.documentElement.style.height = '100vh';
     }, []);
 
     const handleSave = async (config) => {
@@ -242,7 +251,7 @@ function App() {
             .map(timestamp => timestamp.toISOString());
 
         if (parsedTimestamps.length !== rawData.length) {
-            return;
+            throw new Error("Mismatch between timestamps and raw data");
         }
 
         const requestData = {
@@ -257,7 +266,7 @@ function App() {
         };
 
         try {
-            setLoading(true);
+            setIsCompressing(true);
             setError(null);
 
             const response = await fetch(`${FUNCTION_URL}?code=${FUNCTION_KEY}`, {
@@ -352,7 +361,7 @@ function App() {
             console.error("Error compressing data with Azure Function:", err);
             setError(`Failed to compress data: ${err.message}`);
         } finally {
-            setLoading(false);
+            setIsCompressing(false);
         }
     };
 
@@ -404,19 +413,30 @@ function App() {
             style={{
                 display: "flex",
                 flexDirection: "column",
+                overflow: 'hidden',
                 alignItems: "center",
                 minHeight: "100vh",
-                backgroundImage: "url(/icons/background.jpg)",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                padding: "20px",
+                padding: "0px",
             }}
         >
-            <h2 style={{ color: "#333", marginBottom: "20px" }}>
+            <div style={{
+                width: '100%',
+                backgroundColor: '#212121',
+                color: 'white',
+                padding: '16px 24px',
+                fontSize: '20px',
+                fontWeight: '600',
+                textAlign: 'center',
+                boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
+                marginBottom: '0px'
+            }}>
                 Intelligent Plant Compression Optimisation
-            </h2>
-            <div style={{ width: "80%" }}>
+            </div>
+
+            <div style={{ width: "100%", maxWidth: "1000px" }}>
                 <CompressionSidebarPanel
                     configurations={configurations}
                     setConfigurations={setConfigurations}
@@ -427,44 +447,78 @@ function App() {
                     compressedData={compressedData}
                 />
             </div>
-            <div
-                style={{
-                    width: "80%",
-                    marginBottom: "20px",
-                    marginLeft: isSidebarOpen ? "250px" : "0",
-                    transition: "margin-left 0.3s ease",
-                }}
-            >
-                <ConfigPanel
-                    ref={configPanelRef}
-                    setRawData={setRawData}
-                    setLabels={(newLabels) => {
-                        console.log("Setting labels from ConfigPanel:", newLabels);
-                        setLabels(newLabels);
-                    }}
-                    setFile={setFile}
-                    onCompress={compressData}
-                    onOptimized={(params) => {
-                        setEditedConfig({
-                            name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
-                            date: new Date().toISOString(),
-                            parameters: params,
-                        });
-                        setModalOpen(true);
-                    }}
-                />
+
+            {/* Top section: ConfigPanel and MetricsTable side by side */}
+            <div style={{
+                width: "93%",
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "stretch",
+                marginBottom: "20px",
+                gap: "0px",
+                height: '360px',
+            }}>
+                {/* Left: ConfigPanel (wider) */}
+                <div style={{
+                    flex: 1.5,
+                    overflowY: 'hidden',
+                    overflowX: 'hidden',
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                    padding: "0px",
+                }}>
+                    <ConfigPanel
+                        ref={configPanelRef}
+                        setRawData={setRawData}
+                        setLabels={(newLabels) => {
+                            console.log("Setting labels from ConfigPanel:", newLabels);
+                            setLabels(newLabels);
+                        }}
+                        setFile={setFile}
+                        onCompress={compressData}
+                        isCompressing={isCompressing}
+                        onOptimized={(params) => {
+                            setEditedConfig({
+                                name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
+                                date: new Date().toISOString(),
+                                parameters: params,
+                            });
+                            setModalOpen(true);
+                        }}
+                    />
+                </div>
+
+                {/* Right: MetricsTable (narrower) */}
+                <div style={{
+                    flex: 0.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "flex-start",
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                    padding: "0px",
+                }}>
+                    <MetricsTable
+                        rawData={rawData}
+                        compressedData={compressedData}
+                        onSave={handleSave}
+                    />
+                </div>
             </div>
+
+            {/* Bottom chart section */}
             <div
                 style={{
-                    width: "80%",
+                    width: "90%",
                     flexGrow: 1,
-                    marginBottom: "20px",
-                    marginLeft: isSidebarOpen ? "250px" : "0",
-                    transition: "margin-left 0.3s ease",
                     backgroundColor: "#ffffff",
                     borderRadius: "8px",
                     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                    padding: "20px",
+                    padding: "0px 20px 20px 20px",
+                    marginBottom: "20px",
+                    height: "340px"
                 }}
             >
                 <ZoomableChart
@@ -472,25 +526,6 @@ function App() {
                     labels={rawDataForChart.map(item => item.time.toISOString())}
                     compressedData={compressedDataForChart.map(item => item.value)}
                     compressedLabels={compressedDataForChart.map(item => item.time.toISOString())}
-                />
-            </div>
-            <div
-                style={{
-                    width: "80%",
-                    flexShrink: 0,
-                    marginBottom: "20px",
-                    marginLeft: isSidebarOpen ? "250px" : "0",
-                    transition: "margin-left 0.3s ease",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                    padding: "20px",
-                }}
-            >
-                <MetricsTable
-                    rawData={rawData}
-                    compressedData={compressedData}
-                    onSave={handleSave}
                 />
             </div>
         </div>

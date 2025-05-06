@@ -1,145 +1,172 @@
-import React from "react";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  TimeScale,
-} from "chart.js";
-import zoomPlugin from "chartjs-plugin-zoom";
-import "chartjs-adapter-date-fns";
+import React, { useRef, useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
 
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
+
+// Register required chart components and plugins
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  TimeScale,
-  zoomPlugin
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    zoomPlugin
 );
 
-const ZoomableChart = ({ rawData, labels, compressedData, compressedLabels }) => {
-  const isEmpty = !rawData.length || !labels.length;
+const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compressedLabels = [] }) => {
+    const chartRef = useRef(null);
 
-  const chartData = {
-    labels: isEmpty ? [] : labels,
-    datasets: [
-      {
-        label: "Raw Data",
-        data: isEmpty
-          ? []
-          : rawData.map((value, index) => ({ x: labels[index], y: value })),
-        borderColor: "#82ca9d",
-        borderWidth: 2,
-        fill: false,
-        pointRadius: 2,
-        tension: 0,
-      },
-      {
-        label: "Compressed Data",
-        data: isEmpty
-          ? []
-          : compressedData.map((value, index) => ({
-              x: compressedLabels[index],
-              y: value,
-            })),
-        borderColor: "#8884d8",
-        borderWidth: 2,
-        fill: false,
-        pointRadius: 5,
-        tension: 0,
-      },
-    ],
-  };
+    // Cache the previous allowed min/max range for zoom rollback
+    const previousMinMaxRef = useRef({ min: null, max: null });
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: "time",
-        time: {
-          unit: "minute",
-          displayFormats: {
-            minute: "HH:mm:ss",
-          },
-        },
-        title: {
-          display: true,
-          text: "Time",
-          font: { size: 16 },
-        },
-        ticks: {
-          autoSkip: true,
-          maxTicksLimit: 10,
-          font: { size: 14 },
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Value",
-          font: { size: 16 },
-        },
-        ticks: {
-          font: { size: 14 },
-        },
-      },
-    },
-    plugins: {
-      zoom: {
-        pan: {
-          enabled: true,
-          mode: "x",
-          modifierKey: null,
-        },
-        zoom: {
-          wheel: {
-            enabled: true,
-            speed: 0.1,
-          },
-          drag: {
-            enabled: false,
-          },
-          pinch: {
-            enabled: true,
-          },
-          mode: "x",
-          limits: {
+    const chartData = {
+        labels,
+        datasets: [
+            {
+                label: 'Compressed Data',
+                data: compressedData.map((value, index) => ({
+                    x: compressedLabels[index],
+                    y: value
+                })),
+                borderColor: '#8884d8',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 4,
+                pointHoverRadius: 5,
+                spanGaps: false
+            },
+            {
+                label: 'Raw Data',
+                data: rawData.map((value, index) => ({
+                    x: labels[index],
+                    y: value
+                })),
+                borderColor: '#82ca9d',
+                borderWidth: 1,
+                fill: false,
+                pointRadius: 2,
+                pointHoverRadius: 3
+            }
+        ]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: {
             x: {
-              min: "original",
-              max: "original",
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Time',
+                    font: { size: 14 },
+                    padding: { top: 10, bottom: 10 }
+                },
+                ticks: {
+                    autoSkip: true,
+                    maxTicksLimit: 10,
+                    font: { size: 12 }
+                },
+                grid: { display: false },
+                bounds: 'ticks'
             },
             y: {
-              min: "original",
-              max: "original",
-            },
-          },
+                title: {
+                    display: true,
+                    text: 'Value',
+                    font: { size: 14 },
+                    padding: { top: 10, bottom: 10 }
+                },
+                ticks: { font: { size: 12 } },
+                grid: { color: '#f0f0f0' }
+            }
         },
-      },
-      title: {
-        display: isEmpty,
-        text: "Please upload CSV data to display the chart",
-        font: { size: 18 },
-        color: "gray",
-        padding: 20,
-      },
-    },
-  };
+        plugins: {
+            zoom: {
+                pan: { enabled: true, mode: 'xy' ,speed: 5},
+                zoom: {
+                    enabled: true,
+                    mode: 'xy',
+                    wheel: { enabled: true },
+                    pinch: { enabled: true },
+                    // Handle zoom completion logic
+                    onZoomComplete: ({ chart }) => {
+                        const xScale = chart.scales.x;
+                        const labels = xScale.getLabels();
 
-  return (
-    <div style={{ width: "100%", height: "500px" }}>
-      <Line data={chartData} options={options} />
-    </div>
-  );
+                        // Count how many tick labels are currently visible
+                        let visibleCount = 0;
+                        for (let i = 0; i < labels.length; i++) {
+                            const px = xScale.getPixelForTick(i);
+                            if (px >= xScale.left && px <= xScale.right) {
+                                visibleCount++;
+                            }
+                        }
+
+                        if (visibleCount <= 3) {
+                            // Prevent further zoom: lock to 3-point range around the center
+                            const centerIndex = Math.floor(labels.length / 2);
+                            const minIndex = Math.max(centerIndex - 1, 0);
+                            const maxIndex = Math.min(centerIndex + 1, labels.length - 1);
+
+                            xScale.options.min = labels[minIndex];
+                            xScale.options.max = labels[maxIndex];
+                            chart.update();
+                        } else {
+                            const firstValidIndex = labels.findIndex(label =>
+                                chart.data.datasets.some(ds => ds.data.some(d => d.x === label))
+                            );
+                            const lastValidIndex = labels.length - 1 - [...labels].reverse().findIndex(label =>
+                                chart.data.datasets.some(ds => ds.data.some(d => d.x === label))
+                            );
+
+                            if (xScale.min < firstValidIndex || xScale.max > lastValidIndex) {
+                                xScale.options.min = labels[firstValidIndex];
+                                xScale.options.max = labels[lastValidIndex];
+                                chart.update();
+                            } else {
+                                previousMinMaxRef.current.min = xScale.min;
+                                previousMinMaxRef.current.max = xScale.max;
+                            }
+                        }
+                    }
+                }
+            },
+            legend: {
+                position: 'top',
+                labels: { padding: 20 }
+            }
+        },
+        layout: {
+            padding: { left: 20, right: 20, top: 20, bottom: 20 }
+        }
+    };
+
+    return (
+        <div style={{
+            width: '100%',
+            height: '500px',
+            padding: '0px 20px',
+            boxSizing: 'border-box',
+            margin: '0px auto',
+            maxWidth: 'calc(100% - 40px)'
+        }}>
+            <Line ref={chartRef} data={chartData} options={options} />
+        </div>
+    );
 };
 
 export default ZoomableChart;

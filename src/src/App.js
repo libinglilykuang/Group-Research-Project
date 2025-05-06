@@ -130,11 +130,19 @@ function App() {
         };
         loadConfigurations();
     }, []);
+
     useEffect(() => {
         if (lastParamsRef.current && configPanelRef.current) {
             console.log("Restoring last used parameters:", lastParamsRef.current);
             configPanelRef.current.setParams(lastParamsRef.current);
         }
+    }, []);
+
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.height = '100vh';
+        document.documentElement.style.height = '100vh';
     }, []);
 
     const handleSave = async (config) => {
@@ -404,20 +412,31 @@ function App() {
             style={{
                 display: "flex",
                 flexDirection: "column",
+                overflow: 'hidden',
                 alignItems: "center",
                 minHeight: "100vh",
-                backgroundImage: "url(/icons/background.jpg)",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                padding: "20px",
+                padding: "0px",
             }}
         >
-            <h2 style={{ color: "#333", marginBottom: "20px" }}>
+            <div style={{
+                width: '100%',
+                backgroundColor: '#212121',
+                color: 'white',
+                padding: '16px 24px',
+                fontSize: '20px',
+                fontWeight: '600',
+                textAlign: 'center',
+                boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
+                marginBottom: '0px'
+            }}>
                 Intelligent Plant Compression Optimisation
-            </h2>
-            <div style={{ width: "80%" }}>
-                <CompressionSidebarPanel
+            </div>
+
+            <div style={{ width: "100%", maxWidth: "1000px" }}>
+            <CompressionSidebarPanel
                     configurations={configurations}
                     setConfigurations={setConfigurations}
                     onNewConfig={handleNewConfig}
@@ -427,44 +446,78 @@ function App() {
                     compressedData={compressedData}
                 />
             </div>
-            <div
-                style={{
-                    width: "80%",
-                    marginBottom: "20px",
-                    marginLeft: isSidebarOpen ? "250px" : "0",
-                    transition: "margin-left 0.3s ease",
-                }}
-            >
-                <ConfigPanel
-                    ref={configPanelRef}
-                    setRawData={setRawData}
-                    setLabels={(newLabels) => {
-                        console.log("Setting labels from ConfigPanel:", newLabels);
-                        setLabels(newLabels);
-                    }}
-                    setFile={setFile}
-                    onCompress={compressData}
-                    onOptimized={(params) => {
-                        setEditedConfig({
-                            name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
-                            date: new Date().toISOString(),
-                            parameters: params,
-                        });
-                        setModalOpen(true);
-                    }}
-                />
+            {/* 顶部：ConfigPanel 和 MetricsTable 左右并排 */}
+            <div style={{
+                width: "93%",
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "stretch",
+                marginBottom: "20px",
+                gap: "0px",
+                height: '360px',
+            }}>
+                {/* 左侧 ConfigPanel 稍微宽一点 */}
+                <div style={{
+                    flex: 1.5,
+                    overflowY: 'hidden',
+                    overflowX: 'hidden',
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                    padding: "0px",
+                }}>
+                    <ConfigPanel
+                        ref={configPanelRef}
+                        setRawData={setRawData}
+                        setLabels={(newLabels) => {
+                            console.log("Setting labels from ConfigPanel:", newLabels);
+                            setLabels(newLabels);
+                        }}
+                        setFile={setFile}
+                        onCompress={compressData}
+                        onOptimized={(params) => {
+                            setEditedConfig({
+                                name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
+                                date: new Date().toISOString(),
+                                parameters: params,
+                            });
+                            setModalOpen(true);
+                        }}
+                    />
+                </div>
+
+                {/* 右侧指标表变窄 */}
+                <div style={{
+                    flex: 0.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "flex-start",
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                    padding: "0px",
+                }}>
+                    <MetricsTable
+                        rawData={rawData}
+                        compressedData={compressedData}
+                        onSave={handleSave}
+                    />
+                </div>
+
             </div>
+
+
+            {/* 下方图表 */}
             <div
                 style={{
-                    width: "80%",
+                    width: "90%",
                     flexGrow: 1,
-                    marginBottom: "20px",
-                    marginLeft: isSidebarOpen ? "250px" : "0",
-                    transition: "margin-left 0.3s ease",
                     backgroundColor: "#ffffff",
                     borderRadius: "8px",
                     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                    padding: "20px",
+                    padding: "0px 20px 20px 20px",
+                    marginBottom: "20px",
+                    height: "340px"
                 }}
             >
                 <ZoomableChart
@@ -474,25 +527,7 @@ function App() {
                     compressedLabels={compressedDataForChart.map(item => item.time.toISOString())}
                 />
             </div>
-            <div
-                style={{
-                    width: "80%",
-                    flexShrink: 0,
-                    marginBottom: "20px",
-                    marginLeft: isSidebarOpen ? "250px" : "0",
-                    transition: "margin-left 0.3s ease",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                    padding: "20px",
-                }}
-            >
-                <MetricsTable
-                    rawData={rawData}
-                    compressedData={compressedData}
-                    onSave={handleSave}
-                />
-            </div>
+
         </div>
     );
 }

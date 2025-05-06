@@ -6,7 +6,7 @@ import DataTable from './DataTable.js';
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
-        compressionDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
+        compressionDeviationLimit: { min: 0, max: 10, unit: '', step: 0.1 },
         exceptionFilterDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
         minResampleLimit: { min: 0, max: 3600, unit: 'seconds', step: 1 },
         maxResampleLimit: { min: 0, max: 86400, unit: 'seconds', step: 1 }
@@ -615,10 +615,31 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         justifyContent: 'center'
     };
 
+    const handleDownloadConfig = () => {
+        const config = {
+            compressionDeviationLimit,
+            compressionDeviationType,
+            exceptionFilterDeviationLimit,
+            exceptionFilterDeviationType,
+            minResampleLimit,
+            maxResampleLimit,
+        };
+
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'parameters.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
+
     // Render UI
     return (
         <div style={{
-            padding: '30px',
+            padding: '0px 30px 30px 30px',
             fontFamily: 'Arial, sans-serif',
             backgroundColor: '#ffffff',
             borderRadius: '8px',
@@ -626,24 +647,23 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             border: '1px solid #ccc',
             minHeight: '400px',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            marginTop: '80px',
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: '30px',
             width: '95%',
-            maxWidth: '1400px',
-            marginLeft: 'auto',
-            marginRight: 'auto'
+            maxWidth: '1300px',
+            margin: '0 auto'
         }}>
+
             {/* Data Source Section */}
-            <div style={{ width: '82%', marginBottom: '30px', padding: '0 20px' }}>
+            <div style={{ width: '40%', marginBottom: '10px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
                     fontSize: '20px',
                     fontWeight: 'bold',
-                    marginBottom: '10px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid #eee',
-                    paddingLeft: '12px'
+                    margin: 0,
+                    padding: '6px 12px 10px 12px',
+                    borderBottom: '1px solid #eee'
                 }}>
                     Data Source
                 </h2>
@@ -655,7 +675,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         backgroundColor: isDragging ? '#f0faff' : '#e9f5ff',
                         border: `2px dashed ${isDragging ? '#4CAF50' : '#66a6ff'}`,
                         borderRadius: '20px',
-                        padding: '30px 20px',
+                        padding: '0px 14px',
                         textAlign: 'center',
                         fontFamily: 'Arial, sans-serif',
                         transition: 'all 0.3s',
@@ -668,24 +688,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     onDrop={handleDrop}
                 >
                     <div style={{
-                        fontSize: '42px',
+                        fontSize: '36px',
                         backgroundColor: '#fff',
                         borderRadius: '50%',
-                        width: '60px',
-                        height: '60px',
+                        width: '50px',
+                        height: '50px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-                        margin: '0 auto 16px'
+                        margin: '10px auto 16px'
                     }}>
                         +
                     </div>
                     <p style={{ fontSize: '16px', color: '#333', margin: 0 }}>
                         {isDragging ? 'Drop your CSV file here' : 'Upload or drag & drop your CSV file'}
-                    </p>
-                    <p style={{ fontSize: '13px', color: '#777', marginTop: '6px' }}>
-                        Only CSV files are supported
                     </p>
 
                     {/* Hidden file input */}
@@ -705,7 +722,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     )}
 
                     {/* Time range selection button */}
-                    <div style={{ marginTop: '20px' }}>
+                    <div style={{ marginTop: '5px', marginBottom: '20px' }}>
                         <button
                             style={{
                                 padding: '10px 20px',
@@ -714,7 +731,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                 border: 'none',
                                 borderRadius: '8px',
                                 fontWeight: '600',
-                                fontSize: '15px',
+                                fontSize: '14px',
                                 letterSpacing: '0.3px',
                                 fontFamily: 'Segoe UI, sans-serif',
                                 boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
@@ -744,12 +761,12 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 </div>
                 {/* cloud upload */}
                 <div style={{
-                    marginTop: '-24px',
-                    marginBottom: '30px',
+                    marginTop: '-20px',
+                    marginBottom: '10px',
                     display: 'flex',
                     justifyContent: 'center',
                     position: 'relative',
-                    marginLeft: '40px',
+                    marginLeft: '30px',
                     zIndex: 10
                 }}>
                     <button
@@ -777,25 +794,70 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         <span style={{ fontSize: '40px', color: 'white' }}>☁️</span>
                     </button>
                 </div>
+                <div style={{
+                    width: '105%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '0px',
+                    marginTop: '0px',
+                    marginBottom: '0px'
+                }}>
+                    <button
+                        style={{
+                            padding: '8px 20px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: isOptimizing ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s',
+                            opacity: isOptimizing ? 0.7 : 1
+                        }}
+                        onClick={handleCompress}
+                        disabled={isOptimizing}
+                    >
+                        Compress
+                    </button>
+
+                    <button
+                        style={{
+                            padding: '8px 20px',
+                            backgroundColor: '#2196F3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            opacity: isOptimizing ? 0.7 : 1
+                        }}
+                        onClick={handleOptimize}
+                        disabled={isOptimizing}
+                    >
+                        {isOptimizing ? 'Optimizing...' : 'Optimise'}
+                    </button>
+                </div>
 
             </div>
-
             <div style={{
-                width: '90%', marginBottom: '20px', padding: '0 20px'
+                width: '90%',
+                marginBottom: '20px',
+                padding: '0 20px',
+                marginTop: '-22px'
             }}>
 
             {/* Parameter configuration section */}
-            <div style={{ width: '100%', marginBottom: '20px', padding: '0 20px' }}>
+            <div style={{ width: '100%', marginBottom: '0px', padding: '0 0px' }}>
                 <div style={{ padding: '20px' }}>
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        marginBottom: '10px',
-                        paddingBottom: '10px',
-                        borderBottom: '1px solid #eee',
-                        paddingLeft: '12px',
-                        paddingRight: '12px'
+                        padding: '6px 12px 10px 12px',
+                        borderBottom: '1px solid #eee'
                     }}>
                         <h2 style={{
                             color: '#333',
@@ -807,28 +869,53 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         </h2>
 
                         <div>
-                            <button
-                                onClick={() => document.getElementById('json-param-upload').click()}
-                                style={{
-                                    padding: '6px 14px',
-                                    backgroundColor: '#e3f2fd',
-                                    color: '#1976d2',
-                                    border: '1px solid #90caf9',
-                                    borderRadius: '10px',
-                                    fontSize: '15px',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#bbdefb';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#e3f2fd';
-                                }}
-                            >
-                                🗂️ Import Config
-                            </button>
+                            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                <button
+                                    onClick={() => document.getElementById('json-param-upload').click()}
+                                    style={{
+                                        padding: '6px 14px',
+                                        backgroundColor: '#e3f2fd',
+                                        color: '#1976d2',
+                                        border: '1px solid #90caf9',
+                                        borderRadius: '10px',
+                                        fontSize: '14px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#bbdefb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                    }}
+                                >
+                                    🗂️ Import
+                                </button>
+
+                                <button
+                                    onClick={handleDownloadConfig}
+                                    style={{
+                                        padding: '6px 14px',
+                                        backgroundColor: '#e3f2fd',
+                                        color: '#1976d2',
+                                        border: '1px solid #90caf9',
+                                        borderRadius: '10px',
+                                        fontSize: '14px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#bbdefb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                    }}
+                                >
+                                    ⬇️ Download Config
+                                </button>
+                            </div>
 
                             <input
                                 id="json-param-upload"
@@ -841,11 +928,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     </div>
 
                     {/* Compression Parameters */}
-                    <div style={cardStyle}>
-                        <h3 style={sectionTitle}>Compression Data</h3>
-                        <div style={rowStyle}>
-                            <div style={columnStyle}>
-                                <label style={labelStyle}>Compression Deviation Limit:</label>
+                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+                        {/* Deviation Limit */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Deviation Limit:
+                                </label>
                                 <input
                                     type="number"
                                     min={VALIDATION_RANGES.compressionDeviationLimit.min}
@@ -854,35 +951,69 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     value={compressionDeviationLimit}
                                     onChange={handleCompressionDeviationLimitChange}
                                     placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
-                                    style={{ ...inputStyle, borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc' }}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc'
+                                    }}
                                 />
-                                <span style={hintStyle}>
-                                    Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max}
-                                </span>
-                                <span style={descStyle}>Maximum allowed deviation (default: 2)</span>
                             </div>
-                            <div style={columnStyle}>
-                                <label style={labelStyle}>Deviation Type:</label>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max} · Maximum allowed deviation
+        </span>
+                        </div>
+
+                        {/* Deviation Type */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Deviation Type:
+                                </label>
                                 <select
                                     value={compressionDeviationType}
                                     onChange={handleCompressionDeviationTypeChange}
-                                    style={selectStyle}
+                                    style={{
+                                        ...selectStyle,
+                                        width: '120px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0
+                                    }}
                                 >
                                     <option value="">Select type</option>
                                     <option value="percentage">Percentage</option>
                                     <option value="absolute">Absolute</option>
                                 </select>
-                                <span style={descStyle}>Type of deviation (default: percentage)</span>
                             </div>
+                            <span style={descStyle}>Type of deviation (default: percentage)</span>
                         </div>
                     </div>
 
+
                     {/* Exception Filter */}
-                    <div style={cardStyle}>
-                        <h3 style={sectionTitle}>Exception Filter</h3>
-                        <div style={rowStyle}>
-                            <div style={columnStyle}>
-                                <label style={labelStyle}>Exception Filter Limit:</label>
+                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+                        {/* Exception Filter Limit */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label style={{
+                                    ...labelStyle,
+                                    width: '120px',
+                                    marginRight: '8px',
+                                    marginBottom: 0
+                                }}>
+                                    Filter Limit:
+                                </label>
                                 <input
                                     type="number"
                                     min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
@@ -891,35 +1022,75 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     value={exceptionFilterDeviationLimit}
                                     onChange={handleExceptionFilterDeviationLimitChange}
                                     placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
-                                    style={{ ...inputStyle, borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc' }}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc'
+                                    }}
                                 />
-                                <span style={hintStyle}>
-                                    Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
-                                </span>
-                                <span style={descStyle}>Threshold for anomaly filtering (default: 1)</span>
                             </div>
-                            <div style={columnStyle}>
-                                <label style={labelStyle}>Deviation Type:</label>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max} · Threshold for anomaly filtering
+        </span>
+                        </div>
+
+                        {/* Deviation Type */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Deviation Type:
+                                </label>
                                 <select
                                     value={exceptionFilterDeviationType}
                                     onChange={handleExceptionFilterDeviationTypeChange}
-                                    style={selectStyle}
+                                    style={{
+                                        ...selectStyle,
+                                        width: '120px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0
+                                    }}
                                 >
                                     <option value="">Select type</option>
                                     <option value="percentage">Percentage</option>
                                     <option value="absolute">Absolute</option>
                                 </select>
-                                <span style={descStyle}>Type of deviation (default: absolute)</span>
                             </div>
+                            <span style={hintStyle}>
+            Type of deviation (default: absolute)
+        </span>
                         </div>
                     </div>
 
+
                     {/* Resampling Parameters */}
-                    <div style={cardStyle}>
-                        <h3 style={sectionTitle}>Resampling Parameters</h3>
-                        <div style={rowStyle}>
-                            <div style={columnStyle}>
-                                <label style={labelStyle}>Min Resample Interval (s):</label>
+                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+
+                        {/* Min Resample Interval */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Min Interval (s):
+                                </label>
                                 <input
                                     type="number"
                                     min={VALIDATION_RANGES.minResampleLimit.min}
@@ -928,15 +1099,35 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     value={minResampleLimit}
                                     onChange={handleMinResampleLimitChange}
                                     placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
-                                    style={{ ...inputStyle, borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc' }}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc'
+                                    }}
                                 />
-                                <span style={hintStyle}>
-                                    Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max} {VALIDATION_RANGES.minResampleLimit.unit}
-                                </span>
-                                <span style={descStyle}>Minimum time between samples (default: 0)</span>
                             </div>
-                            <div style={columnStyle}>
-                                <label style={labelStyle}>Max Resample Interval (s):</label>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max} {VALIDATION_RANGES.minResampleLimit.unit} · Minimum time between samples
+        </span>
+                        </div>
+
+                        {/* Max Resample Interval */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Max Interval (s):
+                                </label>
                                 <input
                                     type="number"
                                     min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
@@ -945,35 +1136,42 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                     value={maxResampleLimit}
                                     onChange={handleMaxResampleLimitChange}
                                     placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
-                                    style={{ ...inputStyle, borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc' }}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc'
+                                    }}
                                 />
-                                <span style={hintStyle}>
-                                    Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max} {VALIDATION_RANGES.maxResampleLimit.unit}
-                                </span>
-                                <span style={descStyle}>Maximum time between samples (default: 5)</span>
                             </div>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max} {VALIDATION_RANGES.maxResampleLimit.unit} · Maximum time between samples
+        </span>
                         </div>
                     </div>
                 </div>
+
             </div>
 
             {/* Status messages */}
             {(error || message) && (
                 <div style={{
-                    width: '95%',
-                    marginTop: '20px',
-                    marginBottom: '10px',
+                    width: '100%',
+                    marginTop: '-15px',
+                    marginBottom: '0px',
                     textAlign: 'center'
                 }}>
                     {error && (
                         <div style={{
-                            padding: '15px',
+                            padding: '10px',
                             borderRadius: '6px',
                             backgroundColor: '#ffebee',
                             color: '#d32f2f',
                             border: '1px solid #ef9a9a',
-                            fontSize: '15px',
-                            marginBottom: '10px'
+                            fontSize: '14px',
+                            marginBottom: '0px'
                         }}>
                             {error}
                         </div>
@@ -985,61 +1183,13 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             backgroundColor: '#e8f5e9',
                             color: '#2e7d32',
                             border: '1px solid #a5d6a7',
-                            fontSize: '15px'
+                            fontSize: '14px'
                         }}>
                             {message}
                         </div>
                     )}
                 </div>
             )}
-
-            {/* Action buttons */}
-            <div style={{
-                width: '95%',
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '20px',
-                marginTop: '10px',
-                marginBottom: '20px'
-            }}>
-                <button
-                    style={{
-                        padding: '14px 28px',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '17px',
-                        fontWeight: '600',
-                        cursor: isOptimizing ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s',
-                        opacity: isOptimizing ? 0.7 : 1
-                    }}
-                    onClick={handleCompress}
-                    disabled={isOptimizing}
-                >
-                    Compress Data
-                </button>
-
-                <button
-                    style={{
-                        padding: '14px 28px',
-                        backgroundColor: '#2196F3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '17px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        opacity: isOptimizing ? 0.7 : 1
-                    }}
-                    onClick={handleOptimize}
-                    disabled={isOptimizing}
-                >
-                    {isOptimizing ? 'Optimizing...' : 'Optimize Parameters'}
-                </button>
-            </div>
 
             {/* Time range selection modal */}
             {showTimeRangeModal && <TimeRangeModal />}

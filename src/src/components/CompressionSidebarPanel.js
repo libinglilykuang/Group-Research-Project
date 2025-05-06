@@ -302,32 +302,14 @@ const CompressionSidebarPanel = ({
                   top: "20px",
                   left: "20px",
                   zIndex: 1000,
-                  background: "rgba(255, 255, 255, 0.95)",
-                  border: "2px solid #007bff",
-                  borderRadius: "50%",
-                  padding: "10px",
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "26px",
                   cursor: "pointer",
-                  boxShadow: "none",
-                  transition: "all 0.2s ease-in-out",
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.boxShadow = "0 0 24px 6px rgba(0, 123, 255, 0.8)";
-                  e.currentTarget.style.background = "#e6f4ff";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.95)";
+                  color: "#ccc"
                 }}
             >
-              <img
-                  src="/icons/open-sidebar.png"
-                  alt="Open Menu"
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))",
-                  }}
-              />
+              ☰
             </button>
         )}
 
@@ -344,13 +326,14 @@ const CompressionSidebarPanel = ({
               transition: isResizing ? "none" : "width 0.3s",
               overflowY: "auto",
               overflowX: "hidden",
-              background: "#ffffff",
+              background: "#1f1f1f",
               padding: isOpen ? "10px" : "0",
               zIndex: 999,
-              color: "#333",
-              boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
+              color: "#f0f0f0",
+              boxShadow: "2px 0 5px rgba(0, 0, 0, 0.5)",
             }}
         >
+
           {isOpen && (
               <>
                 <div
@@ -370,16 +353,19 @@ const CompressionSidebarPanel = ({
                 {/* Close button */}
                 <button
                     onClick={toggleSidebar}
+                    title="Close Sidebar"
                     style={{
                       position: "absolute",
-                      right: 10,
-                      top: 10,
+                      right: 16,
+                      top: 5,
                       background: "transparent",
                       border: "none",
+                      fontSize: "28px",
                       cursor: "pointer",
+                      color: "#ccc"
                     }}
                 >
-                  <img src="/icons/close.png" alt="Close" style={{ width: "36px", height: "36px" }} />
+                  ☰
                 </button>
 
                 {/* Search bar */}
@@ -414,7 +400,7 @@ const CompressionSidebarPanel = ({
                       padding: "5px",
                       width: "100%",
                       textAlign: "left",
-                      color: "#333",
+                      color: "#f0f0f0",
                       transition: "background 0.2s",
                     }}
                 >
@@ -431,7 +417,7 @@ const CompressionSidebarPanel = ({
                     <div>
                       {Object.entries(filteredConfigurations).map(([dateLabel, configs]) => (
                           <div key={dateLabel}>
-                            <h4 style={{ marginTop: "10px", fontWeight: "bold", fontSize: "16px", color: "#333" }}>
+                            <h4 style={{ marginTop: "10px", fontWeight: "bold", fontSize: "16px", color: "#f0f0f0" }}>
                               {dateLabel}
                             </h4>
                             <ul style={{ paddingLeft: "10px", listStyle: "none" }}>
@@ -443,7 +429,7 @@ const CompressionSidebarPanel = ({
                                         justifyContent: "space-between",
                                         alignItems: "center",
                                         padding: "5px 0",
-                                        color: "#333",
+                                        color: "#f0f0f0",
                                       }}
                                   >
                           <span onClick={() => onLoadConfig(config)} style={{ cursor: "pointer" }}>
@@ -463,7 +449,7 @@ const CompressionSidebarPanel = ({
                                             background: "transparent",
                                             border: "none",
                                             cursor: "pointer",
-                                            color: "#333",
+                                            color: "#f0f0f0",
                                             fontSize: "16px",
                                             padding: "0 5px",
                                           }}

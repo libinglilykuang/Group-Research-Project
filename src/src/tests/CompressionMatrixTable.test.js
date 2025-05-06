@@ -23,7 +23,7 @@ describe('MetricsTable', () => {
             'Compression Ratio',
             'Storage Size (Raw) (MB)',
             'Storage Size (Compressed) (MB)',
-            'Data Accuracy (Error Rate) (%)'
+            'Error Rate (%)'
         ];
 
         metrics.forEach(metric => {

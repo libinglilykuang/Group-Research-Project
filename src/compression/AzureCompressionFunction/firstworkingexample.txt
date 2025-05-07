@@ -1,0 +1,46 @@
+~/D/n/C/t/s/compression/AzureCompressionFunction [315-SCRUM-74-integrate-all-components] λ 
+
+~/D/n/C/t/s/compression/AzureCompressionFunction [315-SCRUM-74-integrate-all-components] λ curl -v "https://ip-team6-compression-function.azurewebsites.net/api/CompressData?code=-pyAcevXAGjcwsKIdzbOk3nkFfKSSDwvwUQGSlcUuVW6AzFuB2Pabw==" -H "Content-Type: application/json" -d '{"rawData":[{"timestamp":"2025-03-23T10:00:00Z","value":100},{"timestamp":"2025-03-23T10:00:01Z","value":101},{"timestamp":"2025-03-23T10:00:02Z","value":105}],"parameters":{"deviationLimit":1,"deviationType":"Percentage"}}'
+* processing: https://ip-team6-compression-function.azurewebsites.net/api/CompressData?code=-pyAcevXAGjcwsKIdzbOk3nkFfKSSDwvwUQGSlcUuVW6AzFuB2Pabw==
+*   Trying 52.178.79.163:443...
+* Connected to ip-team6-compression-function.azurewebsites.net (52.178.79.163) port 443
+* ALPN: offers h2,http/1.1
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+*  CAfile: /home/frazer/anaconda3/ssl/cacert.pem
+*  CApath: none
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* ALPN: server accepted http/1.1
+* Server certificate:
+*  subject: C=US; ST=WA; L=Redmond; O=Microsoft Corporation; CN=*.azurewebsites.net
+*  start date: Mar 10 19:39:11 2025 GMT
+*  expire date: Sep  6 19:39:11 2025 GMT
+*  subjectAltName: host "ip-team6-compression-function.azurewebsites.net" matched cert's "*.azurewebsites.net"
+*  issuer: C=US; O=Microsoft Corporation; CN=Microsoft Azure RSA TLS Issuing CA 07
+*  SSL certificate verify ok.
+* using HTTP/1.1
+> POST /api/CompressData?code=-pyAcevXAGjcwsKIdzbOk3nkFfKSSDwvwUQGSlcUuVW6AzFuB2Pabw== HTTP/1.1
+> Host: ip-team6-compression-function.azurewebsites.net
+> User-Agent: curl/8.2.1
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 223
+> 
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+< HTTP/1.1 200 OK
+< Content-Type: application/json
+< Date: Thu, 27 Mar 2025 22:20:37 GMT
+< Server: Kestrel
+< Transfer-Encoding: chunked
+< 
+* Connection #0 to host ip-team6-compression-function.azurewebsites.net left intact
+[{"timestamp":"2025-03-23 10:00:00","value":100.0},{"timestamp":"2025-03-23 10:00:01","value":101.0}]
+~/D/n/C/t/s/compression/AzureCompressionFunction [315-SCRUM-74-integrate-all-components] λ 

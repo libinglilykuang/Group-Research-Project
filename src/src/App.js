@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo  } from "react";
 import ConfigPanel from "./components/ConfigPanel";
 import MetricsTable from "./components/CompressionMatrixTable";
 import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
@@ -213,18 +213,39 @@ function App() {
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-    const handleLoadConfig = (config) => {
+    const handleLoadConfig = (config, source = 'sidebar') => {
         setRawData(config.rawData || []);
         setLabels(config.labels || []);
-        setCompressedData([]);
-        setCompressedLabels([]);
+
+        if (source === 'sidebar') {
+            if (configPanelRef.current?.reset) {
+                configPanelRef.current.reset();
+            }
+
+            const compressedDataArray = typeof config.compressedData === 'string'
+                ? config.compressedData.split('\n').map(Number)
+                : config.compressedData || [];
+
+            const compressedLabelsArray = typeof config.compressedLabels === 'string'
+                ? JSON.parse(config.compressedLabels)
+                : config.compressedLabels || [];
+
+            setCompressedData(compressedDataArray);
+            setCompressedLabels(compressedLabelsArray);
+        } else if (source === 'upload') {
+            setCompressedData([]);
+            setCompressedLabels([]);
+        }
+
         setFile(new File([""], config.name || "cloud.csv", { type: "text/csv" }));
 
         if (configPanelRef.current?.loadFromCloud) {
             configPanelRef.current.loadFromCloud(
                 config.labels || [],
                 config.rawData || [],
-                config.name || 'cloud.csv'
+                config.name || 'cloud.csv',
+                config.compressedData || [],
+                config.compressedLabels || []
             );
         }
 
@@ -236,6 +257,8 @@ function App() {
             lastParamsRef.current = parsed;
         }
     };
+
+
 
 
     const compressData = async () => {
@@ -384,17 +407,20 @@ function App() {
         .filter(item => item !== null)
         .sort((a, b) => a.time - b.time);
 
-    const compressedDataForChart = compressedData
-        .map((value, index) => {
-            const parsedTime = parseTimestamp(compressedLabels[index], index);
-            if (!parsedTime) return null;
-            return {
-                time: parsedTime,
-                value: value,
-            };
-        })
-        .filter(item => item !== null)
-        .sort((a, b) => a.time - b.time);
+    const compressedDataForChart = useMemo(() => {
+        return compressedData
+            .map((value, index) => {
+                const parsedTime = parseTimestamp(compressedLabels[index], index);
+                if (!parsedTime) return null;
+                return {
+                    time: parsedTime,
+                    value: value,
+                };
+            })
+            .filter(item => item !== null)
+            .sort((a, b) => a.time - b.time);
+    }, [compressedData, compressedLabels]); // ✅ 添加依赖
+
 
     if (loading) {
         return (
@@ -465,7 +491,7 @@ function App() {
                     onNewConfig={handleNewConfig}
                     isOpen={isSidebarOpen}
                     toggleSidebar={toggleSidebar}
-                    onLoadConfig={handleLoadConfig}
+                    onLoadConfig={(config) => handleLoadConfig(config, 'sidebar')}
                     compressedData={compressedData}
                 />
             </div>
@@ -498,7 +524,7 @@ function App() {
                             setLabels(newLabels);
                         }}
                         setFile={setFile}
-                        setCompressedData={setCompressedData} // 👈 加上这个
+                        setCompressedData={setCompressedData}
                         setCompressedLabels={setCompressedLabels}
                         onCompress={compressData}
                         isCompressing={isCompressing}
@@ -510,6 +536,7 @@ function App() {
                             });
                             setModalOpen(true);
                         }}
+                        onUploadComplete={(config) => handleLoadConfig(config, 'upload')}
                     />
                 </div>
 

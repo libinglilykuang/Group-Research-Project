@@ -3,7 +3,7 @@ import { Line } from 'react-chartjs-2';
 
 import {
     Chart as ChartJS,
-    CategoryScale,
+    TimeScale,
     LinearScale,
     PointElement,
     LineElement,
@@ -12,10 +12,11 @@ import {
     Legend
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import 'chartjs-adapter-date-fns';
 
 // Register required chart components and plugins
 ChartJS.register(
-    CategoryScale,
+    TimeScale,
     LinearScale,
     PointElement,
     LineElement,
@@ -28,43 +29,43 @@ ChartJS.register(
 const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compressedLabels = [] }) => {
     const chartRef = useRef(null);
 
-    const initialY = useMemo(() => {
-        const allY = [...rawData, ...compressedData];
-        const min = Math.min(...allY);
-        const max = Math.max(...allY);
-        const padding = (max - min) * 0.05;
-        return {
-            min: min,
-            max: max,
-            paddedMin: min - padding,
-            paddedMax: max + padding
-        };
-    }, [rawData, compressedData]);
+    const rawPoints = useMemo(() => rawData.map((value, index) => {
+        const date = new Date(labels[index]);
+        return isNaN(date) ? null : { x: date.getTime(), y: value };
+    }).filter(Boolean), [rawData, labels]);
 
-    const initialX = useMemo(() => {
-        const startIndex = 0;
-        const endIndex = labels.length - 1;
-        const extra = 5;
-        const paddedStart = Math.max(startIndex - extra, 0);
-        const paddedEnd = Math.min(endIndex + extra, labels.length - 1);
+    const compressedPoints = useMemo(() => compressedData.map((value, index) => {
+        const date = new Date(compressedLabels[index]);
+        return isNaN(date) ? null : { x: date.getTime(), y: value };
+    }).filter(Boolean), [compressedData, compressedLabels]);
+
+    const timeBounds = useMemo(() => {
+        const allPoints = compressedPoints.length > 0 ? compressedPoints : rawPoints;
+        if (allPoints.length === 0) return {};
+        const active = allPoints.filter(p => p.x !== undefined);
+        const middle = active.filter(p =>
+            p.x > new Date('2023-01-01T01:00:00Z').getTime() &&
+            p.x < new Date('2023-01-30T00:00:00Z').getTime()
+        );
+        if (middle.length > 0) {
+            return {
+                min: Math.min(...middle.map(p => p.x)),
+                max: Math.max(...middle.map(p => p.x))
+            };
+        }
+        const times = active.map(p => p.x);
         return {
-            min: labels[startIndex],
-            max: labels[endIndex],
-            paddedMin: labels[paddedStart],
-            paddedMax: labels[paddedEnd]
+            min: Math.min(...times),
+            max: Math.max(...times)
         };
-    }, [labels]);
+    }, [compressedPoints, rawPoints]);
 
 
     const chartData = {
-        labels,
         datasets: [
             {
                 label: 'Compressed Data',
-                data: compressedData.map((value, index) => ({
-                    x: compressedLabels[index],
-                    y: value
-                })),
+                data: compressedPoints,
                 borderColor: '#8884d8',
                 borderWidth: 2,
                 fill: false,
@@ -74,10 +75,7 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
             },
             {
                 label: 'Raw Data',
-                data: rawData.map((value, index) => ({
-                    x: labels[index],
-                    y: value
-                })),
+                data: rawPoints,
                 borderColor: '#82ca9d',
                 borderWidth: 1,
                 fill: false,
@@ -93,7 +91,21 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
         animation: false,
         scales: {
             x: {
-                type: 'category',
+                type: 'time',
+                min: timeBounds.min,
+                max: timeBounds.max,
+                time: {
+                    tooltipFormat: 'yyyy-MM-dd HH:mm',
+                    displayFormats: {
+                        millisecond: 'MM-dd HH:mm:ss.SSS',
+                        second: 'MM-dd HH:mm:ss',
+                        minute: 'MM-dd HH:mm',
+                        hour: 'MM-dd HH:mm',
+                        day: 'MM-dd',
+                        month: 'MMM yyyy',
+                        year: 'yyyy'
+                    }
+                },
                 title: {
                     display: true,
                     text: 'Time',
@@ -101,12 +113,12 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                     padding: { top: 10, bottom: 10 }
                 },
                 ticks: {
-                    autoSkip: true,
-                    maxTicksLimit: 10,
-                    font: { size: 12 }
+                    source: 'auto',
+                    font: { size: 12 },
+                    maxRotation: 45,
+                    minRotation: 45
                 },
-                grid: { display: false },
-                bounds: 'ticks'
+                grid: { display: false }
             },
             y: {
                 title: {
@@ -126,67 +138,9 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                     enabled: true,
                     mode: 'xy',
                     wheel: { enabled: true },
-                    pinch: { enabled: true },
-                    limits: {
-                        x: {
-                            min: initialX.paddedMin,
-                            max: initialX.paddedMax,
-                            minRange: 3
-                        },
-                        y: {
-                            min: initialY.paddedMin,
-                            max: initialY.paddedMax,
-                            minRange: (initialY.max - initialY.min) * 0.01
-                        }
-                    },
-
-                    // Handle zoom completion logic
-                    onZoomComplete: ({ chart }) => {
-                        const xScale = chart.scales.x;
-                        const yScale = chart.scales.y;
-                        const labels = xScale.getLabels();
-
-                        let updated = false;
-
-                        if (xScale.min < initialX.paddedMin) {
-                            xScale.options.min = initialX.paddedMin;
-                            updated = true;
-                        }
-                        if (xScale.max > initialX.paddedMax) {
-                            xScale.options.max = initialX.paddedMax;
-                            updated = true;
-                        }
-
-                        if (yScale.min < initialY.paddedMin) {
-                            yScale.options.min = initialY.paddedMin;
-                            updated = true;
-                        }
-                        if (yScale.max > initialY.paddedMax) {
-                            yScale.options.max = initialY.paddedMax;
-                            updated = true;
-                        }
-
-                        const visibleCount = labels.filter((_, i) => {
-                            const px = xScale.getPixelForTick(i);
-                            return px >= xScale.left && px <= xScale.right;
-                        }).length;
-
-                        if (visibleCount <= 3) {
-                            const centerIndex = Math.floor(labels.length / 2);
-                            const minIndex = Math.max(centerIndex - 1, 0);
-                            const maxIndex = Math.min(centerIndex + 1, labels.length - 1);
-
-                            xScale.options.min = labels[minIndex];
-                            xScale.options.max = labels[maxIndex];
-                            updated = true;
-                        }
-
-                        if (updated) chart.update();
-                    }
-
+                    pinch: { enabled: true }
                 }
             },
-
             legend: {
                 position: 'top',
                 labels: { padding: 20 }

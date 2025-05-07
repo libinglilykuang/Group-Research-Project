@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
 
-const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing, setCompressedData, setCompressedLabels }, ref) => {
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing, setCompressedData, setCompressedLabels, onUploadComplete  }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
         compressionDeviationLimit: { min: 0, max: 10, unit: '', step: 0.1 },
@@ -46,6 +46,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
     const [availableSources, setAvailableSources] = useState([]);
     const [allRawRows, setAllRawRows] = useState([]);
     const [selectedSource, setSelectedSource] = useState(null);
+    const [waitingUpload, setWaitingUpload] = useState(false);
 
     useEffect(() => {
         const saved = sessionStorage.getItem('lastOptimizedParams');
@@ -83,6 +84,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                 console.error("Failed to parse data_points.csv", err);
             });
     }, []);
+
+    useEffect(() => {
+        if (waitingUpload && fullData.length && fullLabels.length) {
+            const generatedConfig = {
+                rawData: fullData,
+                labels: fullLabels,
+                name: file?.name || 'uploaded.csv',
+                parameters: ref?.current?.getParams?.()
+            };
+            if (typeof onUploadComplete === 'function') {
+                onUploadComplete(generatedConfig);
+            }
+            setWaitingUpload(false);
+        }
+    }, [waitingUpload, fullData, fullLabels, onUploadComplete, file, ref]);
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -207,6 +223,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                 setError('Please upload a CSV file');
                 return;
             }
+
             setFileState(selectedFile);
             setFile(selectedFile);
 
@@ -214,8 +231,21 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
             if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
 
             parseCSV(selectedFile);
+
+            setWaitingUpload(true);
         }
-    }, [parseCSV, setFile, setCompressedData, setCompressedLabels]);
+    }, [
+        parseCSV,
+        setFile,
+        setCompressedData,
+        setCompressedLabels,
+        setFileState,
+        fullData,
+        fullLabels,
+        ref,
+        onUploadComplete
+    ]);
+
 
 
     // Handle file input change
@@ -496,14 +526,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
             setFile(file);
             parseCSV(file);
         },
-        loadFromCloud: (labels, data, name = 'cloud.csv') => {
+        loadFromCloud: (labels, data, name = 'cloud.csv', compressedData = [], compressedLabels = []) => {
             setFullLabels(labels);
             setFullData(data);
             setLabels(labels);
             setRawData(data);
 
-            if (typeof setCompressedData === 'function') setCompressedData([]);
-            if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
+            if (typeof setCompressedData === 'function') setCompressedData(compressedData);
+            if (typeof setCompressedLabels === 'function') setCompressedLabels(compressedLabels);
 
             setStartTime(labels[0] || '');
             setEndTime(labels[labels.length - 1] || '');
@@ -1275,7 +1305,9 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                                                 setFile(fakeFile);
                                                 setError('');
 
-                                                setMessage(`Loaded ${labels.length} points from ${s.qualifiedName}`);
+                                                const shortName = s.qualifiedName.split('.').slice(-1)[0];
+                                                setMessage(`Loaded from ${shortName}`);
+
                                                 setChartVisible(true);
                                                 setSelectedSource(s.qualifiedName);
                                                 setShowCloudModal(true);
@@ -1319,7 +1351,8 @@ ConfigPanel.propTypes = {
     setRawData: PropTypes.func.isRequired,
     setLabels: PropTypes.func.isRequired,
     setFile: PropTypes.func.isRequired,
-    onCompress: PropTypes.func.isRequired
+    onCompress: PropTypes.func.isRequired,
+    onUploadComplete: PropTypes.func
 };
 
 export default ConfigPanel;

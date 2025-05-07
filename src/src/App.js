@@ -162,7 +162,7 @@ function App() {
         try {
             const entity = {
                 partitionKey: "configurations",
-                rowKey: `${Date.now()}`, // or your UUID
+                rowKey: `${Date.now()}`,
                 name: newConfig.name,
                 date: newConfig.date,
                 parameters: newConfig.parameters,
@@ -216,10 +216,16 @@ function App() {
     const handleLoadConfig = (config) => {
         setRawData(config.rawData || []);
         setLabels(config.labels || []);
-        setCompressedData(config.compressedData || []);
-        setCompressedLabels(config.compressedLabels || []);
+        setCompressedData([]);
+        setCompressedLabels([]);
+        setFile(new File([""], config.name || "cloud.csv", { type: "text/csv" }));
+
         if (configPanelRef.current?.loadFromCloud) {
-            configPanelRef.current.loadFromCloud(config.labels || [], config.rawData || []);
+            configPanelRef.current.loadFromCloud(
+                config.labels || [],
+                config.rawData || [],
+                config.name || 'cloud.csv'
+            );
         }
 
         if (config.parameters && configPanelRef.current?.setParams) {
@@ -230,6 +236,7 @@ function App() {
             lastParamsRef.current = parsed;
         }
     };
+
 
     const compressData = async () => {
         if (!rawData.length || !labels.length) {
@@ -426,14 +433,29 @@ function App() {
                 width: '100%',
                 backgroundColor: '#212121',
                 color: 'white',
-                padding: '16px 24px',
+                padding: '12px 24px',
                 fontSize: '20px',
                 fontWeight: '600',
-                textAlign: 'center',
                 boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
-                marginBottom: '0px'
+                marginBottom: '0px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
             }}>
-                Intelligent Plant Compression Optimisation
+                <div style={{ flexGrow: 1, textAlign: 'center' }}>
+                    Intelligent Plant Compression Optimisation
+                </div>
+                <img
+                    src="/icons/logo.png"
+                    alt="Logo"
+                    style={{
+                        height: '40px',
+                        width: '40px',
+                        objectFit: 'contain',
+                        marginLeft: '0px',
+                        marginRight: '12px'
+                    }}
+                />
             </div>
 
             <div style={{ width: "100%", maxWidth: "1000px" }}>
@@ -476,6 +498,8 @@ function App() {
                             setLabels(newLabels);
                         }}
                         setFile={setFile}
+                        setCompressedData={setCompressedData} // 👈 加上这个
+                        setCompressedLabels={setCompressedLabels}
                         onCompress={compressData}
                         isCompressing={isCompressing}
                         onOptimized={(params) => {

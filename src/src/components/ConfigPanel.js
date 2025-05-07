@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
 
-const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing }, ref) => {
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing, setCompressedData, setCompressedLabels }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
         compressionDeviationLimit: { min: 0, max: 10, unit: '', step: 0.1 },
@@ -83,7 +83,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                 console.error("Failed to parse data_points.csv", err);
             });
     }, []);
-
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -210,9 +209,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
             }
             setFileState(selectedFile);
             setFile(selectedFile);
+
+            if (typeof setCompressedData === 'function') setCompressedData([]);
+            if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
+
             parseCSV(selectedFile);
         }
-    }, [parseCSV, setFile]);
+    }, [parseCSV, setFile, setCompressedData, setCompressedLabels]);
+
 
     // Handle file input change
     const handleFileInputChange = (e) => {
@@ -241,7 +245,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
         };
         reader.readAsText(file);
     };
-
 
     // Drag and drop handlers
     const handleDragEnter = (e) => {
@@ -359,35 +362,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
             sessionStorage.setItem('lastOptimizedParams', JSON.stringify(optimizedParams));
         }, 2000);
     };
-
-    const loadUncompressedTestData = () => {
-          fetch(process.env.PUBLIC_URL + '/data_points.csv')
-            .then((res) => res.text())
-            .then((csv) => {
-              const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
-              const labels = data.map((row) => row.UtcSampleTime);
-              const raw   = data.map((row) => parseFloat(row.NumericValue));
-              setLabels(labels);
-              setRawData(raw);   
-              setChartVisible(true);
-              setShowDataSourcesModal(false);
-
-                setFullLabels(labels);
-                setFullData(raw);
-                setLabels(labels);
-                setRawData(raw);
-                setAllTimes(labels.map(formatTime));
-                setStartTime(labels[0]);
-                setEndTime(labels[labels.length - 1]);
-                setFileState({ name: 'cloud.csv' });
-                setFile({ name: 'cloud.csv' });
-                setMessage(`Loaded ${labels.length} points from cloud.csv`);
-                setChartVisible(true);
-                setShowDataSourcesModal(false);
-            })
-            .catch(console.error);
-        };
-
 
     // Time range modal component
     const TimeRangeModal = () => (
@@ -522,19 +496,23 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
             setFile(file);
             parseCSV(file);
         },
-        loadFromCloud: (labels, data) => {
+        loadFromCloud: (labels, data, name = 'cloud.csv') => {
             setFullLabels(labels);
             setFullData(data);
             setLabels(labels);
             setRawData(data);
+
+            if (typeof setCompressedData === 'function') setCompressedData([]);
+            if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
+
             setStartTime(labels[0] || '');
             setEndTime(labels[labels.length - 1] || '');
             setAllTimes(labels.map(formatTime));
-            const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+
+            const fakeFile = new File([""], name, { type: "text/csv" });
             setFileState(fakeFile);
             setFile(fakeFile);
-
-        }
+        },
     }));
 
     // Style definitions
@@ -756,8 +734,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                             Select Time Range
                         </button>
                     </div>
-
                 </div>
+
                 {/* cloud upload */}
                 <div style={{
                     marginTop: '-20px',
@@ -820,7 +798,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                         {isCompressing ? "Compressing" : "Compress"}
                     </button>
 
-
                     <button
                         style={{
                             padding: '8px 20px',
@@ -840,7 +817,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                         {isOptimizing ? 'Optimizing...' : 'Optimise'}
                     </button>
                 </div>
-
             </div>
             <div style={{
                 width: '90%',
@@ -999,7 +975,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                             <span style={descStyle}>Type of deviation (default: percentage)</span>
                         </div>
                     </div>
-
 
                     {/* Exception Filter */}
                     <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
@@ -1291,12 +1266,22 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                                                 setAllTimes(labels.map(formatTime));
                                                 setStartTime(labels[0]);
                                                 setEndTime(labels[labels.length - 1]);
+
+                                                if (typeof setCompressedData === 'function') setCompressedData([]);
+                                                if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
+
+                                                const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+                                                setFileState(fakeFile);
+                                                setFile(fakeFile);
+                                                setError('');
+
                                                 setMessage(`Loaded ${labels.length} points from ${s.qualifiedName}`);
                                                 setChartVisible(true);
                                                 setSelectedSource(s.qualifiedName);
                                                 setShowCloudModal(true);
                                                 setShowDataSourcesModal(false);
                                             }}
+
                                             style={{
                                                 padding: "14px 18px",
                                                 borderTop: "1px solid #eee",
@@ -1310,7 +1295,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                                             }}
                                             onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
                                             onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-
                                         >
                                             {shortName}
                                         </td>

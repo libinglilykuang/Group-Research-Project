@@ -1,12 +1,12 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useState,useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Papa from 'papaparse';
+import DataTable from './DataTable.js';
 
-// Component definition
-const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
-        compressionDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
+        compressionDeviationLimit: { min: 0, max: 10, unit: '', step: 0.1 },
         exceptionFilterDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
         minResampleLimit: { min: 0, max: 3600, unit: 'seconds', step: 1 },
         maxResampleLimit: { min: 0, max: 86400, unit: 'seconds', step: 1 }
@@ -39,6 +39,51 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [fullData, setFullData] = useState([]);
     const [fullLabels, setFullLabels] = useState([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [showCloudModal, setShowCloudModal] = useState(false);
+    const [showDataSourcesModal, setShowDataSourcesModal] = useState(false);
+    const [chartVisible, setChartVisible] = useState(false);
+    const [availableSources, setAvailableSources] = useState([]);
+    const [allRawRows, setAllRawRows] = useState([]);
+    const [selectedSource, setSelectedSource] = useState(null);
+
+    useEffect(() => {
+        const saved = sessionStorage.getItem('lastOptimizedParams');
+        if (saved) {
+            const params = JSON.parse(saved);
+            if (params.compressionDeviationLimit !== undefined)
+                setCompressionDeviationLimit(params.compressionDeviationLimit);
+            if (params.compressionDeviationType !== undefined)
+                setCompressionDeviationType(params.compressionDeviationType);
+            if (params.exceptionFilterDeviationLimit !== undefined)
+                setExceptionFilterDeviationLimit(params.exceptionFilterDeviationLimit);
+            if (params.exceptionFilterDeviationType !== undefined)
+                setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
+            if (params.minResampleLimit !== undefined)
+                setMinResampleLimit(params.minResampleLimit);
+            if (params.maxResampleLimit !== undefined)
+                setMaxResampleLimit(params.maxResampleLimit);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetch(process.env.PUBLIC_URL + '/data_points.csv')
+            .then((res) => res.text())
+            .then(csv => {
+                const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+
+                setAllRawRows(data);
+
+                const uniqueSources = Array.from(new Set(data.map(row => row.DataSource)))
+                    .map(qn => ({ qualifiedName: qn }));
+
+                setAvailableSources(uniqueSources);
+            })
+            .catch(err => {
+                console.error("Failed to parse data_points.csv", err);
+            });
+    }, []);
+
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -124,7 +169,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     };
 
     // Parse CSV file
-    const parseCSV = (file) => {
+    const parseCSV = useCallback((file) => {
         setError('');
         setMessage('Processing file...');
         Papa.parse(file, {
@@ -132,7 +177,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             complete: (results) => {
                 if (results.data.length > 1) {
                     const dataRows = results.data.slice(1);
-                    const xValues = dataRows.map(row => row[0]); // Original timestamps
+                    const xValues = dataRows.map(row => row[0]);
                     const yValues = dataRows.map(row => parseFloat(row[1]));
                     if (xValues.length > 0 && yValues.length > 0) {
                         setFullLabels(xValues);
@@ -142,7 +187,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                         setRawData(yValues);
                         setStartTime(xValues[0]);
                         setEndTime(xValues[xValues.length - 1]);
-                        setMessage(`Loaded ${xValues.length} data points`);
+                        setMessage(`Loaded ${xValues.length} data points from ${file.name}`);
                     } else {
                         setError('CSV file format error: valid data not found');
                     }
@@ -154,11 +199,10 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 setError(`Error parsing CSV: ${err.message}`);
             }
         });
-    };
+    }, [setLabels, setRawData]);
 
-    // Handle file upload
-    const handleFileUpload = (e) => {
-        const selectedFile = e.target.files[0];
+    // Handle file selection
+    const handleFileSelect = useCallback((selectedFile) => {
         if (selectedFile) {
             if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
                 setError('Please upload a CSV file');
@@ -167,6 +211,64 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setFileState(selectedFile);
             setFile(selectedFile);
             parseCSV(selectedFile);
+        }
+    }, [parseCSV, setFile]);
+
+    // Handle file input change
+    const handleFileInputChange = (e) => {
+        handleFileSelect(e.target.files[0]);
+    };
+
+    const handleJsonUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const json = JSON.parse(event.target.result);
+                if (typeof json === 'object' && json !== null) {
+                    setMessage(`Loaded parameter config from ${file.name}`);
+                    if (ref?.current?.setParams) {
+                        ref.current.setParams(json);
+                    }
+                } else {
+                    setError('Invalid JSON parameter format');
+                }
+            } catch (err) {
+                setError('Failed to read JSON file: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    };
+
+
+    // Drag and drop handlers
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
         }
     };
 
@@ -194,7 +296,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         const filteredData = fullData.slice(startIndex, endIndex + 1);
         setLabels(filteredLabels);
         setRawData(filteredData);
-        setMessage(`Showing ${filteredLabels.length} points from ${formatTime(startTime)} to ${formatTime(endTime)}`);
+        setMessage(`Showing ${filteredLabels.length} points from ${formatTime(startTime)} to ${formatTime(endTime)} (${file.name})`);
         setShowTimeRangeModal(false);
     };
 
@@ -204,13 +306,13 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         setRawData(fullData);
         setStartTime(fullLabels[0] || '');
         setEndTime(fullLabels[fullLabels.length - 1] || '');
-        setMessage('Showing full dataset');
+        setMessage(`Showing full dataset (${file.name})`);
         setShowTimeRangeModal(false);
     };
 
-    // Handle compression
+    // Handle compression with proper error checking
     const handleCompress = () => {
-        if (!file) {
+        if (!fullLabels.length || !fullData.length) {
             setError('Please upload a file first');
             return;
         }
@@ -224,19 +326,18 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             return;
         }
         setError('');
-        setMessage('Compressing data...');
         onCompress();
     };
 
     // Handle parameter optimization
     const handleOptimize = () => {
-        if (!file) {
+        if (!fullLabels.length || !fullData.length) {
             setError('Please upload a file first');
             return;
         }
         setIsOptimizing(true);
         setError('');
-        setMessage('Optimizing parameters...');
+        setMessage(`Optimization complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
         setTimeout(() => {
             setCompressionDeviationLimit('1.5');
             setCompressionDeviationType('percentage');
@@ -245,9 +346,48 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setMinResampleLimit('1');
             setMaxResampleLimit('8');
             setIsOptimizing(false);
-            setMessage('Optimization complete! Parameters updated.');
+            setMessage(`Optimization complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
+
+            const optimizedParams = {
+                compressionDeviationLimit: '1.5',
+                compressionDeviationType: 'percentage',
+                exceptionFilterDeviationLimit: '0.8',
+                exceptionFilterDeviationType: 'absolute',
+                minResampleLimit: '1',
+                maxResampleLimit: '8'
+            };
+            sessionStorage.setItem('lastOptimizedParams', JSON.stringify(optimizedParams));
         }, 2000);
     };
+
+    const loadUncompressedTestData = () => {
+          fetch(process.env.PUBLIC_URL + '/data_points.csv')
+            .then((res) => res.text())
+            .then((csv) => {
+              const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+              const labels = data.map((row) => row.UtcSampleTime);
+              const raw   = data.map((row) => parseFloat(row.NumericValue));
+              setLabels(labels);
+              setRawData(raw);   
+              setChartVisible(true);
+              setShowDataSourcesModal(false);
+
+                setFullLabels(labels);
+                setFullData(raw);
+                setLabels(labels);
+                setRawData(raw);
+                setAllTimes(labels.map(formatTime));
+                setStartTime(labels[0]);
+                setEndTime(labels[labels.length - 1]);
+                setFileState({ name: 'cloud.csv' });
+                setFile({ name: 'cloud.csv' });
+                setMessage(`Loaded ${labels.length} points from cloud.csv`);
+                setChartVisible(true);
+                setShowDataSourcesModal(false);
+            })
+            .catch(console.error);
+        };
+
 
     // Time range modal component
     const TimeRangeModal = () => (
@@ -271,7 +411,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 maxWidth: '500px',
                 boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
             }}>
-                <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Select Time Range</h3>
+                <h3 style={{ marginBottom: '20px', textAlign: 'center' }}>Select Time Range ({file?.name})</h3>
                 <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '10px' }}>Start Time:</label>
                     <select
@@ -336,38 +476,169 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setIsOptimizing(false);
         },
         getParams: () => ({
-            compressionDeviationLimit: compressionDeviationLimit || DEFAULT_VALUES.compressionDeviationLimit,
-            compressionDeviationType: compressionDeviationType || DEFAULT_VALUES.compressionDeviationType,
-            exceptionFilterDeviationLimit: exceptionFilterDeviationLimit || DEFAULT_VALUES.exceptionFilterDeviationLimit,
-            exceptionFilterDeviationType: exceptionFilterDeviationType || DEFAULT_VALUES.exceptionFilterDeviationType,
-            minResampleLimit: minResampleLimit || DEFAULT_VALUES.minResampleLimit,
-            maxResampleLimit: maxResampleLimit || DEFAULT_VALUES.maxResampleLimit
+            compressionDeviationLimit:
+                compressionDeviationLimit !== '' && !isNaN(compressionDeviationLimit)
+                    ? parseFloat(compressionDeviationLimit)
+                    : DEFAULT_VALUES.compressionDeviationLimit,
+
+            compressionDeviationType:
+                compressionDeviationType !== '' ? compressionDeviationType : DEFAULT_VALUES.compressionDeviationType,
+
+            exceptionFilterDeviationLimit:
+                exceptionFilterDeviationLimit !== '' && !isNaN(exceptionFilterDeviationLimit)
+                    ? parseFloat(exceptionFilterDeviationLimit)
+                    : DEFAULT_VALUES.exceptionFilterDeviationLimit,
+
+            exceptionFilterDeviationType:
+                exceptionFilterDeviationType !== '' ? exceptionFilterDeviationType : DEFAULT_VALUES.exceptionFilterDeviationType,
+
+            minResampleLimit:
+                minResampleLimit !== '' && !isNaN(minResampleLimit)
+                    ? parseFloat(minResampleLimit)
+                    : DEFAULT_VALUES.minResampleLimit,
+
+            maxResampleLimit:
+                maxResampleLimit !== '' && !isNaN(maxResampleLimit)
+                    ? parseFloat(maxResampleLimit)
+                    : DEFAULT_VALUES.maxResampleLimit
         }),
+
         setParams: (params) => {
             if (params.compressionDeviationLimit !== undefined)
-                handleCompressionDeviationLimitChange({ target: { value: params.compressionDeviationLimit } });
+                setCompressionDeviationLimit(String(params.compressionDeviationLimit));
             if (params.compressionDeviationType !== undefined)
                 setCompressionDeviationType(params.compressionDeviationType);
             if (params.exceptionFilterDeviationLimit !== undefined)
-                handleExceptionFilterDeviationLimitChange({ target: { value: params.exceptionFilterDeviationLimit } });
+                setExceptionFilterDeviationLimit(String(params.exceptionFilterDeviationLimit));
             if (params.exceptionFilterDeviationType !== undefined)
                 setExceptionFilterDeviationType(params.exceptionFilterDeviationType);
             if (params.minResampleLimit !== undefined)
-                handleMinResampleLimitChange({ target: { value: params.minResampleLimit } });
+                setMinResampleLimit(String(params.minResampleLimit));
             if (params.maxResampleLimit !== undefined)
-                handleMaxResampleLimitChange({ target: { value: params.maxResampleLimit } });
+                setMaxResampleLimit(String(params.maxResampleLimit));
         },
         loadFile: (file) => {
             setFileState(file);
             setFile(file);
             parseCSV(file);
+        },
+        loadFromCloud: (labels, data) => {
+            setFullLabels(labels);
+            setFullData(data);
+            setLabels(labels);
+            setRawData(data);
+            setStartTime(labels[0] || '');
+            setEndTime(labels[labels.length - 1] || '');
+            setAllTimes(labels.map(formatTime));
+            const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+            setFileState(fakeFile);
+            setFile(fakeFile);
+
         }
     }));
+
+    // Style definitions
+    const cardStyle = {
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        padding: '20px',
+        marginBottom: '20px'
+    };
+
+    const sectionTitle = {
+        color: '#333',
+        fontSize: '18px',
+        fontWeight: '600',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+    };
+
+    const rowStyle = {
+        display: 'flex',
+        gap: '30px',
+        marginBottom: '20px'
+    };
+
+    const columnStyle = {
+        flex: 1
+    };
+
+    const labelStyle = {
+        display: 'block',
+        marginBottom: '8px',
+        fontWeight: '600',
+        color: '#555',
+        fontSize: '14px'
+    };
+
+    const inputStyle = {
+        width: '100%',
+        padding: '10px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        fontSize: '14px',
+        transition: 'border-color 0.3s'
+    };
+
+    const selectStyle = {
+        ...inputStyle,
+        backgroundColor: 'white'
+    };
+
+    const hintStyle = {
+        display: 'block',
+        fontSize: '12px',
+        color: '#666',
+        marginTop: '4px'
+    };
+
+    const descStyle = {
+        display: 'block',
+        fontSize: '13px',
+        color: '#666',
+        marginTop: '8px'
+    };
+
+    const fileInfoStyle = {
+        marginTop: '15px',
+        padding: '10px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '6px',
+        border: '1px solid #dee2e6',
+        fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    };
+
+    const handleDownloadConfig = () => {
+        const config = {
+            compressionDeviationLimit,
+            compressionDeviationType,
+            exceptionFilterDeviationLimit,
+            exceptionFilterDeviationType,
+            minResampleLimit,
+            maxResampleLimit,
+        };
+
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'parameters.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
 
     // Render UI
     return (
         <div style={{
-            padding: '30px',
+            padding: '0px 30px 30px 30px',
             fontFamily: 'Arial, sans-serif',
             backgroundColor: '#ffffff',
             borderRadius: '8px',
@@ -375,63 +646,102 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             border: '1px solid #ccc',
             minHeight: '400px',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            marginTop: '80px',
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: '30px',
             width: '95%',
-            maxWidth: '1400px',
-            marginLeft: 'auto',
-            marginRight: 'auto'
+            maxWidth: '1300px',
+            margin: '0 auto'
         }}>
+
             {/* Data Source Section */}
-            <div style={{ width: '95%', marginBottom: '30px', padding: '0 20px' }}>
+            <div style={{ width: '40%', marginBottom: '10px', padding: '0 20px' }}>
                 <h2 style={{
                     color: '#333',
                     fontSize: '20px',
                     fontWeight: 'bold',
-                    marginBottom: '20px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid #eee',
-                    paddingLeft: '12px'
+                    margin: 0,
+                    padding: '6px 12px 10px 12px',
+                    borderBottom: '1px solid #eee'
                 }}>
                     Data Source
                 </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
-                    <div style={{ flex: '1 1 auto', minWidth: '300px', paddingLeft: '12px' }}>
-                        <label style={{ display: 'block', fontSize: '16px', marginBottom: '8px' }}>
-                            Upload CSV File:
-                        </label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <input
-                                type="file"
-                                accept=".csv"
-                                onChange={handleFileUpload}
-                                style={{
-                                    flex: '1 1 auto',
-                                    padding: '10px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '6px',
-                                    fontSize: '15px',
-                                    minWidth: '200px'
-                                }}
-                            />
-                        </div>
+
+                {/* Upload area with drag and drop support */}
+                <div
+                    style={{
+                        width: '100%',
+                        backgroundColor: isDragging ? '#f0faff' : '#e9f5ff',
+                        border: `2px dashed ${isDragging ? '#4CAF50' : '#66a6ff'}`,
+                        borderRadius: '20px',
+                        padding: '0px 14px',
+                        textAlign: 'center',
+                        fontFamily: 'Arial, sans-serif',
+                        transition: 'all 0.3s',
+                        cursor: 'pointer'
+                    }}
+                    onClick={() => document.getElementById("csv-upload").click()}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                >
+                    <div style={{
+                        fontSize: '36px',
+                        backgroundColor: '#fff',
+                        borderRadius: '50%',
+                        width: '50px',
+                        height: '50px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                        margin: '10px auto 16px'
+                    }}>
+                        +
                     </div>
-                    <div style={{ flex: '0 0 auto', marginLeft: 'auto', paddingTop: '24px' }}>
+                    <p style={{ fontSize: '16px', color: '#333', margin: 0 }}>
+                        {isDragging ? 'Drop your CSV file here' : 'Upload or drag & drop your CSV file'}
+                    </p>
+
+                    {/* Hidden file input */}
+                    <input
+                        id="csv-upload"
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileInputChange}
+                        style={{ display: 'none' }}
+                    />
+
+                    {/* File info display */}
+                    {file && (
+                        <div style={fileInfoStyle}>
+                            <span>Loaded file: <strong>{file.name}</strong></span>
+                        </div>
+                    )}
+
+                    {/* Time range selection button */}
+                    <div style={{ marginTop: '5px', marginBottom: '20px' }}>
                         <button
                             style={{
-                                padding: '12px 20px',
-                                backgroundColor: '#4CAF50',
+                                padding: '10px 20px',
+                                backgroundColor: '#42A5F5',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
+                                borderRadius: '8px',
                                 fontWeight: '600',
-                                fontSize: '15px',
-                                whiteSpace: 'nowrap',
-                                transition: 'all 0.2s'
+                                fontSize: '14px',
+                                letterSpacing: '0.3px',
+                                fontFamily: 'Segoe UI, sans-serif',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                                transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer'
                             }}
-                            onClick={() => {
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 if (!file) {
                                     setError('Please upload a CSV file first');
                                     return;
@@ -446,300 +756,422 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             Select Time Range
                         </button>
                     </div>
+
                 </div>
+                {/* cloud upload */}
+                <div style={{
+                    marginTop: '-20px',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    marginLeft: '30px',
+                    zIndex: 10
+                }}>
+                    <button
+                        title="View Cloud Data Table"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDataSourcesModal(true);
+                        }}
+                        style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '50%',
+                            backgroundColor: '#2196F3',
+                            border: '3px solid white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        <span style={{ fontSize: '40px', color: 'white' }}>☁️</span>
+                    </button>
+                </div>
+                <div style={{
+                    width: '105%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '0px',
+                    marginTop: '0px',
+                    marginBottom: '0px'
+                }}>
+                    <button
+                        style={{
+                            padding: '8px 20px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: isCompressing ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s',
+                            opacity: isCompressing ? 0.6 : 1
+                        }}
+                        onClick={handleCompress}
+                        disabled={isCompressing}
+                    >
+                        {isCompressing ? "Compressing" : "Compress"}
+                    </button>
+
+
+                    <button
+                        style={{
+                            padding: '8px 20px',
+                            backgroundColor: '#2196F3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            opacity: isOptimizing ? 0.7 : 1
+                        }}
+                        onClick={handleOptimize}
+                        disabled={isOptimizing}
+                    >
+                        {isOptimizing ? 'Optimizing...' : 'Optimise'}
+                    </button>
+                </div>
+
             </div>
+            <div style={{
+                width: '90%',
+                marginBottom: '20px',
+                padding: '0 20px',
+                marginTop: '-22px'
+            }}>
 
             {/* Parameter configuration section */}
-            <div style={{ width: '95%', marginBottom: '20px', padding: '0 20px' }}>
-                <h2 style={{
-                    color: '#333',
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    marginBottom: '20px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid #eee',
-                    paddingLeft: '12px'
-                }}>
-                    Compression Parameters
-                </h2>
+            <div style={{ width: '100%', marginBottom: '0px', padding: '0 0px' }}>
+                <div style={{ padding: '20px' }}>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '6px 12px 10px 12px',
+                        borderBottom: '1px solid #eee'
+                    }}>
+                        <h2 style={{
+                            color: '#333',
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            margin: 0
+                        }}>
+                            Compression Parameters
+                        </h2>
 
-                {/* Compression parameter group */}
-                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Compression Deviation Limit:
-                        </label>
-                        <input
-                            type="number"
-                            min={VALIDATION_RANGES.compressionDeviationLimit.min}
-                            max={VALIDATION_RANGES.compressionDeviationLimit.max}
-                            step={VALIDATION_RANGES.compressionDeviationLimit.step}
-                            value={compressionDeviationLimit}
-                            onChange={handleCompressionDeviationLimitChange}
-                            placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('compressionDeviationLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max}
-                            {VALIDATION_RANGES.compressionDeviationLimit.unit && ' ' + VALIDATION_RANGES.compressionDeviationLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Maximum allowed deviation for compression (default: 2)
-                        </span>
+                        <div>
+                            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                <button
+                                    onClick={() => document.getElementById('json-param-upload').click()}
+                                    style={{
+                                        padding: '6px 14px',
+                                        backgroundColor: '#e3f2fd',
+                                        color: '#1976d2',
+                                        border: '1px solid #90caf9',
+                                        borderRadius: '10px',
+                                        fontSize: '14px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#bbdefb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                    }}
+                                >
+                                    🗂️ Import
+                                </button>
+
+                                <button
+                                    onClick={handleDownloadConfig}
+                                    style={{
+                                        padding: '6px 14px',
+                                        backgroundColor: '#e3f2fd',
+                                        color: '#1976d2',
+                                        border: '1px solid #90caf9',
+                                        borderRadius: '10px',
+                                        fontSize: '14px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#bbdefb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                    }}
+                                >
+                                    ⬇️ Download Config
+                                </button>
+                            </div>
+
+                            <input
+                                id="json-param-upload"
+                                type="file"
+                                accept=".json"
+                                onChange={handleJsonUpload}
+                                style={{ display: 'none' }}
+                            />
+                        </div>
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Deviation Type:
-                        </label>
-                        <select
-                            value={compressionDeviationType}
-                            onChange={handleCompressionDeviationTypeChange}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: '1px solid #ddd',
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <option value="">Select type</option>
-                            <option value="percentage">Percentage</option>
-                            <option value="absolute">Absolute</option>
-                        </select>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Type of deviation calculation (default: percentage)
-                        </span>
+                    {/* Compression Parameters */}
+                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+                        {/* Deviation Limit */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Deviation Limit:
+                                </label>
+                                <input
+                                    type="number"
+                                    min={VALIDATION_RANGES.compressionDeviationLimit.min}
+                                    max={VALIDATION_RANGES.compressionDeviationLimit.max}
+                                    step={VALIDATION_RANGES.compressionDeviationLimit.step}
+                                    value={compressionDeviationLimit}
+                                    onChange={handleCompressionDeviationLimitChange}
+                                    placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc'
+                                    }}
+                                />
+                            </div>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max} · Maximum allowed deviation
+        </span>
+                        </div>
+
+                        {/* Deviation Type */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Deviation Type:
+                                </label>
+                                <select
+                                    value={compressionDeviationType}
+                                    onChange={handleCompressionDeviationTypeChange}
+                                    style={{
+                                        ...selectStyle,
+                                        width: '120px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0
+                                    }}
+                                >
+                                    <option value="">Select type</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="absolute">Absolute</option>
+                                </select>
+                            </div>
+                            <span style={descStyle}>Type of deviation (default: percentage)</span>
+                        </div>
+                    </div>
+
+
+                    {/* Exception Filter */}
+                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+                        {/* Exception Filter Limit */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label style={{
+                                    ...labelStyle,
+                                    width: '120px',
+                                    marginRight: '8px',
+                                    marginBottom: 0
+                                }}>
+                                    Filter Limit:
+                                </label>
+                                <input
+                                    type="number"
+                                    min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
+                                    max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
+                                    step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
+                                    value={exceptionFilterDeviationLimit}
+                                    onChange={handleExceptionFilterDeviationLimitChange}
+                                    placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc'
+                                    }}
+                                />
+                            </div>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max} · Threshold for anomaly filtering
+        </span>
+                        </div>
+
+                        {/* Deviation Type */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Deviation Type:
+                                </label>
+                                <select
+                                    value={exceptionFilterDeviationType}
+                                    onChange={handleExceptionFilterDeviationTypeChange}
+                                    style={{
+                                        ...selectStyle,
+                                        width: '120px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0
+                                    }}
+                                >
+                                    <option value="">Select type</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="absolute">Absolute</option>
+                                </select>
+                            </div>
+                            <span style={hintStyle}>
+            Type of deviation (default: absolute)
+        </span>
+                        </div>
+                    </div>
+
+
+                    {/* Resampling Parameters */}
+                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+
+                        {/* Min Resample Interval */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Min Interval (s):
+                                </label>
+                                <input
+                                    type="number"
+                                    min={VALIDATION_RANGES.minResampleLimit.min}
+                                    max={VALIDATION_RANGES.minResampleLimit.max}
+                                    step={VALIDATION_RANGES.minResampleLimit.step}
+                                    value={minResampleLimit}
+                                    onChange={handleMinResampleLimitChange}
+                                    placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc'
+                                    }}
+                                />
+                            </div>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max} {VALIDATION_RANGES.minResampleLimit.unit} · Minimum time between samples
+        </span>
+                        </div>
+
+                        {/* Max Resample Interval */}
+                        <div style={columnStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                <label
+                                    style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Max Interval (s):
+                                </label>
+                                <input
+                                    type="number"
+                                    min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
+                                    max={VALIDATION_RANGES.maxResampleLimit.max}
+                                    step={VALIDATION_RANGES.maxResampleLimit.step}
+                                    value={maxResampleLimit}
+                                    onChange={handleMaxResampleLimitChange}
+                                    placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
+                                    style={{
+                                        ...inputStyle,
+                                        width: '80px',
+                                        padding: '6px 8px',
+                                        fontSize: '14px',
+                                        marginBottom: 0,
+                                        borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc'
+                                    }}
+                                />
+                            </div>
+                            <span style={hintStyle}>
+            Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max} {VALIDATION_RANGES.maxResampleLimit.unit} · Maximum time between samples
+        </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Exception filter parameter group */}
-                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Exception Filter Limit:
-                        </label>
-                        <input
-                            type="number"
-                            min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
-                            max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
-                            step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
-                            value={exceptionFilterDeviationLimit}
-                            onChange={handleExceptionFilterDeviationLimitChange}
-                            placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
-                            {VALIDATION_RANGES.exceptionFilterDeviationLimit.unit && ' ' + VALIDATION_RANGES.exceptionFilterDeviationLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Threshold for filtering anomalies (default: 1)
-                        </span>
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Deviation Type:
-                        </label>
-                        <select
-                            value={exceptionFilterDeviationType}
-                            onChange={handleExceptionFilterDeviationTypeChange}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: '1px solid #ddd',
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <option value="">Select type</option>
-                            <option value="percentage">Percentage</option>
-                            <option value="absolute">Absolute</option>
-                        </select>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Type of deviation calculation (default: absolute)
-                        </span>
-                    </div>
-                </div>
-
-                {/* Resampling parameter group */}
-                <div style={{ display: 'flex', gap: '40px', marginBottom: '30px', paddingLeft: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Min Resample Interval (s):
-                        </label>
-                        <input
-                            type="number"
-                            min={VALIDATION_RANGES.minResampleLimit.min}
-                            max={VALIDATION_RANGES.minResampleLimit.max}
-                            step={VALIDATION_RANGES.minResampleLimit.step}
-                            value={minResampleLimit}
-                            onChange={handleMinResampleLimitChange}
-                            placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('minResampleLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max}
-                            {VALIDATION_RANGES.minResampleLimit.unit && ' ' + VALIDATION_RANGES.minResampleLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Minimum time between samples in seconds (default: 0)
-                        </span>
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            fontWeight: '600',
-                            color: '#555',
-                            fontSize: '16px'
-                        }}>
-                            Max Resample Interval (s):
-                        </label>
-                        <input
-                            type="number"
-                            min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
-                            max={VALIDATION_RANGES.maxResampleLimit.max}
-                            step={VALIDATION_RANGES.maxResampleLimit.step}
-                            value={maxResampleLimit}
-                            onChange={handleMaxResampleLimitChange}
-                            placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: `1px solid ${error.includes('maxResampleLimit') ? 'red' : '#ddd'}`,
-                                borderRadius: '6px',
-                                fontSize: '15px'
-                            }}
-                        />
-                        <span style={{
-                            display: 'block',
-                            fontSize: '14px',
-                            color: '#666',
-                            marginTop: '4px'
-                        }}>
-                            Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max}
-                            {VALIDATION_RANGES.maxResampleLimit.unit && ' ' + VALIDATION_RANGES.maxResampleLimit.unit}
-                        </span>
-                        <span style={{
-                            display: 'block',
-                            fontSize: '15px',
-                            color: '#666',
-                            marginTop: '8px'
-                        }}>
-                            Maximum time between samples in seconds (default: 5)
-                        </span>
-                    </div>
-                </div>
             </div>
 
             {/* Status messages */}
             {(error || message) && (
                 <div style={{
-                    width: '95%',
-                    marginTop: '20px',
-                    marginBottom: '10px',
+                    width: '100%',
+                    marginTop: '-15px',
+                    marginBottom: '0px',
                     textAlign: 'center'
                 }}>
                     {error && (
                         <div style={{
-                            padding: '15px',
+                            padding: '10px',
                             borderRadius: '6px',
                             backgroundColor: '#ffebee',
                             color: '#d32f2f',
                             border: '1px solid #ef9a9a',
-                            fontSize: '15px',
-                            marginBottom: '10px'
+                            fontSize: '14px',
+                            marginBottom: '0px'
                         }}>
                             {error}
                         </div>
@@ -751,7 +1183,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             backgroundColor: '#e8f5e9',
                             color: '#2e7d32',
                             border: '1px solid #a5d6a7',
-                            fontSize: '15px'
+                            fontSize: '14px'
                         }}>
                             {message}
                         </div>
@@ -759,56 +1191,142 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 </div>
             )}
 
-            {/* Action buttons */}
-            <div style={{
-                width: '95%',
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '20px',
-                marginTop: '10px',
-                marginBottom: '20px'
-            }}>
-                <button
-                    style={{
-                        padding: '14px 28px',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '17px',
-                        fontWeight: '600',
-                        cursor: isOptimizing ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s',
-                        opacity: isOptimizing ? 0.7 : 1
-                    }}
-                    onClick={handleCompress}
-                    disabled={isOptimizing}
-                >
-                    Compress Data
-                </button>
-
-                <button
-                    style={{
-                        padding: '14px 28px',
-                        backgroundColor: '#2196F3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '17px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        opacity: isOptimizing ? 0.7 : 1
-                    }}
-                    onClick={handleOptimize}
-                    disabled={isOptimizing}
-                >
-                    {isOptimizing ? 'Optimizing...' : 'Optimize Parameters'}
-                </button>
-            </div>
-
             {/* Time range selection modal */}
             {showTimeRangeModal && <TimeRangeModal />}
+            {showCloudModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.4)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 2000
+                }}>
+                    <div style={{
+                        backgroundColor: '#fff',
+                        padding: '24px',
+                        borderRadius: '10px',
+                        width: '90%',
+                        maxWidth: '700px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0 }}> Cloud Data Table</h3>
+                            <button
+                                onClick={() => setShowCloudModal(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '18px',
+                                    cursor: 'pointer',
+                                    color: '#999'
+                                }}
+                            >
+                                ✖
+                            </button>
+                        </div>
+                        <div style={{ marginTop: '16px' }}>
+                            <DataTable selectedSource={selectedSource} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDataSourcesModal && (
+            <div style={{
+                position: 'fixed',
+                top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 2000
+            }}>
+                <div style={{
+                    backgroundColor: '#fff',
+                    padding: '24px',
+                    borderRadius: '10px',
+                    width: '90%',
+                    maxWidth: '500px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0 }}> Select Data from Cloud </h3>
+                    <button
+                    onClick={() => setShowDataSourcesModal(false)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '18px',
+                        cursor: 'pointer',
+                        color: '#999'
+                    }}
+                    >
+                    ✖
+                    </button>
+                </div>
+
+                    <div>
+                        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
+                            <tbody>
+                            {availableSources.map((s, i) => {
+                                const shortName = s.qualifiedName.split(".").slice(-1)[0];
+                                return (
+                                    <tr key={i}>
+                                        <td
+                                            onClick={() => {
+                                                const filtered = allRawRows.filter(row => row.DataSource === s.qualifiedName);
+                                                const labels = filtered.map(row => row.UtcSampleTime);
+                                                const raw = filtered.map(row => parseFloat(row.NumericValue));
+
+                                                setLabels(labels);
+                                                setRawData(raw);
+                                                setFullLabels(labels);
+                                                setFullData(raw);
+                                                setAllTimes(labels.map(formatTime));
+                                                setStartTime(labels[0]);
+                                                setEndTime(labels[labels.length - 1]);
+                                                setMessage(`Loaded ${labels.length} points from ${s.qualifiedName}`);
+                                                setChartVisible(true);
+                                                setSelectedSource(s.qualifiedName);
+                                                setShowCloudModal(true);
+                                                setShowDataSourcesModal(false);
+                                            }}
+                                            style={{
+                                                padding: "14px 18px",
+                                                borderTop: "1px solid #eee",
+                                                borderBottom: "1px solid #eee",
+                                                cursor: "pointer",
+                                                color: "#0d47a1",
+                                                fontWeight: 500,
+                                                fontSize: "18px",
+                                                transition: "all 0.2s ease",
+                                                backgroundColor: "transparent"
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+
+                                        >
+                                            {shortName}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            </tbody>
+                        </table>
+
+                    </div>
+
+
+                </div>
+            </div>
+            )}
+            </div>
         </div>
     );
 });

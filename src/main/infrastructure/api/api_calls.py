@@ -1,8 +1,10 @@
 import json
 import pkce
 import datetime
+import csv
+import os
 
-from bottle import route, run, request, redirect
+from bottle import route, run, request, redirect, static_file
 
 import intelligent_plant.app_store_client as app_store
 import intelligent_plant.data_core_client as data_core
@@ -14,6 +16,13 @@ base_url = None
 #in the real world a new client would need to be instanced per user
 client = None
 code_verifier = None
+
+#we will write the data selected in the datasource to the public folder the react front end relies on
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+REACT_PUBLIC = os.path.abspath(
+    os.path.join(BASE_DIR, '..', '..', '..', 'public')
+)
+assert os.path.isdir(REACT_PUBLIC), f"Path not found: {REACT_PUBLIC}"
 
 #load the json config file with the app information
 with open('config.json') as json_config_file:
@@ -58,55 +67,98 @@ def data_sources():
             if k == 'Name':
                 qualifiedNames.append(v['QualifiedName'])
                 dsnNames[v['QualifiedName']] = v['Name']
+    
+    QUALIFIED_CSV_PATH = os.path.join(REACT_PUBLIC, "qualified_names.csv")
+    with open(QUALIFIED_CSV_PATH, "w", newline="") as fp:
+        writer = csv.writer(fp)
+        writer.writerow(["QualifiedName"])
+        for qn in qualifiedNames:
+            writer.writerow([qn])
+    print("✔ wrote", QUALIFIED_CSV_PATH)
 
     redirect('/get_data')
 
+
+# Route handler to fetch data from multiple data sources and save it to a CSV file
 @route('/get_data')
 def get_data():
-    #Once the data sources are retrieved, the tags are retrieved and parsed for the relevant data, and a request to get the data from the API is sent
-    global client
+    global client  # Assume client is an initialized global object for data fetching
 
-    dsn = '' #data source name
-    id = '' #data source ID
-    totalPointCount = 0 #total number of points in the data set
-    currentPointCount = 0 #number of data points retrieved so far
-    maxPointCount = 0 # number of data points to return - if this is set to 0, the max will be returned (5000)
+    returnData = []  # Will store the collected data rows
+    pointCount = 5000  # Maximum number of points to retrieve per tag
+    success_sources = []  # List of successfully processed data sources
+    failed_sources = []   # List of failed data sources with reasons
 
-    returnData = [] #2d array to return to the compression team where items are [time,value]
+    # Define the time range for data collection: last 365 days
+    endDate = datetime.datetime.utcnow()
+    startDate = endDate - datetime.timedelta(days=365)
 
-    #choose the data source to get data from
-    dsn = qualifiedNames[2] #the list item will be whatever data source the user chooses - HARDCODED FOR 'NOISYSINWAVE', NEEDS TO BE UPDATED BASED ON UI
-    
-    #retrieving tag data for the data source - this is needed for the API compression data query
-    tags = client.get_data_core_client().get_tags(dsn) #getting the dict from the API
-
-    id = tags[0]["Id"] #getting data from the dict
-    totalPointCount = tags[0]["Properties"]['Raw Sample Count']['Value'] #getting total data points
-
-    startDate = tags[0]["Properties"]['UTC Earliest Raw Sample Time']['Value'] #getting start datetime
-    endDate = tags[0]["Properties"]['UTC Latest Raw Sample Time']['Value'] #getting end datetime - these give errors, i dont know why because the code runs fine :(
-
-    print(totalPointCount)
-    print(maxPointCount)
-
-    while currentPointCount < totalPointCount: #while there are still points to be retrieved
-
-        #attempt to query the API
+    # Iterate over all qualified data source names
+    for dsn in qualifiedNames:
+        print(f"\n Checking data source: {dsn}")
         try:
-            data = client.get_data_core_client().get_raw_data({dsn:[id]},startDate,endDate,maxPointCount) #this is hardcoded to get data from the 9th of march to the 10th of march
-            print("API Request Complete!")
-        except:
-            print("API Request Failed.")
+            # Attempt to retrieve tags for the data source
+            tags = client.get_data_core_client().get_tags(dsn)
+            if not tags:
+                print(f"⚠ No tags found for {dsn}")
+                failed_sources.append((dsn, "No tags"))
+                continue
 
-        #add data point time and value to the array 'returnData'
-        for i in range(len(data[dsn][id]['Values'])):
-            returnData.append([data[dsn][id]['Values'][i]['UtcSampleTime'],data[dsn][id]['Values'][i]['NumericValue']])
-            
-            currentPointCount += 1
-        startDate = returnData[len(data[dsn][id]['Values'])-1][0]
+            tag_success = False  # Track if any tag returned usable data
 
-    #return the array as a string
+            # Try each tag under the data source
+            for tag in tags:
+                tag_id = tag.get("Id", "")
+                tag_name = tag.get("Name", "<unknown>")
+                try:
+                    # Attempt to get raw data for this tag
+                    data = client.get_data_core_client().get_raw_data({dsn: [tag_id]}, startDate, endDate, pointCount)
+                    values = data[dsn][tag_id]['Values']
+
+                    # If data points are found, add to return list and mark as successful
+                    if values:
+                        print(f" Tag '{tag_name}' returned {len(values)} values")
+                        for v in values:
+                            returnData.append([dsn, v['UtcSampleTime'], v['NumericValue']])
+                        success_sources.append(f"{dsn} ({tag_name})")
+                        tag_success = True
+                        break  # Stop after the first successful tag
+
+                    else:
+                        print(f" Tag '{tag_name}' returned 0 values")
+
+                except Exception as te:
+                    print(f" Error with tag '{tag_name}': {te}")
+                    continue  # Try next tag if one fails
+
+            if not tag_success:
+                failed_sources.append((dsn, "No tag returned values"))
+
+        except Exception as e:
+            print(f" Error with {dsn}: {e}")
+            failed_sources.append((dsn, str(e)))
+            continue
+
+    # Save all collected data into a CSV file accessible to React frontend
+    CSV_PATH = os.path.join(REACT_PUBLIC, "data_points.csv")
+    with open(CSV_PATH, "w", newline="") as fp:
+        writer = csv.writer(fp)
+        writer.writerow(["DataSource", "UtcSampleTime", "NumericValue"])  # CSV header
+        writer.writerows(returnData)
+
+    # Print summary of results to server log
+    print("\n CSV saved to:", CSV_PATH)
+    print(f"\n SUCCESSFUL SOURCES: {len(success_sources)}")
+    for s in success_sources:
+        print(f"   - {s}")
+    print(f"\n FAILED SOURCES: {len(failed_sources)}")
+    for s, reason in failed_sources:
+        print(f"   - {s}: {reason}")
+
+    # Return the collected data as a string (for debugging or confirmation)
     return str(returnData)
+
+
 
 @route('/refresh')
 def info():

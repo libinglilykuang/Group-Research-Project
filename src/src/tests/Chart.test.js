@@ -17,6 +17,7 @@ describe('ZoomableChart Component', () => {
         Line.mockClear();
     });
 
+    // Basic render test
     it('renders without crashing', () => {
         render(
             <ZoomableChart
@@ -28,6 +29,7 @@ describe('ZoomableChart Component', () => {
         );
     });
 
+    // Render with empty props
     it('renders with empty data when no props are provided', () => {
         render(<ZoomableChart />);
 
@@ -37,6 +39,7 @@ describe('ZoomableChart Component', () => {
         expect(chartProps.data.datasets[1].data).toEqual([]);
     });
 
+    // Data passed correctly to Line chart
     it('passes correct data to Line chart when provided with props', () => {
         render(
             <ZoomableChart
@@ -49,20 +52,21 @@ describe('ZoomableChart Component', () => {
 
         const chartProps = Line.mock.calls[0][0];
         expect(chartProps.data.labels).toEqual(mockLabels);
-        expect(chartProps.data.datasets[0].data).toEqual([
+        expect(chartProps.data.datasets[1].data).toEqual([
             { x: '1', y: 1 },
             { x: '2', y: 2 },
             { x: '3', y: 3 },
             { x: '4', y: 4 },
             { x: '5', y: 5 }
-        ]);
-        expect(chartProps.data.datasets[1].data).toEqual([
+            ]);
+        expect(chartProps.data.datasets[0].data).toEqual([
             { x: '1', y: 1.5 },
             { x: '3', y: 3.5 },
             { x: '5', y: 5 }
-        ]);
+            ]);
     });
 
+    // Chart options configuration validation
     it('has correct chart options configured', () => {
         render(
             <ZoomableChart
@@ -80,6 +84,7 @@ describe('ZoomableChart Component', () => {
         expect(chartProps.options.plugins.zoom.pan.enabled).toBe(true);
     });
 
+    // Handle empty rawData array
     it('handles empty rawData array correctly', () => {
         render(
             <ZoomableChart
@@ -91,10 +96,11 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].data).toEqual([]);
-        expect(chartProps.data.datasets[1].data.length).toBe(3);
+        expect(chartProps.data.datasets[1].data).toEqual([]);
+        expect(chartProps.data.datasets[0].data.length).toBe(3)
     });
 
+    // Handle empty compressedData array
     it('handles empty compressedData array correctly', () => {
         render(
             <ZoomableChart
@@ -106,10 +112,11 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].data.length).toBe(5);
-        expect(chartProps.data.datasets[1].data).toEqual([]);
+        expect(chartProps.data.datasets[1].data.length).toBe(5);
+        expect(chartProps.data.datasets[0].data).toEqual([]);
     });
 
+    // Snapshot testing
     it('matches snapshot with data', () => {
         const { asFragment } = render(
             <ZoomableChart
@@ -122,7 +129,7 @@ describe('ZoomableChart Component', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
-    // New passing tests
+    // Dataset border color validation
     it('applies correct border colors to datasets', () => {
         render(
             <ZoomableChart
@@ -134,10 +141,11 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].borderColor).toBe('#82ca9d');
-        expect(chartProps.data.datasets[1].borderColor).toBe('#8884d8');
+        expect(chartProps.data.datasets[0].borderColor).toBe('#8884d8');
+        expect(chartProps.data.datasets[1].borderColor).toBe('#82ca9d');
     });
 
+    // Dataset point radius configuration
     it('configures correct point radius for datasets', () => {
         render(
             <ZoomableChart
@@ -149,10 +157,11 @@ describe('ZoomableChart Component', () => {
         );
 
         const chartProps = Line.mock.calls[0][0];
-        expect(chartProps.data.datasets[0].pointRadius).toBe(2);
-        expect(chartProps.data.datasets[1].pointRadius).toBe(5);
+        expect(chartProps.data.datasets[0].pointRadius).toBe(4);
+        expect(chartProps.data.datasets[1].pointRadius).toBe(2);
     });
 
+    // Aspect ratio configuration
     it('maintains correct aspect ratio setting', () => {
         render(
             <ZoomableChart

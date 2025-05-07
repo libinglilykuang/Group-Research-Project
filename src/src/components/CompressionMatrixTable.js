@@ -11,8 +11,8 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
         const compressionRatio = compressedDataPoints === 0
             ? 'Infinity'
             : (rawDataPoints / compressedDataPoints).toFixed(2);
-        const storageSizeRaw = (rawDataPoints * 4 / (1024 * 1024)).toFixed(2);
-        const storageSizeCompressed = (compressedDataPoints * 4 / (1024 * 1024)).toFixed(2);
+        const storageSizeRaw = (rawDataPoints * 4 / 1024).toFixed(2); // Changed from MB to KB
+        const storageSizeCompressed = (compressedDataPoints * 4 / 1024).toFixed(2); // Changed from MB to KB
         let errorRate = '0.00';
         if (rawData.length > 0 && compressedData.length > 0) {
             const rawSum = rawData.reduce((sum, val) => sum + val, 0);
@@ -26,9 +26,9 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             { name: 'Number of Data Points (Raw)', value: rawDataPoints.toString(), testId: 'metric-value-raw-points' },
             { name: 'Number of Data Points (Compressed)', value: compressedDataPoints.toString(), testId: 'metric-value-compressed-points' },
             { name: 'Compression Ratio', value: compressionRatio, testId: 'metric-value-ratio' },
-            { name: 'Storage Size (Raw) (MB)', value: storageSizeRaw },
-            { name: 'Storage Size (Compressed) (MB)', value: storageSizeCompressed },
-            { name: 'Data Accuracy (Error Rate) (%)', value: errorRate, testId: 'metric-value-error-rate' },
+            { name: 'Storage Size (Raw) (KB)', value: storageSizeRaw },
+            { name: 'Storage Size (Compressed) (KB)', value: storageSizeCompressed },
+            { name: 'Error Rate (%)', value: errorRate, testId: 'metric-value-error-rate' },
         ];
     };
 
@@ -54,19 +54,32 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             setSaveModalOpen(false);
         }
     };
+    const handleDownloadConfig = () => {
+        const metricsData = metrics.reduce((acc, metric) => {
+            acc[metric.name] = metric.value;
+            return acc;
+        }, {});
+        const blob = new Blob([JSON.stringify(metricsData, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'metrics.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
 
     return (
         <div
             data-testid="scroll-container"
             style={{
-                maxHeight: '400px',
-                overflow: 'auto',
                 border: '1px solid #ccc',
                 borderRadius: '8px',
-                padding: '1rem',
+                padding: '0px',
+                margin: '0',
                 width: '100%',
                 boxSizing: 'border-box',
-                margin: '0 auto',
                 maxWidth: '95vw'
             }}
         >
@@ -76,7 +89,6 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                         role="table"
                         style={{
                             width: '100%',
-                            minWidth: '500px',
                             borderCollapse: 'collapse',
                             marginBottom: '20px',
                             tableLayout: 'fixed'
@@ -84,43 +96,15 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                     >
                         <thead>
                         <tr>
-                            <th style={{
-                                padding: '16px',
-                                textAlign: 'left',
-                                backgroundColor: '#f8f9fa',
-                                color: '#212529',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                borderBottom: '2px solid #dee2e6',
-                                borderTop: '1px solid #dee2e6',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                            }}>Metric</th>
-                            <th style={{
-                                padding: '16px',
-                                textAlign: 'left',
-                                backgroundColor: '#f8f9fa',
-                                color: '#212529',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                borderBottom: '2px solid #dee2e6',
-                                borderTop: '1px solid #dee2e6',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                            }}>Value</th>
+                            <th style={{ ...thStyle, width: '120px' }}>Metric</th>
+                            <th style={{ ...thStyle, width: '20px' }}>Value</th>
                         </tr>
                         </thead>
                         <tbody>
                         {metrics.map((item, index) => (
                             <tr key={index}>
-                                <td style={{
-                                    border: '1px solid #ddd',
-                                    padding: '8px',
-                                    wordBreak: 'break-word'
-                                }}>{item.name}</td>
-                                <td style={{
-                                    border: '1px solid #ddd',
-                                    padding: '8px',
-                                    wordBreak: 'break-word'
-                                }} data-testid={item.testId || null}>
+                                <td style={tdStyle}>{item.name}</td>
+                                <td style={tdStyle} data-testid={item.testId || null}>
                                     {item.value}
                                 </td>
                             </tr>
@@ -134,43 +118,61 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
                 </p>
             )}
 
-            <button
-                onClick={handleSave}
-                style={{
-                    display: 'block',
-                    width: '100%',
-                    maxWidth: '300px',
-                    padding: '12px 20px',
-                    fontSize: '16px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    margin: '20px auto 0',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.3s ease, transform 0.2s ease',
-                    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                }}
-                onMouseOver={(e) => {
-                    e.target.style.backgroundColor = '#218838';
-                    e.target.style.transform = 'scale(1.02)';
-                }}
-                onMouseOut={(e) => {
-                    e.target.style.backgroundColor = '#28a745';
-                    e.target.style.transform = 'scale(1)';
-                }}
-                onMouseDown={(e) => {
-                    e.target.style.backgroundColor = '#1e7e34';
-                    e.target.style.transform = 'scale(0.98)';
-                }}
-                onMouseUp={(e) => {
-                    e.target.style.backgroundColor = '#218838';
-                    e.target.style.transform = 'scale(1.02)';
-                }}
-                data-testid="save-button"
-            >
-                Save Optimal Configuration
-            </button>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                    <button
+                        onClick={handleSave}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '15px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            marginTop: '0px'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#45a049';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#4CAF50';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                        data-testid="save-button"
+                    >
+                        Save Configuration
+                    </button>
+
+                    <button
+                        onClick={handleDownloadConfig}
+                        title="Download Matrices"
+                        style={{
+                            padding: '6px 14px',
+                            backgroundColor: '#e3f2fd',
+                            color: '#1976d2',
+                            border: '1px solid #90caf9',
+                            borderRadius: '10px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#bbdefb';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#e3f2fd';
+                        }}
+                    >
+                        ⬇️
+                    </button>
+                </div>
+            </div>
 
             {isSaveModalOpen && (
                 <div
@@ -248,6 +250,25 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             )}
         </div>
     );
+};
+
+const thStyle = {
+    padding: '16px',
+    textAlign: 'left',
+    backgroundColor: '#f8f9fa',
+    color: '#212529',
+    fontSize: '14px',
+    fontWeight: 600,
+    borderBottom: '2px solid #dee2e6',
+    borderTop: '1px solid #dee2e6',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+};
+
+const tdStyle = {
+    border: '1px solid #ddd',
+    padding: '7px',
+    fontSize: '14px',
+    wordBreak: 'break-word'
 };
 
 MetricsTable.propTypes = {

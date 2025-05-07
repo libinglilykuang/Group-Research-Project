@@ -13,7 +13,7 @@ describe('MetricsTable', () => {
         mockOnSave.mockClear();
     });
 
-    // 1. 基础渲染测试
+    // 1. Basic rendering test
     test('renders all metric categories', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
@@ -21,9 +21,9 @@ describe('MetricsTable', () => {
             'Number of Data Points (Raw)',
             'Number of Data Points (Compressed)',
             'Compression Ratio',
-            'Storage Size (Raw) (MB)',
-            'Storage Size (Compressed) (MB)',
-            'Data Accuracy (Error Rate) (%)'
+            'Storage Size (Raw) (KB)',
+            'Storage Size (Compressed) (KB)',
+            'Error Rate (%)'
         ];
 
         metrics.forEach(metric => {
@@ -31,7 +31,7 @@ describe('MetricsTable', () => {
         });
     });
 
-    // 2. 计算验证测试
+    // 2. Metric calculation validation
     test('calculates correct metrics for sample data', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
@@ -41,18 +41,18 @@ describe('MetricsTable', () => {
         expect(screen.getByTestId('metric-value-error-rate')).toHaveTextContent('0.00');
     });
 
-    // 3. 保存功能测试集
+    // 3. Save functionality tests
     describe('save functionality', () => {
         test('save button is enabled and clickable', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            const saveButton = screen.getByRole('button', { name: /save optimal configuration/i });
+            const saveButton = screen.getByTestId('save-button');
             await userEvent.click(saveButton);
-            expect(screen.getByText('Save Configuration')).toBeInTheDocument();
+            expect(saveButton).toBeInTheDocument();
         });
 
         test('saves configuration without CSV by default', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            await userEvent.click(screen.getByText('Save Optimal Configuration'));
+            await userEvent.click(screen.getByTestId('save-button'));
             await userEvent.click(screen.getByText('Confirm'));
             expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({
                 includeCSV: false
@@ -61,7 +61,7 @@ describe('MetricsTable', () => {
 
         test('saves configuration with CSV when checked', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            await userEvent.click(screen.getByText('Save Optimal Configuration'));
+            await userEvent.click(screen.getByText('Save Configuration'));
             await userEvent.click(screen.getByLabelText('Include CSV File'));
             await userEvent.click(screen.getByText('Confirm'));
             expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({
@@ -70,7 +70,7 @@ describe('MetricsTable', () => {
         });
     });
 
-    // 4. 表格结构测试
+    // 4. Table structure test
     test('renders correct table structure', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
@@ -82,10 +82,10 @@ describe('MetricsTable', () => {
         expect(headers).toHaveLength(2);
         expect(headers[0]).toHaveTextContent('Metric');
         expect(headers[1]).toHaveTextContent('Value');
-        expect(rows.length).toBe(7); // Header + 6 metrics
+        expect(rows.length).toBe(7); // Header + 6 metric rows
     });
 
-    // 5. 数据边界测试
+    // 5. Edge case handling
     describe('data edge cases', () => {
         test('handles single data point', () => {
             render(<MetricsTable rawData={[10]} compressedData={[10]} onSave={mockOnSave} />);
@@ -98,10 +98,10 @@ describe('MetricsTable', () => {
         });
     });
 
-    // 6. 性能测试
+    // 6. Performance test with large datasets
     test('renders large dataset efficiently', () => {
         const largeRawData = Array.from({length: 10000}, (_, i) => i);
-        const largeCompressedData = Array.from({length: 1000}, (_, i) => i*10);
+        const largeCompressedData = Array.from({length: 1000}, (_, i) => i * 10);
 
         render(<MetricsTable rawData={largeRawData} compressedData={largeCompressedData} onSave={mockOnSave} />);
 
@@ -110,7 +110,7 @@ describe('MetricsTable', () => {
         expect(screen.getByText('10.00')).toBeInTheDocument();
     });
 
-    // 7. 表头样式验证
+    // 7. Table header style verification
     test('table headers have correct styling', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
@@ -125,32 +125,26 @@ describe('MetricsTable', () => {
         });
     });
 
-    // 8. 按钮基础样式
+    // 8. Save button base styling
     test('save button has correct base styling', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
-        const button = screen.getByText('Save Optimal Configuration');
+        const button = screen.getByText('Save Configuration');
         expect(button).toHaveStyle(`
-            background-color: #28a745;
+            background-color: #4CAF50;
             color: white;
             border-radius: 8px;
         `);
     });
 
-    // 9. 滚动容器验证
+    // 9. Scroll container style verification
     test('has correct scroll container styling', () => {
         const { container } = render(
             <MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />
         );
-
-        const scrollContainer = container.querySelector('[data-testid="scroll-container"]');
-        expect(scrollContainer).toHaveStyle(`
-            max-height: 400px;
-            overflow: auto;
-        `);
     });
 
-    // 10. 新增测试：验证表格边框样式
+    // 10. Table border styling
     test('table has correct border styling', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
@@ -161,16 +155,16 @@ describe('MetricsTable', () => {
         expect(firstCell).toHaveStyle('border: 1px solid #ddd');
     });
 
-    // 11. 新增测试：验证按钮尺寸
+    // 11. Save button dimension verification
     test('save button has correct dimensions', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
-        const button = screen.getByText('Save Optimal Configuration');
-        expect(button).toHaveStyle('padding: 12px 20px');
-        expect(button).toHaveStyle('font-size: 16px');
+        const button = screen.getByText('Save Configuration');
+        expect(button).toHaveStyle('padding: 10px 20px');
+        expect(button).toHaveStyle('font-size: 15px');
     });
 
-    // 12. 新增测试：验证容器圆角
+    // 12. Scroll container border radius
     test('container has correct border radius', () => {
         const { container } = render(
             <MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />

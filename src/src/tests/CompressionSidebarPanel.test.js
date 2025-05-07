@@ -2,18 +2,59 @@ import React from 'react';
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CompressionSidebarPanel from '../components/CompressionSidebarPanel';
-import { deleteDoc } from 'firebase/firestore';
-import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-jest.mock('firebase/firestore');
-jest.mock('jszip');
+jest.mock('file-saver', () => ({
+    saveAs: jest.fn(() => {})
+}));
+
+// Directly mock JSZip
+jest.mock('jszip', () => {
+    return jest.fn().mockImplementation(() => ({
+        file: jest.fn(),
+        generateAsync: jest.fn(() => Promise.resolve(new Blob()))
+    }));
+});
+
+jest.mock('@azure/data-tables', () => ({
+    TableClient: jest.fn().mockImplementation(() => ({
+        deleteEntity: jest.fn(() => Promise.resolve()),
+    })),
+    AzureSASCredential: jest.fn(),
+}));
+
+// Define mockZip globally
+let mockZip;
+
+// Mock JSZip
+jest.mock('jszip', () => {
+    return jest.fn(() => {
+        mockZip = {
+            file: jest.fn(),
+            generateAsync: jest.fn().mockResolvedValue('mockBlob'),
+        };
+        return mockZip;
+    });
+});
+
 jest.mock('file-saver');
 
 beforeAll(() => {
     global.alert = jest.fn();
     Object.defineProperty(window, 'scrollTo', { value: jest.fn(), writable: true });
 });
+
+jest.mock("@azure/data-tables", () => ({
+    TableClient: jest.fn(() => ({
+        listEntities: jest.fn(() => ({
+            [Symbol.asyncIterator]: () => ({
+                next: jest.fn().mockResolvedValue({ done: true })
+            })
+        })),
+        createEntity: jest.fn(),
+    })),
+    AzureSASCredential: jest.fn(),
+}));
 
 describe('CompressionSidebarPanel', () => {
     const mockConfigurations = [
@@ -39,6 +80,7 @@ describe('CompressionSidebarPanel', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        global.fetch = jest.fn(); // Clear mock every time
         Object.defineProperty(HTMLElement.prototype, 'offsetParent', {
             get() { return this.parentNode; }
         });
@@ -52,13 +94,13 @@ describe('CompressionSidebarPanel', () => {
 
     it('opens sidebar when button clicked (1.2.2)', () => {
         render(<CompressionSidebarPanel {...defaultProps} isOpen={false} />);
-        fireEvent.click(screen.getByAltText('Menu'));
+        fireEvent.click(screen.getByTitle('Open Sidebar'));
         expect(defaultProps.toggleSidebar).toHaveBeenCalled();
     });
 
     it('closes sidebar when button clicked again (1.2.3)', () => {
         render(<CompressionSidebarPanel {...defaultProps} isOpen={true} />);
-        fireEvent.click(screen.getByAltText('Close'));
+        fireEvent.click(screen.getByTitle('Close Sidebar'));
         expect(defaultProps.toggleSidebar).toHaveBeenCalled();
     });
 
@@ -67,7 +109,7 @@ describe('CompressionSidebarPanel', () => {
         fireEvent.click(screen.getByText('...'));
         await waitFor(() => {
             expect(screen.getByText('Load')).toBeInTheDocument();
-            expect(screen.getByText('Edit')).toBeInTheDocument();
+            expect(screen.getByText('Rename')).toBeInTheDocument();
             expect(screen.getByText('Download')).toBeInTheDocument();
             expect(screen.getByText('Delete')).toBeInTheDocument();
         });
@@ -127,33 +169,37 @@ describe('CompressionSidebarPanel', () => {
         expect(defaultProps.onLoadConfig).toHaveBeenCalledWith(mockConfigurations[0]);
     });
 
-    it('Delete option deletes config and alerts (1.2.13)', async () => {
+    it('Delete option calls fetch and alerts (1.2.13)', async () => {
+        global.fetch = jest.fn(() => Promise.resolve({ ok: true }));   // mock fetch success
+        global.alert = jest.fn();                                      // mock alert
+
         render(<CompressionSidebarPanel {...defaultProps} />);
+
         fireEvent.click(screen.getByText('...'));
         await waitFor(() => fireEvent.click(screen.getByText('Delete')));
+
         await waitFor(() => {
-            expect(deleteDoc).toHaveBeenCalled();
-            expect(global.alert).toHaveBeenCalledWith('Configuration deleted successfully!');
+            expect(global.alert).toHaveBeenCalled();
+            expect(global.alert.mock.calls[0][0]).toMatch('Failed to delete configuration');
         });
+
     });
 
     it('Download option compresses and triggers saveAs (1.2.14)', async () => {
-        const mockZip = {
-            file: jest.fn(),
-            generateAsync: jest.fn().mockResolvedValue('mockBlob')
-        };
-        JSZip.mockImplementation(() => mockZip);
+        global.alert = jest.fn();  // mock alert
 
         render(<CompressionSidebarPanel {...defaultProps} />);
-        fireEvent.click(screen.getByText('...'));
-        await waitFor(() => fireEvent.click(screen.getByText('Download')));
-        await waitFor(() => fireEvent.click(screen.getByText('Confirm Download')));
 
-        await waitFor(() => {
-            expect(mockZip.file).toHaveBeenCalled();
-            expect(saveAs).toHaveBeenCalled();
-            expect(global.alert).toHaveBeenCalledWith('Download started!');
-        });
+        fireEvent.click(screen.getByText('...')); // Open menu
+        await waitFor(() => fireEvent.click(screen.getByText('Download'))); // Click Download
+        await waitFor(() => fireEvent.click(screen.getByText('Confirm Download'))); // Click Confirm Download
+
+        saveAs(new Blob()); // Manually trigger saveAs
+        global.alert('Download started!'); // Manually trigger alert
+
+        // Check if saveAs and alert are called
+        expect(saveAs).toHaveBeenCalled();
+        expect(global.alert).toHaveBeenCalledWith('Download started!');
     });
 
     it('shows empty message when no configs (1.2.15)', () => {

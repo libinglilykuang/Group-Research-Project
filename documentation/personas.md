@@ -70,7 +70,7 @@ Gert Me Dare
 
 ### Core Needs:
 
-1. Ability to evaluate performance and identify inefficiencies.
+1. Ability to provide feedback for compression system depending on the intended results.
 2. Access to a measure of quality after the data has undergone the impact of the compression.
 
 ### Key Quotes:

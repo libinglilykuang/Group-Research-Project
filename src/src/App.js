@@ -418,7 +418,6 @@ function App() {
             .sort((a, b) => a.time - b.time);
     }, [compressedData, compressedLabels]);
 
-
     if (loading) {
         return (
             <div style={{ textAlign: "center", padding: "20px" }}>
@@ -441,35 +440,20 @@ function App() {
         <div
             className="App"
             style={{
-                position: "relative",
                 display: "flex",
                 flexDirection: "column",
                 overflow: 'hidden',
                 alignItems: "center",
                 minHeight: "100vh",
+                backgroundImage: "url('/icons/background.jpg')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
                 padding: "0px",
             }}
         >
-
-            <div
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundImage: 'url("/icons/background.jpg")',
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                    zIndex: 0,
-                    pointerEvents: "none"
-                }}
-            />
-
             <div style={{
                 width: '100%',
-                zIndex: 1,
                 backgroundColor: '#212121',
                 color: 'white',
                 padding: '12px 24px',
@@ -518,7 +502,6 @@ function App() {
                 marginBottom: "0px",
                 gap: "0px",
                 height: '360px',
-                zIndex: 1,
             }}>
                 {/* Left: ConfigPanel (wider) */}
                 <div style={{
@@ -582,9 +565,8 @@ function App() {
                     borderRadius: "8px",
                     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
                     padding: "0px 20px 20px 20px",
-                    marginBottom: "0px",
-                    height: "340px",
-                    zIndex: 1,
+                    marginBottom: "20px",
+                    height: "340px"
                 }}
             >
                 <ZoomableChart

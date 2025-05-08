@@ -148,16 +148,18 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
 
     const handleMaxResampleLimitChange = (e) => {
         const value = e.target.value;
-        if (validateParameter(value, 'maxResampleLimit') || value === '') {
-            const min = Number(minResampleLimit) || DEFAULT_VALUES.minResampleLimit;
-            if (value === '' || Number(value) >= min) {
-                setMaxResampleLimit(value);
-                setError('');
-            } else {
-                setError(`Max resample limit must be ≥ min limit (${min})`);
-            }
+        setMaxResampleLimit(value);
+        setError('');
+    };
+
+    const validateMaxResampleOnBlur = () => {
+        const min = Number(minResampleLimit) || DEFAULT_VALUES.minResampleLimit;
+        const max = Number(maxResampleLimit);
+
+        if (isNaN(max) || max < min) {
+            setError(`Max resample limit must be ≥ min interval ${min}`);
         } else {
-            setError(getValidationMessage('maxResampleLimit'));
+            setError('');
         }
     };
 
@@ -588,7 +590,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
         border: '1px solid #ccc',
         borderRadius: '4px',
         fontSize: '14px',
-        transition: 'border-color 0.3s'
+        transition: 'border-color 0.3s',
+        fontWeight: 530,
     };
 
     const selectStyle = {
@@ -600,14 +603,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
         display: 'block',
         fontSize: '12px',
         color: '#666',
-        marginTop: '4px'
+        marginTop: '4px',
     };
 
     const descStyle = {
         display: 'block',
         fontSize: '13px',
         color: '#666',
-        marginTop: '8px'
+        marginTop: '8px',
     };
 
     const fileInfoStyle = {
@@ -855,493 +858,494 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                 marginTop: '-22px'
             }}>
 
-            {/* Parameter configuration section */}
-            <div style={{ width: '100%', marginBottom: '0px', padding: '0 0px' }}>
-                <div style={{ padding: '20px' }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '6px 12px 10px 12px',
-                        borderBottom: '1px solid #eee'
-                    }}>
-                        <h2 style={{
-                            color: '#333',
-                            fontSize: '20px',
-                            fontWeight: 'bold',
-                            margin: 0
+                {/* Parameter configuration section */}
+                <div style={{ width: '100%', marginBottom: '0px', padding: '0 0px' }}>
+                    <div style={{ padding: '20px' }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '6px 12px 10px 12px',
+                            borderBottom: '1px solid #eee'
                         }}>
-                            Compression Parameters
-                        </h2>
+                            <h2 style={{
+                                color: '#333',
+                                fontSize: '20px',
+                                fontWeight: 'bold',
+                                margin: 0
+                            }}>
+                                Compression Parameters
+                            </h2>
 
-                        <div>
-                            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                                <button
-                                    onClick={() => document.getElementById('json-param-upload').click()}
-                                    style={{
-                                        padding: '6px 14px',
-                                        backgroundColor: '#e3f2fd',
-                                        color: '#1976d2',
-                                        border: '1px solid #90caf9',
-                                        borderRadius: '10px',
-                                        fontSize: '14px',
-                                        fontWeight: 500,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#bbdefb';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#e3f2fd';
-                                    }}
-                                >
-                                    🗂️ Import
-                                </button>
+                            <div>
+                                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                    <button
+                                        onClick={() => document.getElementById('json-param-upload').click()}
+                                        style={{
+                                            padding: '6px 14px',
+                                            backgroundColor: '#e3f2fd',
+                                            color: '#1976d2',
+                                            border: '1px solid #90caf9',
+                                            borderRadius: '10px',
+                                            fontSize: '14px',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#bbdefb';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                        }}
+                                    >
+                                        🗂️ Import
+                                    </button>
 
-                                <button
-                                    onClick={handleDownloadConfig}
-                                    style={{
-                                        padding: '6px 14px',
-                                        backgroundColor: '#e3f2fd',
-                                        color: '#1976d2',
-                                        border: '1px solid #90caf9',
-                                        borderRadius: '10px',
-                                        fontSize: '14px',
-                                        fontWeight: 500,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#bbdefb';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#e3f2fd';
-                                    }}
-                                >
-                                    ⬇️ Download Config
-                                </button>
-                            </div>
+                                    <button
+                                        onClick={handleDownloadConfig}
+                                        style={{
+                                            padding: '6px 14px',
+                                            backgroundColor: '#e3f2fd',
+                                            color: '#1976d2',
+                                            border: '1px solid #90caf9',
+                                            borderRadius: '10px',
+                                            fontSize: '14px',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#bbdefb';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                        }}
+                                    >
+                                        ⬇️ Download Config
+                                    </button>
+                                </div>
 
-                            <input
-                                id="json-param-upload"
-                                type="file"
-                                accept=".json"
-                                onChange={handleJsonUpload}
-                                style={{ display: 'none' }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Compression Parameters */}
-                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
-                        {/* Deviation Limit */}
-                        <div style={columnStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                <label
-                                    style={{
-                                        ...labelStyle,
-                                        width: '120px',
-                                        marginRight: '8px',
-                                        marginBottom: 0,
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    Deviation Limit:
-                                </label>
                                 <input
-                                    type="number"
-                                    min={VALIDATION_RANGES.compressionDeviationLimit.min}
-                                    max={VALIDATION_RANGES.compressionDeviationLimit.max}
-                                    step={VALIDATION_RANGES.compressionDeviationLimit.step}
-                                    value={compressionDeviationLimit}
-                                    onChange={handleCompressionDeviationLimitChange}
-                                    placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
-                                    style={{
-                                        ...inputStyle,
-                                        width: '80px',
-                                        padding: '6px 8px',
-                                        fontSize: '14px',
-                                        marginBottom: 0,
-                                        borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc'
-                                    }}
+                                    id="json-param-upload"
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handleJsonUpload}
+                                    style={{ display: 'none' }}
                                 />
                             </div>
-                            <span style={hintStyle}>
+                        </div>
+
+                        {/* Compression Parameters */}
+                        <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+                            {/* Deviation Limit */}
+                            <div style={columnStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                    <label
+                                        style={{
+                                            ...labelStyle,
+                                            width: '120px',
+                                            marginRight: '8px',
+                                            marginBottom: 0,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        Deviation Limit:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={VALIDATION_RANGES.compressionDeviationLimit.min}
+                                        max={VALIDATION_RANGES.compressionDeviationLimit.max}
+                                        step={VALIDATION_RANGES.compressionDeviationLimit.step}
+                                        value={compressionDeviationLimit}
+                                        onChange={handleCompressionDeviationLimitChange}
+                                        placeholder={DEFAULT_VALUES.compressionDeviationLimit.toString()}
+                                        style={{
+                                            ...inputStyle,
+                                            width: '80px',
+                                            padding: '6px 8px',
+                                            fontSize: '14px',
+                                            marginBottom: 0,
+                                            borderColor: error.includes('compressionDeviationLimit') ? 'red' : '#ccc'
+                                        }}
+                                    />
+                                </div>
+                                <span style={hintStyle}>
             Range: {VALIDATION_RANGES.compressionDeviationLimit.min}-{VALIDATION_RANGES.compressionDeviationLimit.max} · Maximum allowed deviation
         </span>
+                            </div>
+
+                            {/* Deviation Type */}
+                            <div style={columnStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                    <label
+                                        style={{
+                                            ...labelStyle,
+                                            width: '120px',
+                                            marginRight: '8px',
+                                            marginBottom: 0,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        Deviation Type:
+                                    </label>
+                                    <select
+                                        value={compressionDeviationType}
+                                        onChange={handleCompressionDeviationTypeChange}
+                                        style={{
+                                            ...selectStyle,
+                                            width: '120px',
+                                            padding: '6px 8px',
+                                            fontSize: '14px',
+                                            marginBottom: 0
+                                        }}
+                                    >
+                                        <option value="">Select type</option>
+                                        <option value="percentage">Percentage</option>
+                                        <option value="absolute">Absolute</option>
+                                    </select>
+                                </div>
+                                <span style={descStyle}>Type of deviation (default: percentage)</span>
+                            </div>
                         </div>
 
-                        {/* Deviation Type */}
-                        <div style={columnStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                <label
-                                    style={{
+                        {/* Exception Filter */}
+                        <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+                            {/* Exception Filter Limit */}
+                            <div style={columnStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                    <label style={{
                                         ...labelStyle,
                                         width: '120px',
                                         marginRight: '8px',
-                                        marginBottom: 0,
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    Deviation Type:
-                                </label>
-                                <select
-                                    value={compressionDeviationType}
-                                    onChange={handleCompressionDeviationTypeChange}
-                                    style={{
-                                        ...selectStyle,
-                                        width: '120px',
-                                        padding: '6px 8px',
-                                        fontSize: '14px',
                                         marginBottom: 0
-                                    }}
-                                >
-                                    <option value="">Select type</option>
-                                    <option value="percentage">Percentage</option>
-                                    <option value="absolute">Absolute</option>
-                                </select>
-                            </div>
-                            <span style={descStyle}>Type of deviation (default: percentage)</span>
-                        </div>
-                    </div>
-
-                    {/* Exception Filter */}
-                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
-                        {/* Exception Filter Limit */}
-                        <div style={columnStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                <label style={{
-                                    ...labelStyle,
-                                    width: '120px',
-                                    marginRight: '8px',
-                                    marginBottom: 0
-                                }}>
-                                    Filter Limit:
-                                </label>
-                                <input
-                                    type="number"
-                                    min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
-                                    max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
-                                    step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
-                                    value={exceptionFilterDeviationLimit}
-                                    onChange={handleExceptionFilterDeviationLimitChange}
-                                    placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
-                                    style={{
-                                        ...inputStyle,
-                                        width: '80px',
-                                        padding: '6px 8px',
-                                        fontSize: '14px',
-                                        marginBottom: 0,
-                                        borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc'
-                                    }}
-                                />
-                            </div>
-                            <span style={hintStyle}>
+                                    }}>
+                                        Filter Limit:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={VALIDATION_RANGES.exceptionFilterDeviationLimit.min}
+                                        max={VALIDATION_RANGES.exceptionFilterDeviationLimit.max}
+                                        step={VALIDATION_RANGES.exceptionFilterDeviationLimit.step}
+                                        value={exceptionFilterDeviationLimit}
+                                        onChange={handleExceptionFilterDeviationLimitChange}
+                                        placeholder={DEFAULT_VALUES.exceptionFilterDeviationLimit.toString()}
+                                        style={{
+                                            ...inputStyle,
+                                            width: '80px',
+                                            padding: '6px 8px',
+                                            fontSize: '14px',
+                                            marginBottom: 0,
+                                            borderColor: error.includes('exceptionFilterDeviationLimit') ? 'red' : '#ccc'
+                                        }}
+                                    />
+                                </div>
+                                <span style={hintStyle}>
             Range: {VALIDATION_RANGES.exceptionFilterDeviationLimit.min}-{VALIDATION_RANGES.exceptionFilterDeviationLimit.max} · Threshold for anomaly filtering
         </span>
-                        </div>
-
-                        {/* Deviation Type */}
-                        <div style={columnStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                <label
-                                    style={{
-                                        ...labelStyle,
-                                        width: '120px',
-                                        marginRight: '8px',
-                                        marginBottom: 0,
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    Deviation Type:
-                                </label>
-                                <select
-                                    value={exceptionFilterDeviationType}
-                                    onChange={handleExceptionFilterDeviationTypeChange}
-                                    style={{
-                                        ...selectStyle,
-                                        width: '120px',
-                                        padding: '6px 8px',
-                                        fontSize: '14px',
-                                        marginBottom: 0
-                                    }}
-                                >
-                                    <option value="">Select type</option>
-                                    <option value="percentage">Percentage</option>
-                                    <option value="absolute">Absolute</option>
-                                </select>
                             </div>
-                            <span style={hintStyle}>
+
+                            {/* Deviation Type */}
+                            <div style={columnStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                    <label
+                                        style={{
+                                            ...labelStyle,
+                                            width: '120px',
+                                            marginRight: '8px',
+                                            marginBottom: 0,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        Deviation Type:
+                                    </label>
+                                    <select
+                                        value={exceptionFilterDeviationType}
+                                        onChange={handleExceptionFilterDeviationTypeChange}
+                                        style={{
+                                            ...selectStyle,
+                                            width: '120px',
+                                            padding: '6px 8px',
+                                            fontSize: '14px',
+                                            marginBottom: 0
+                                        }}
+                                    >
+                                        <option value="">Select type</option>
+                                        <option value="percentage">Percentage</option>
+                                        <option value="absolute">Absolute</option>
+                                    </select>
+                                </div>
+                                <span style={hintStyle}>
             Type of deviation (default: absolute)
         </span>
-                        </div>
-                    </div>
-
-
-                    {/* Resampling Parameters */}
-                    <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
-
-                        {/* Min Resample Interval */}
-                        <div style={columnStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                <label
-                                    style={{
-                                        ...labelStyle,
-                                        width: '120px',
-                                        marginRight: '8px',
-                                        marginBottom: 0,
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    Min Interval (s):
-                                </label>
-                                <input
-                                    type="number"
-                                    min={VALIDATION_RANGES.minResampleLimit.min}
-                                    max={VALIDATION_RANGES.minResampleLimit.max}
-                                    step={VALIDATION_RANGES.minResampleLimit.step}
-                                    value={minResampleLimit}
-                                    onChange={handleMinResampleLimitChange}
-                                    placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
-                                    style={{
-                                        ...inputStyle,
-                                        width: '80px',
-                                        padding: '6px 8px',
-                                        fontSize: '14px',
-                                        marginBottom: 0,
-                                        borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc'
-                                    }}
-                                />
                             </div>
-                            <span style={hintStyle}>
+                        </div>
+
+
+                        {/* Resampling Parameters */}
+                        <div style={{ ...rowStyle, gap: '20px', marginBottom: '20px' }}>
+
+                            {/* Min Resample Interval */}
+                            <div style={columnStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                    <label
+                                        style={{
+                                            ...labelStyle,
+                                            width: '120px',
+                                            marginRight: '8px',
+                                            marginBottom: 0,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        Min Interval (s):
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={VALIDATION_RANGES.minResampleLimit.min}
+                                        max={VALIDATION_RANGES.minResampleLimit.max}
+                                        step={VALIDATION_RANGES.minResampleLimit.step}
+                                        value={minResampleLimit}
+                                        onChange={handleMinResampleLimitChange}
+                                        placeholder={DEFAULT_VALUES.minResampleLimit.toString()}
+                                        style={{
+                                            ...inputStyle,
+                                            width: '80px',
+                                            padding: '6px 8px',
+                                            fontSize: '14px',
+                                            marginBottom: 0,
+                                            borderColor: error.includes('minResampleLimit') ? 'red' : '#ccc'
+                                        }}
+                                    />
+                                </div>
+                                <span style={hintStyle}>
             Range: {VALIDATION_RANGES.minResampleLimit.min}-{VALIDATION_RANGES.minResampleLimit.max} {VALIDATION_RANGES.minResampleLimit.unit} · Minimum time between samples
         </span>
-                        </div>
-
-                        {/* Max Resample Interval */}
-                        <div style={columnStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                <label
-                                    style={{
-                                        ...labelStyle,
-                                        width: '120px',
-                                        marginRight: '8px',
-                                        marginBottom: 0,
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    Max Interval (s):
-                                </label>
-                                <input
-                                    type="number"
-                                    min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
-                                    max={VALIDATION_RANGES.maxResampleLimit.max}
-                                    step={VALIDATION_RANGES.maxResampleLimit.step}
-                                    value={maxResampleLimit}
-                                    onChange={handleMaxResampleLimitChange}
-                                    placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
-                                    style={{
-                                        ...inputStyle,
-                                        width: '80px',
-                                        padding: '6px 8px',
-                                        fontSize: '14px',
-                                        marginBottom: 0,
-                                        borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc'
-                                    }}
-                                />
                             </div>
-                            <span style={hintStyle}>
+
+                            {/* Max Resample Interval */}
+                            <div style={columnStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                    <label
+                                        style={{
+                                            ...labelStyle,
+                                            width: '120px',
+                                            marginRight: '8px',
+                                            marginBottom: 0,
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        Max Interval (s):
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={minResampleLimit || DEFAULT_VALUES.minResampleLimit}
+                                        max={VALIDATION_RANGES.maxResampleLimit.max}
+                                        step={VALIDATION_RANGES.maxResampleLimit.step}
+                                        value={maxResampleLimit}
+                                        onChange={handleMaxResampleLimitChange}
+                                        onBlur={validateMaxResampleOnBlur}
+                                        placeholder={DEFAULT_VALUES.maxResampleLimit.toString()}
+                                        style={{
+                                            ...inputStyle,
+                                            width: '80px',
+                                            padding: '6px 8px',
+                                            fontSize: '14px',
+                                            marginBottom: 0,
+                                            borderColor: error.includes('maxResampleLimit') ? 'red' : '#ccc'
+                                        }}
+                                    />
+                                </div>
+                                <span style={hintStyle}>
             Range: {VALIDATION_RANGES.maxResampleLimit.min}-{VALIDATION_RANGES.maxResampleLimit.max} {VALIDATION_RANGES.maxResampleLimit.unit} · Maximum time between samples
         </span>
+                            </div>
                         </div>
                     </div>
+
                 </div>
 
-            </div>
-
-            {/* Status messages */}
-            {(error || message) && (
-                <div style={{
-                    width: '100%',
-                    marginTop: '-15px',
-                    marginBottom: '0px',
-                    textAlign: 'center'
-                }}>
-                    {error && (
-                        <div style={{
-                            padding: '10px',
-                            borderRadius: '6px',
-                            backgroundColor: '#ffebee',
-                            color: '#d32f2f',
-                            border: '1px solid #ef9a9a',
-                            fontSize: '14px',
-                            marginBottom: '0px'
-                        }}>
-                            {error}
-                        </div>
-                    )}
-                    {message && (
-                        <div style={{
-                            padding: '15px',
-                            borderRadius: '6px',
-                            backgroundColor: '#e8f5e9',
-                            color: '#2e7d32',
-                            border: '1px solid #a5d6a7',
-                            fontSize: '14px'
-                        }}>
-                            {message}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Time range selection modal */}
-            {showTimeRangeModal && <TimeRangeModal />}
-            {showCloudModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.4)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 2000
-                }}>
+                {/* Status messages */}
+                {(error || message) && (
                     <div style={{
-                        backgroundColor: '#fff',
-                        padding: '24px',
-                        borderRadius: '10px',
-                        width: '90%',
-                        maxWidth: '700px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                        width: '100%',
+                        marginTop: '-15px',
+                        marginBottom: '0px',
+                        textAlign: 'center'
                     }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0 }}> Cloud Data Table</h3>
-                            <button
-                                onClick={() => setShowCloudModal(false)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    fontSize: '18px',
-                                    cursor: 'pointer',
-                                    color: '#999'
-                                }}
-                            >
-                                ✖
-                            </button>
-                        </div>
-                        <div style={{ marginTop: '16px' }}>
-                            <DataTable selectedSource={selectedSource} />
+                        {error && (
+                            <div style={{
+                                padding: '10px',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffebee',
+                                color: '#d32f2f',
+                                border: '1px solid #ef9a9a',
+                                fontSize: '14px',
+                                marginBottom: '0px'
+                            }}>
+                                {error}
+                            </div>
+                        )}
+                        {message && (
+                            <div style={{
+                                padding: '15px',
+                                borderRadius: '6px',
+                                backgroundColor: '#e8f5e9',
+                                color: '#2e7d32',
+                                border: '1px solid #a5d6a7',
+                                fontSize: '14px'
+                            }}>
+                                {message}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Time range selection modal */}
+                {showTimeRangeModal && <TimeRangeModal />}
+                {showCloudModal && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.4)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 2000
+                    }}>
+                        <div style={{
+                            backgroundColor: '#fff',
+                            padding: '24px',
+                            borderRadius: '10px',
+                            width: '90%',
+                            maxWidth: '700px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ margin: 0 }}> Cloud Data Table</h3>
+                                <button
+                                    onClick={() => setShowCloudModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        fontSize: '18px',
+                                        cursor: 'pointer',
+                                        color: '#999'
+                                    }}
+                                >
+                                    ✖
+                                </button>
+                            </div>
+                            <div style={{ marginTop: '16px' }}>
+                                <DataTable selectedSource={selectedSource} />
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {showDataSourcesModal && (
-            <div style={{
-                position: 'fixed',
-                top: 0, left: 0, right: 0, bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.4)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 2000
-            }}>
-                <div style={{
-                    backgroundColor: '#fff',
-                    padding: '24px',
-                    borderRadius: '10px',
-                    width: '90%',
-                    maxWidth: '500px',
-                    maxHeight: '90vh',
-                    overflowY: 'auto',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}> Select Data from Cloud </h3>
-                    <button
-                    onClick={() => setShowDataSourcesModal(false)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '18px',
-                        cursor: 'pointer',
-                        color: '#999'
-                    }}
-                    >
-                    ✖
-                    </button>
-                </div>
+                {showDataSourcesModal && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.4)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 2000
+                    }}>
+                        <div style={{
+                            backgroundColor: '#fff',
+                            padding: '24px',
+                            borderRadius: '10px',
+                            width: '90%',
+                            maxWidth: '500px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ margin: 0 }}> Select Data from Cloud </h3>
+                                <button
+                                    onClick={() => setShowDataSourcesModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        fontSize: '18px',
+                                        cursor: 'pointer',
+                                        color: '#999'
+                                    }}
+                                >
+                                    ✖
+                                </button>
+                            </div>
 
-                    <div>
-                        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
-                            <tbody>
-                            {availableSources.map((s, i) => {
-                                const shortName = s.qualifiedName.split(".").slice(-1)[0];
-                                return (
-                                    <tr key={i}>
-                                        <td
-                                            onClick={() => {
-                                                const filtered = allRawRows.filter(row => row.DataSource === s.qualifiedName);
-                                                const labels = filtered.map(row => row.UtcSampleTime);
-                                                const raw = filtered.map(row => parseFloat(row.NumericValue));
+                            <div>
+                                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
+                                    <tbody>
+                                    {availableSources.map((s, i) => {
+                                        const shortName = s.qualifiedName.split(".").slice(-1)[0];
+                                        return (
+                                            <tr key={i}>
+                                                <td
+                                                    onClick={() => {
+                                                        const filtered = allRawRows.filter(row => row.DataSource === s.qualifiedName);
+                                                        const labels = filtered.map(row => row.UtcSampleTime);
+                                                        const raw = filtered.map(row => parseFloat(row.NumericValue));
 
-                                                setLabels(labels);
-                                                setRawData(raw);
-                                                setFullLabels(labels);
-                                                setFullData(raw);
-                                                setAllTimes(labels.map(formatTime));
-                                                setStartTime(labels[0]);
-                                                setEndTime(labels[labels.length - 1]);
+                                                        setLabels(labels);
+                                                        setRawData(raw);
+                                                        setFullLabels(labels);
+                                                        setFullData(raw);
+                                                        setAllTimes(labels.map(formatTime));
+                                                        setStartTime(labels[0]);
+                                                        setEndTime(labels[labels.length - 1]);
 
-                                                if (typeof setCompressedData === 'function') setCompressedData([]);
-                                                if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
+                                                        if (typeof setCompressedData === 'function') setCompressedData([]);
+                                                        if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
 
-                                                const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
-                                                setFileState(fakeFile);
-                                                setFile(fakeFile);
-                                                setError('');
+                                                        const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+                                                        setFileState(fakeFile);
+                                                        setFile(fakeFile);
+                                                        setError('');
 
-                                                const shortName = s.qualifiedName.split('.').slice(-1)[0];
-                                                setMessage(`Loaded from ${shortName}`);
+                                                        const shortName = s.qualifiedName.split('.').slice(-1)[0];
+                                                        setMessage(`Loaded from ${shortName}`);
 
-                                                setChartVisible(true);
-                                                setSelectedSource(s.qualifiedName);
-                                                setShowCloudModal(true);
-                                                setShowDataSourcesModal(false);
-                                            }}
+                                                        setChartVisible(true);
+                                                        setSelectedSource(s.qualifiedName);
+                                                        setShowCloudModal(true);
+                                                        setShowDataSourcesModal(false);
+                                                    }}
 
-                                            style={{
-                                                padding: "14px 18px",
-                                                borderTop: "1px solid #eee",
-                                                borderBottom: "1px solid #eee",
-                                                cursor: "pointer",
-                                                color: "#0d47a1",
-                                                fontWeight: 500,
-                                                fontSize: "18px",
-                                                transition: "all 0.2s ease",
-                                                backgroundColor: "transparent"
-                                            }}
-                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
-                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
-                                        >
-                                            {shortName}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            </tbody>
-                        </table>
+                                                    style={{
+                                                        padding: "14px 18px",
+                                                        borderTop: "1px solid #eee",
+                                                        borderBottom: "1px solid #eee",
+                                                        cursor: "pointer",
+                                                        color: "#0d47a1",
+                                                        fontWeight: 500,
+                                                        fontSize: "18px",
+                                                        transition: "all 0.2s ease",
+                                                        backgroundColor: "transparent"
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
+                                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                                                >
+                                                    {shortName}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    </tbody>
+                                </table>
 
+                            </div>
+
+
+                        </div>
                     </div>
-
-
-                </div>
-            </div>
-            )}
+                )}
             </div>
         </div>
     );

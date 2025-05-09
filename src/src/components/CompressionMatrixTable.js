@@ -267,10 +267,9 @@ const thStyle = {
 
 const tdStyle = {
     border: '1px solid #ddd',
-    padding: '7px',
+    padding: '10px',
     fontSize: '14px',
-    fontWeight: 550,
-    color: '#555',
+    fontWeight: 540,
     wordBreak: 'break-word',
     fontFamily: 'Arial, sans-serif'
 };

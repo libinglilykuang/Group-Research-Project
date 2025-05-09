@@ -6,7 +6,7 @@ import DataTable from './DataTable.js';
 const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing, setCompressedData, setCompressedLabels, onUploadComplete  }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
-        compressionDeviationLimit: { min: 0, max: 10, unit: '', step: 0.1 },
+        compressionDeviationLimit: { min: 0, max: 200, unit: '', step: 0.1 },
         exceptionFilterDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
         minResampleLimit: { min: 0, max: 3600, unit: 'seconds', step: 1 },
         maxResampleLimit: { min: 0, max: 86400, unit: 'seconds', step: 1 }
@@ -372,7 +372,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
         }
         setIsOptimizing(true);
         setError('');
-        setMessage(`Optimization complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
+        setMessage(`Optimisation complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
         setTimeout(() => {
             setCompressionDeviationLimit('1.5');
             setCompressionDeviationType('percentage');
@@ -381,7 +381,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
             setMinResampleLimit('1');
             setMaxResampleLimit('8');
             setIsOptimizing(false);
-            setMessage(`Optimization complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
+            setMessage(`Optimisation complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
 
             const optimizedParams = {
                 compressionDeviationLimit: '1.5',
@@ -941,16 +941,13 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                             {/* Deviation Limit */}
                             <div style={columnStyle}>
                                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                    <label
-                                        style={{
-                                            ...labelStyle,
-                                            width: '120px',
-                                            marginRight: '8px',
-                                            marginBottom: 0,
-                                            whiteSpace: 'nowrap'
-                                        }}
-                                    >
-                                        Deviation Limit:
+                                    <label style={{
+                                        ...labelStyle,
+                                        width: '120px',
+                                        marginRight: '8px',
+                                        marginBottom: 0
+                                    }}>
+                                        Compression Deviation Limit:
                                     </label>
                                     <input
                                         type="number"
@@ -1020,7 +1017,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                                         marginRight: '8px',
                                         marginBottom: 0
                                     }}>
-                                        Filter Limit:
+                                        Exception Filter Limit:
                                     </label>
                                     <input
                                         type="number"

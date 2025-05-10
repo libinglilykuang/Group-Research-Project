@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import Papa from 'papaparse';
 import DataTable from './DataTable.js';
 
-const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, ref) => {
+const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isCompressing, setCompressedData, setCompressedLabels, onUploadComplete  }, ref) => {
     // Parameter validation ranges
     const VALIDATION_RANGES = {
-        compressionDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
+        compressionDeviationLimit: { min: 0, max: 200, unit: '', step: 0.1 },
         exceptionFilterDeviationLimit: { min: 0, max: 100, unit: '', step: 0.1 },
         minResampleLimit: { min: 0, max: 3600, unit: 'seconds', step: 1 },
         maxResampleLimit: { min: 0, max: 86400, unit: 'seconds', step: 1 }
@@ -46,6 +46,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
     const [availableSources, setAvailableSources] = useState([]);
     const [allRawRows, setAllRawRows] = useState([]);
     const [selectedSource, setSelectedSource] = useState(null);
+    const [waitingUpload, setWaitingUpload] = useState(false);
 
     useEffect(() => {
         const saved = sessionStorage.getItem('lastOptimizedParams');
@@ -84,6 +85,20 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             });
     }, []);
 
+    useEffect(() => {
+        if (waitingUpload && fullData.length && fullLabels.length) {
+            const generatedConfig = {
+                rawData: fullData,
+                labels: fullLabels,
+                name: file?.name || 'uploaded.csv',
+                parameters: ref?.current?.getParams?.()
+            };
+            if (typeof onUploadComplete === 'function') {
+                onUploadComplete(generatedConfig);
+            }
+            setWaitingUpload(false);
+        }
+    }, [waitingUpload, fullData, fullLabels, onUploadComplete, file, ref]);
 
     // Parameter validation function
     const validateParameter = (value, paramName) => {
@@ -133,16 +148,18 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
 
     const handleMaxResampleLimitChange = (e) => {
         const value = e.target.value;
-        if (validateParameter(value, 'maxResampleLimit') || value === '') {
-            const min = Number(minResampleLimit) || DEFAULT_VALUES.minResampleLimit;
-            if (value === '' || Number(value) >= min) {
-                setMaxResampleLimit(value);
-                setError('');
-            } else {
-                setError(`Max resample limit must be ≥ min limit (${min})`);
-            }
+        setMaxResampleLimit(value);
+        setError('');
+    };
+
+    const validateMaxResampleOnBlur = () => {
+        const min = Number(minResampleLimit) || DEFAULT_VALUES.minResampleLimit;
+        const max = Number(maxResampleLimit);
+
+        if (isNaN(max) || max < min) {
+            setError(`Max resample limit must be ≥ min interval ${min}`);
         } else {
-            setError(getValidationMessage('maxResampleLimit'));
+            setError('');
         }
     };
 
@@ -208,11 +225,30 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 setError('Please upload a CSV file');
                 return;
             }
+
             setFileState(selectedFile);
             setFile(selectedFile);
+
+            if (typeof setCompressedData === 'function') setCompressedData([]);
+            if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
+
             parseCSV(selectedFile);
+
+            setWaitingUpload(true);
         }
-    }, [parseCSV, setFile]);
+    }, [
+        parseCSV,
+        setFile,
+        setCompressedData,
+        setCompressedLabels,
+        setFileState,
+        fullData,
+        fullLabels,
+        ref,
+        onUploadComplete
+    ]);
+
+
 
     // Handle file input change
     const handleFileInputChange = (e) => {
@@ -241,7 +277,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         };
         reader.readAsText(file);
     };
-
 
     // Drag and drop handlers
     const handleDragEnter = (e) => {
@@ -326,7 +361,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             return;
         }
         setError('');
-        setMessage('Compressing data...');
         onCompress();
     };
 
@@ -338,7 +372,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         }
         setIsOptimizing(true);
         setError('');
-        setMessage(`Optimization complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
+        setMessage(`Optimisation complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
         setTimeout(() => {
             setCompressionDeviationLimit('1.5');
             setCompressionDeviationType('percentage');
@@ -347,7 +381,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setMinResampleLimit('1');
             setMaxResampleLimit('8');
             setIsOptimizing(false);
-            setMessage(`Optimization complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
+            setMessage(`Optimisation complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
 
             const optimizedParams = {
                 compressionDeviationLimit: '1.5',
@@ -360,35 +394,6 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             sessionStorage.setItem('lastOptimizedParams', JSON.stringify(optimizedParams));
         }, 2000);
     };
-
-    const loadUncompressedTestData = () => {
-          fetch(process.env.PUBLIC_URL + '/data_points.csv')
-            .then((res) => res.text())
-            .then((csv) => {
-              const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
-              const labels = data.map((row) => row.UtcSampleTime);
-              const raw   = data.map((row) => parseFloat(row.NumericValue));
-              setLabels(labels);
-              setRawData(raw);   
-              setChartVisible(true);
-              setShowDataSourcesModal(false);
-
-                setFullLabels(labels);
-                setFullData(raw);
-                setLabels(labels);
-                setRawData(raw);
-                setAllTimes(labels.map(formatTime));
-                setStartTime(labels[0]);
-                setEndTime(labels[labels.length - 1]);
-                setFileState({ name: 'cloud.csv' });
-                setFile({ name: 'cloud.csv' });
-                setMessage(`Loaded ${labels.length} points from cloud.csv`);
-                setChartVisible(true);
-                setShowDataSourcesModal(false);
-            })
-            .catch(console.error);
-        };
-
 
     // Time range modal component
     const TimeRangeModal = () => (
@@ -523,19 +528,23 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
             setFile(file);
             parseCSV(file);
         },
-        loadFromCloud: (labels, data) => {
+        loadFromCloud: (labels, data, name = 'cloud.csv', compressedData = [], compressedLabels = []) => {
             setFullLabels(labels);
             setFullData(data);
             setLabels(labels);
             setRawData(data);
+
+            if (typeof setCompressedData === 'function') setCompressedData(compressedData);
+            if (typeof setCompressedLabels === 'function') setCompressedLabels(compressedLabels);
+
             setStartTime(labels[0] || '');
             setEndTime(labels[labels.length - 1] || '');
             setAllTimes(labels.map(formatTime));
-            const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+
+            const fakeFile = new File([""], name, { type: "text/csv" });
             setFileState(fakeFile);
             setFile(fakeFile);
-
-        }
+        },
     }));
 
     // Style definitions
@@ -581,7 +590,8 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         border: '1px solid #ccc',
         borderRadius: '4px',
         fontSize: '14px',
-        transition: 'border-color 0.3s'
+        transition: 'border-color 0.3s',
+        fontWeight: 530,
     };
 
     const selectStyle = {
@@ -593,14 +603,14 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         display: 'block',
         fontSize: '12px',
         color: '#666',
-        marginTop: '4px'
+        marginTop: '4px',
     };
 
     const descStyle = {
         display: 'block',
         fontSize: '13px',
         color: '#666',
-        marginTop: '8px'
+        marginTop: '8px',
     };
 
     const fileInfoStyle = {
@@ -614,6 +624,27 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
         alignItems: 'center',
         justifyContent: 'center'
     };
+
+    const handleDownloadConfig = () => {
+        const config = {
+            compressionDeviationLimit,
+            compressionDeviationType,
+            exceptionFilterDeviationLimit,
+            exceptionFilterDeviationType,
+            minResampleLimit,
+            maxResampleLimit,
+        };
+
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'parameters.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
 
     // Render UI
     return (
@@ -806,7 +837,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                             Compression Parameters
                         </h2>
 
-                        <div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
                             <button
                                 onClick={() => document.getElementById('json-param-upload').click()}
                                 style={{
@@ -828,6 +859,28 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                                 }}
                             >
                                 🗂️ Import Config
+                            </button>
+                            <button
+                                onClick={handleDownloadConfig}
+                                style={{
+                                    padding: '6px 14px',
+                                    backgroundColor: '#e3f2fd',
+                                    color: '#1976d2',
+                                    border: '1px solid #90caf9',
+                                    borderRadius: '10px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#bbdefb';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#e3f2fd';
+                                }}
+                            >
+                                ⬇️
                             </button>
 
                             <input
@@ -957,41 +1010,42 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 </div>
             </div>
 
-            {/* Status messages */}
-            {(error || message) && (
-                <div style={{
-                    width: '95%',
-                    marginTop: '20px',
-                    marginBottom: '10px',
-                    textAlign: 'center'
-                }}>
-                    {error && (
-                        <div style={{
-                            padding: '15px',
-                            borderRadius: '6px',
-                            backgroundColor: '#ffebee',
-                            color: '#d32f2f',
-                            border: '1px solid #ef9a9a',
-                            fontSize: '15px',
-                            marginBottom: '10px'
-                        }}>
-                            {error}
-                        </div>
-                    )}
-                    {message && (
-                        <div style={{
-                            padding: '15px',
-                            borderRadius: '6px',
-                            backgroundColor: '#e8f5e9',
-                            color: '#2e7d32',
-                            border: '1px solid #a5d6a7',
-                            fontSize: '15px'
-                        }}>
-                            {message}
-                        </div>
-                    )}
-                </div>
-            )}
+                {/* Status messages */}
+                {(error || message) && (
+                    <div style={{
+                        width: '100%',
+                        marginTop: '-15px',
+                        marginBottom: '0px',
+                        textAlign: 'center'
+                    }}>
+                        {error && (
+                            <div style={{
+                                padding: '10px',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffebee',
+                                color: '#d32f2f',
+                                border: '1px solid #ef9a9a',
+                                fontSize: '14px',
+                                marginBottom: '0px'
+                            }}>
+                                {error}
+                            </div>
+                        )}
+                        {message && (
+                            <div style={{
+                                padding: '15px',
+                                borderRadius: '6px',
+                                backgroundColor: '#e8f5e9',
+                                color: '#2e7d32',
+                                border: '1px solid #a5d6a7',
+                                fontSize: '14px'
+                            }}>
+                                {message}
+                            </div>
+                        )}
+                    </div>
+                )}
+
 
             {/* Action buttons */}
             <div style={{
@@ -1018,7 +1072,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     onClick={handleCompress}
                     disabled={isOptimizing}
                 >
-                    Compress Data
+                    Compress
                 </button>
 
                 <button
@@ -1037,7 +1091,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                     onClick={handleOptimize}
                     disabled={isOptimizing}
                 >
-                    {isOptimizing ? 'Optimizing...' : 'Optimize Parameters'}
+                    {isOptimizing ? 'Optimising...' : 'Optimise'}
                 </button>
             </div>
 
@@ -1085,92 +1139,104 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress }, 
                 </div>
             )}
 
-            {showDataSourcesModal && (
-            <div style={{
-                position: 'fixed',
-                top: 0, left: 0, right: 0, bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.4)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 2000
-            }}>
-                <div style={{
-                    backgroundColor: '#fff',
-                    padding: '24px',
-                    borderRadius: '10px',
-                    width: '90%',
-                    maxWidth: '500px',
-                    maxHeight: '90vh',
-                    overflowY: 'auto',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}> Select Data from Cloud </h3>
-                    <button
-                    onClick={() => setShowDataSourcesModal(false)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '18px',
-                        cursor: 'pointer',
-                        color: '#999'
-                    }}
-                    >
-                    ✖
-                    </button>
-                </div>
+                {showDataSourcesModal && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.4)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 2000
+                    }}>
+                        <div style={{
+                            backgroundColor: '#fff',
+                            padding: '24px',
+                            borderRadius: '10px',
+                            width: '90%',
+                            maxWidth: '500px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ margin: 0 }}> Select Data from Cloud </h3>
+                                <button
+                                    onClick={() => setShowDataSourcesModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        fontSize: '18px',
+                                        cursor: 'pointer',
+                                        color: '#999'
+                                    }}
+                                >
+                                    ✖
+                                </button>
+                            </div>
 
-                    <div>
-                        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
-                            <tbody>
-                            {availableSources.map((s, i) => {
-                                const shortName = s.qualifiedName.split(".").slice(-1)[0];
-                                return (
-                                    <tr key={i}>
-                                        <td
-                                            onClick={() => {
-                                                const filtered = allRawRows.filter(row => row.DataSource === s.qualifiedName);
-                                                const labels = filtered.map(row => row.UtcSampleTime);
-                                                const raw = filtered.map(row => parseFloat(row.NumericValue));
+                            <div>
+                                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
+                                    <tbody>
+                                    {availableSources.map((s, i) => {
+                                        const shortName = s.qualifiedName.split(".").slice(-1)[0];
+                                        return (
+                                            <tr key={i}>
+                                                <td
+                                                    onClick={() => {
+                                                        const filtered = allRawRows.filter(row => row.DataSource === s.qualifiedName);
+                                                        const labels = filtered.map(row => row.UtcSampleTime);
+                                                        const raw = filtered.map(row => parseFloat(row.NumericValue));
 
-                                                setLabels(labels);
-                                                setRawData(raw);
-                                                setFullLabels(labels);
-                                                setFullData(raw);
-                                                setAllTimes(labels.map(formatTime));
-                                                setStartTime(labels[0]);
-                                                setEndTime(labels[labels.length - 1]);
-                                                setMessage(`Loaded ${labels.length} points from ${s.qualifiedName}`);
-                                                setChartVisible(true);
-                                                setSelectedSource(s.qualifiedName);
-                                                setShowCloudModal(true);
-                                                setShowDataSourcesModal(false);
-                                            }}
-                                            style={{
-                                                padding: "14px 18px",
-                                                borderTop: "1px solid #eee",
-                                                borderBottom: "1px solid #eee",
-                                                cursor: "pointer",
-                                                color: "#0d47a1",
-                                                fontWeight: 500,
-                                                fontSize: "18px",
-                                                transition: "all 0.2s ease",
-                                                backgroundColor: "transparent"
-                                            }}
-                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
-                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                                                        setLabels(labels);
+                                                        setRawData(raw);
+                                                        setFullLabels(labels);
+                                                        setFullData(raw);
+                                                        setAllTimes(labels.map(formatTime));
+                                                        setStartTime(labels[0]);
+                                                        setEndTime(labels[labels.length - 1]);
 
-                                        >
-                                            {shortName}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            </tbody>
-                        </table>
+                                                        if (typeof setCompressedData === 'function') setCompressedData([]);
+                                                        if (typeof setCompressedLabels === 'function') setCompressedLabels([]);
 
-                    </div>
+                                                        const fakeFile = new File([""], "cloud.csv", { type: "text/csv" });
+                                                        setFileState(fakeFile);
+                                                        setFile(fakeFile);
+                                                        setError('');
+
+                                                        const shortName = s.qualifiedName.split('.').slice(-1)[0];
+                                                        setMessage(`Loaded from ${shortName}`);
+
+                                                        setChartVisible(true);
+                                                        setSelectedSource(s.qualifiedName);
+                                                        setShowCloudModal(true);
+                                                        setShowDataSourcesModal(false);
+                                                    }}
+
+                                                    style={{
+                                                        padding: "14px 18px",
+                                                        borderTop: "1px solid #eee",
+                                                        borderBottom: "1px solid #eee",
+                                                        cursor: "pointer",
+                                                        color: "#0d47a1",
+                                                        fontWeight: 500,
+                                                        fontSize: "18px",
+                                                        transition: "all 0.2s ease",
+                                                        backgroundColor: "transparent"
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f0f8ff"}
+                                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                                                >
+                                                    {shortName}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    </tbody>
+                                </table>
+
+
+                            </div>
 
 
                 </div>

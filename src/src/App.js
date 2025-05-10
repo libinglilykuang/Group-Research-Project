@@ -19,6 +19,8 @@ function App() {
     const [setEditedConfig] = useState(null);
     const lastParamsRef = useRef(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
+
 
     const sasToken = "?sv=2017-07-29&ss=t&srt=so&sp=rwdlacu&se=2026-01-01T00:00:00Z&st=2025-01-01T00:00:00Z&spr=https&sig=wK7MJiU907XljD3qFOQ0H4KJOL9pYYL8CteWYq5Rhfc%3D";
     const accountName = "team6ipstorageaccount";
@@ -242,7 +244,7 @@ function App() {
             .map(timestamp => timestamp.toISOString());
 
         if (parsedTimestamps.length !== rawData.length) {
-            return;
+            throw new Error("Mismatch between timestamps and raw data");
         }
 
         const requestData = {
@@ -257,7 +259,7 @@ function App() {
         };
 
         try {
-            setLoading(true);
+            setIsCompressing(true);
             setError(null);
 
             const response = await fetch(`${FUNCTION_URL}?code=${FUNCTION_KEY}`, {
@@ -352,9 +354,10 @@ function App() {
             console.error("Error compressing data with Azure Function:", err);
             setError(`Failed to compress data: ${err.message}`);
         } finally {
-            setLoading(false);
+            setIsCompressing(false);
         }
     };
+
 
     const rawDataForChart = rawData
         .map((value, index) => {
@@ -404,18 +407,45 @@ function App() {
             style={{
                 display: "flex",
                 flexDirection: "column",
+                overflow: 'hidden',
                 alignItems: "center",
                 minHeight: "100vh",
-                backgroundImage: "url(/icons/background.jpg)",
+                backgroundImage: "url('/icons/background.jpg')",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                padding: "20px",
+                padding: "0px",
             }}
         >
-            <h2 style={{ color: "#333", marginBottom: "20px" }}>
-                Intelligent Plant Compression Optimisation
-            </h2>
+
+            <div style={{
+                width: '100%',
+                backgroundColor: '#212121',
+                color: 'white',
+                padding: '12px 24px',
+                fontSize: '20px',
+                fontWeight: '600',
+                boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
+                marginBottom: '0px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+            }}>
+                <div style={{ flexGrow: 1, textAlign: 'center', marginLeft: '30px'  }}>
+                    Intelligent Plant Compression Optimisation
+                </div>
+                <img
+                    src="/icons/logo.png"
+                    alt="Logo"
+                    style={{
+                        height: '40px',
+                        width: '40px',
+                        objectFit: 'contain',
+                        marginLeft: '0px',
+                        marginRight: '12px'
+                    }}
+                />
+            </div>
             <div style={{ width: "80%" }}>
                 <CompressionSidebarPanel
                     configurations={configurations}
@@ -446,7 +476,7 @@ function App() {
                     onCompress={compressData}
                     onOptimized={(params) => {
                         setEditedConfig({
-                            name: `Optimized Config - ${new Date().toLocaleTimeString()}`,
+                            name: `Optimised Config - ${new Date().toLocaleTimeString()}`,
                             date: new Date().toISOString(),
                             parameters: params,
                         });

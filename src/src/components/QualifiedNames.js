@@ -11,17 +11,17 @@ export default function QualifiedNames({ onSelect }) {
 
   useEffect(() => {
     fetch(process.env.PUBLIC_URL + "/qualified_names.csv")
-      .then((res) => res.text())
-      .then((csv) => {
-        const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
-        const cleaned = data.map((row) => {
-          const qn = row.QualifiedName || "";
-          const dot = qn.indexOf(".");
-          return dot === -1 ? qn : qn.slice(dot + 1);
-        });
-        setNames(cleaned);
-      })
-      .catch(console.error);
+        .then((res) => res.text())
+        .then((csv) => {
+          const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+          const cleaned = data.map((row) => {
+            const qn = row.QualifiedName || "";
+            const dot = qn.indexOf(".");
+            return dot === -1 ? qn : qn.slice(dot + 1);
+          });
+          setNames(cleaned);
+        })
+        .catch(console.error);
   }, []);
 
   if (!names.length) return <p>Loading…</p>;
@@ -44,19 +44,19 @@ export default function QualifiedNames({ onSelect }) {
   };
 
   return (
-    <div style={{ width: "100%" }}>
-      {names.map((n, i) => (
-        <button
-          key={i}
-          style={btnStyle}
-          onMouseEnter={(e) => Object.assign(e.currentTarget.style, btnHover)}
-          onMouseLeave={(e) => Object.assign(e.currentTarget.style, { backgroundColor: "#f9f9f9" })}
-          onClick={() => onSelect && onSelect(n)}
-        >
-          {n}
-        </button>
-      ))}
-    </div>
+      <div style={{ width: "100%" }}>
+        {names.map((n, i) => (
+            <button
+                key={i}
+                style={btnStyle}
+                onMouseEnter={(e) => Object.assign(e.currentTarget.style, btnHover)}
+                onMouseLeave={(e) => Object.assign(e.currentTarget.style, { backgroundColor: "#f9f9f9" })}
+                onClick={() => onSelect && onSelect(n)}
+            >
+              {n}
+            </button>
+        ))}
+      </div>
   );
 }
 

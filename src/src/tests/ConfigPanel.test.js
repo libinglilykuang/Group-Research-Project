@@ -35,7 +35,7 @@ describe('ConfigPanel Component Tests', () => {
 
         // Verify button presence
         expect(screen.getByRole('button', { name: 'Select Time Range' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /compress data/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /compress/i })).toBeInTheDocument();
 
         // Direct DOM query for file input
         const fileInput = container.querySelector('input[type="file"]');
@@ -70,8 +70,8 @@ describe('ConfigPanel Component Tests', () => {
             />
         );
 
-        expect(screen.getByText('Compress Data')).toBeInTheDocument();
-        expect(screen.getByText('Optimize Parameters')).toBeInTheDocument();
+        expect(screen.getByText('Compress')).toBeInTheDocument();
+        expect(screen.getByText('Optimise')).toBeInTheDocument();
         expect(screen.getByText('Select Time Range')).toBeInTheDocument();
     });
 
@@ -87,7 +87,7 @@ describe('ConfigPanel Component Tests', () => {
                 />
             );
 
-            fireEvent.click(screen.getByText('Compress Data'));
+            fireEvent.click(screen.getByText('Compress'));
             expect(screen.getByText('Please upload a file first')).toBeInTheDocument();
         });
 
@@ -105,7 +105,7 @@ describe('ConfigPanel Component Tests', () => {
             const fileInput = container.querySelector('input[type="file"]');
             fireEvent.change(fileInput, { target: { files: [file] } });
 
-            fireEvent.click(screen.getByText('Compress Data'));
+            fireEvent.click(screen.getByText('Compress'));
             expect(screen.queryByText('Please upload a file first')).not.toBeInTheDocument();
         });
     });
@@ -184,7 +184,7 @@ describe('ConfigPanel Component Tests', () => {
             />
         );
 
-        fireEvent.click(screen.getByText('Optimize Parameters'));
+        fireEvent.click(screen.getByText('Optimise'));
         await waitFor(() => {
             expect(screen.getByText('Please upload a file first')).toBeInTheDocument();
         });
@@ -201,7 +201,7 @@ describe('ConfigPanel Component Tests', () => {
             />
         );
 
-        fireEvent.click(screen.getByText('Compress Data'));
+        fireEvent.click(screen.getByText('Compress'));
         expect(screen.getByText('Please upload a file first')).toBeInTheDocument();
     });
 

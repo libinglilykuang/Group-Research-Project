@@ -23,7 +23,7 @@ describe('MetricsTable', () => {
             'Compression Ratio',
             'Storage Size (Raw) (MB)',
             'Storage Size (Compressed) (MB)',
-            'Data Accuracy (Error Rate) (%)'
+            'Error Rate (%)'
         ];
 
         metrics.forEach(metric => {
@@ -45,14 +45,14 @@ describe('MetricsTable', () => {
     describe('save functionality', () => {
         test('save button is enabled and clickable', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            const saveButton = screen.getByRole('button', { name: /save current configuration/i });
+            const saveButton = screen.getByRole('button', { name: /save configuration/i });
             await userEvent.click(saveButton);
             expect(screen.getByText('Save Configuration')).toBeInTheDocument();
         });
 
         test('saves configuration without CSV by default', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            await userEvent.click(screen.getByText('Save Current Configuration'));
+            await userEvent.click(screen.getByText('Save Configuration'));
             await userEvent.click(screen.getByText('Confirm'));
             expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({
                 includeCSV: false
@@ -61,7 +61,7 @@ describe('MetricsTable', () => {
 
         test('saves configuration with CSV when checked', async () => {
             render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
-            await userEvent.click(screen.getByText('Save Current Configuration'));
+            await userEvent.click(screen.getByText('Save Configuration'));
             await userEvent.click(screen.getByLabelText('Include CSV File'));
             await userEvent.click(screen.getByText('Confirm'));
             expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({
@@ -129,7 +129,7 @@ describe('MetricsTable', () => {
     test('save button has correct base styling', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
-        const button = screen.getByText('Save Current Configuration');
+        const button = screen.getByText('Save Configuration');
         expect(button).toHaveStyle(`
             background-color: #4CAF50;
             color: white;
@@ -165,7 +165,7 @@ describe('MetricsTable', () => {
     test('save button has correct dimensions', () => {
         render(<MetricsTable rawData={mockRawData} compressedData={mockCompressedData} onSave={mockOnSave} />);
 
-        const button = screen.getByText('Save Current Configuration');
+        const button = screen.getByText('Save Configuration');
         expect(button).toHaveStyle('padding: 12px 24px');
         expect(button).toHaveStyle('font-size: 15px');
     });

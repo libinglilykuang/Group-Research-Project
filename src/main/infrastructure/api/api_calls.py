@@ -67,7 +67,7 @@ def data_sources():
             if k == 'Name':
                 qualifiedNames.append(v['QualifiedName'])
                 dsnNames[v['QualifiedName']] = v['Name']
-    
+
     QUALIFIED_CSV_PATH = os.path.join(REACT_PUBLIC, "qualified_names.csv")
     with open(QUALIFIED_CSV_PATH, "w", newline="") as fp:
         writer = csv.writer(fp)

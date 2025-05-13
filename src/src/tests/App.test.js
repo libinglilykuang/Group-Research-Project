@@ -38,13 +38,13 @@ jest.mock("@azure/data-tables", () => {
 });
 
 // Mock child components to prevent rendering issues
-jest.mock("../components/ConfigPanel", () => {
+jest.mock("../components/desktop/ConfigPanel", () => {
     const React = require('react');
     return React.forwardRef(() => <div>Mock ConfigPanel</div>);
 });
-jest.mock("../components/CompressionMatrixTable", () => () => <div>Mock MetricsTable</div>);
-jest.mock("../components/CompressionSidebarPanel", () => () => <div>Mock Sidebar</div>);
-jest.mock("../components/Chart", () => () => <div>Mock Chart</div>);
+jest.mock("../components/desktop/CompressionMatrixTable", () => () => <div>Mock MetricsTable</div>);
+jest.mock("../components/desktop/CompressionSidebarPanel", () => () => <div>Mock Sidebar</div>);
+jest.mock("../components/desktop/Chart", () => () => <div>Mock Chart</div>);
 
 describe("App Component", () => {
     beforeEach(() => {

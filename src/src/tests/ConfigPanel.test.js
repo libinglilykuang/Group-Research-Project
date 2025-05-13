@@ -1,6 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-dom';
-import ConfigPanel from '../components/ConfigPanel';
+import ConfigPanel from '../components/desktop/ConfigPanel';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 beforeAll(() => {

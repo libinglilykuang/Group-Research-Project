@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import ZoomableChart from '../components/Chart.js';
+import ZoomableChart from '../components/desktop/Chart.js';
 import { Line } from 'react-chartjs-2';
 
 jest.mock('react-chartjs-2', () => ({

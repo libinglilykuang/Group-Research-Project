@@ -786,7 +786,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                     display: 'flex',
                     justifyContent: 'center',
                     position: 'relative',
-
+                    marginLeft:'30px',
                     zIndex: 10
                 }}>
                     <button
@@ -823,7 +823,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
 
             {/* Parameter configuration section */}
             <div style={{ width: '100%', marginBottom: '20px', padding: '0 0px' }}>
-                <div style={{ padding: '20px' }}>
+                <div style={{ padding: '0px' }}>
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',

@@ -454,17 +454,18 @@ function MobileApp() {
             </div>
             <div
                 style={{
-                    width: "100%",
+                    width: "85%",
                     display: "flex",
                     justifyContent: "center",
                     boxSizing: "border-box",
+                    padding: "0 0px",
+                    marginRight:"50px"
                 }}
             >
                 <div
                     style={{
                         width: "100%",
                         maxWidth: "600px",
-                        padding: "0 16px",
                         marginBottom: "20px",
                         boxSizing: "border-box",
                     }}

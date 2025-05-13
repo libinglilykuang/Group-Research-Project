@@ -13,7 +13,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
             : (rawDataPoints / compressedDataPoints).toFixed(2);
         const storageSizeRaw = (rawDataPoints * 4 / 1024).toFixed(2); // Changed from MB to KB
         const storageSizeCompressed = (compressedDataPoints * 4 / 1024).toFixed(2); // Changed from MB to KB
-        let errorRate = '0.00';
+        let errorRate = 'N/A';
         if (rawData.length > 0 && compressedData.length > 0) {
             const rawSum = rawData.reduce((sum, val) => sum + val, 0);
             const compressedSum = compressedData.reduce((sum, val) => sum + val, 0);
@@ -74,7 +74,7 @@ const MetricsTable = ({ rawData, compressedData, onSave }) => {
         <div
             data-testid="scroll-container"
             style={{
-                border: '1px solid #ccc',
+                fontFamily: 'Arial, sans-serif',
                 borderRadius: '8px',
                 padding: '0px',
                 margin: '0',
@@ -257,18 +257,21 @@ const thStyle = {
     textAlign: 'left',
     backgroundColor: '#f8f9fa',
     color: '#212529',
-    fontSize: '14px',
+    fontSize: '15px',
     fontWeight: 600,
     borderBottom: '2px solid #dee2e6',
     borderTop: '1px solid #dee2e6',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    fontFamily: 'Arial, sans-serif'
 };
 
 const tdStyle = {
     border: '1px solid #ddd',
-    padding: '7px',
+    padding: '10px',
     fontSize: '14px',
-    wordBreak: 'break-word'
+    fontWeight: 540,
+    wordBreak: 'break-word',
+    fontFamily: 'Arial, sans-serif'
 };
 
 MetricsTable.propTypes = {

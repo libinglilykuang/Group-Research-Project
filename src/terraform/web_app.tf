@@ -14,3 +14,8 @@ output "static_app_url" {
   value       = "https://${azurerm_static_web_app.ip_react_static_app.default_host_name}"
   description = "The URL of the deployed React static web app"
 }
+
+output "optimisation_function_url" {
+  value       = "https://${azurerm_linux_function_app.IP_optimisation_function.default_hostname}/api/optimise"
+  description = "The URL of the optimisation Function App"
+}

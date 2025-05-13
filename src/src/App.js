@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo  } from "react";
-import ConfigPanel from "./components/ConfigPanel";
-import MetricsTable from "./components/CompressionMatrixTable";
-import CompressionSidebarPanel from "./components/CompressionSidebarPanel";
-import ZoomableChart from "./components/Chart";
+import ConfigPanel from "./components/desktop/ConfigPanel";
+import MetricsTable from "./components/desktop/CompressionMatrixTable";
+import CompressionSidebarPanel from "./components/desktop/CompressionSidebarPanel";
+import ZoomableChart from "./components/desktop/Chart";
 import { TableClient, AzureSASCredential } from "@azure/data-tables";
 
 function App() {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import CompressionSidebarPanel from '../components/CompressionSidebarPanel';
+import CompressionSidebarPanel from '../components/desktop/CompressionSidebarPanel';
 import { saveAs } from 'file-saver';
 
 jest.mock('file-saver', () => ({

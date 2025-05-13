@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import MetricsTable from '../components/CompressionMatrixTable';
+import MetricsTable from '../components/desktop/CompressionMatrixTable';
 
 describe('MetricsTable', () => {
     const mockRawData = [10, 20, 30, 40, 50];

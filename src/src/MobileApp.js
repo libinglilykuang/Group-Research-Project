@@ -426,7 +426,7 @@ function MobileApp() {
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
-                <div style={{ flexGrow: 1, textAlign: 'center' }}>
+                <div style={{ flexGrow: 1, textAlign: 'center',marginLeft:'50px' }}>
                     Intelligent Plant Compression Optimisation
                 </div>
                 <img

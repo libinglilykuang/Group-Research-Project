@@ -687,7 +687,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                 {/* Upload area with drag and drop support */}
                 <div
                     style={{
-                        width: '100%',
+                        width: '88%',
                         backgroundColor: isDragging ? '#f0faff' : '#e9f5ff',
                         border: `2px dashed ${isDragging ? '#4CAF50' : '#66a6ff'}`,
                         borderRadius: '20px',
@@ -786,7 +786,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                     display: 'flex',
                     justifyContent: 'center',
                     position: 'relative',
-                    marginLeft:'30px',
+                    marginLeft:'15px',
                     zIndex: 10
                 }}>
                     <button

@@ -37,11 +37,11 @@ function formatSmartTimestamp(isoString) {
     const s = String(date.getSeconds()).padStart(2, '0');
 
     if (h === '00' && min === '00' && s === '00') {
-        return `${y}-${m}-${d}`; // 仅日期
+        return `${y}-${m}-${d}`;
     } else if (s === '00') {
-        return `${m}-${d} ${h}:${min}`; // 到分钟
+        return `${m}-${d} ${h}:${min}`;
     } else {
-        return `${m}-${d} ${h}:${min}:${s}`; // 到秒
+        return `${m}-${d} ${h}:${min}:${s}`;
     }
 }
 

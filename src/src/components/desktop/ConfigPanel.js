@@ -776,6 +776,7 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
                     display: 'flex',
                     justifyContent: 'center',
                     position: 'relative',
+                    marginLeft:'30px',
                     zIndex: 10
                 }}>
                     <button

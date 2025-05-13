@@ -25,6 +25,26 @@ ChartJS.register(
     zoomPlugin
 );
 
+function formatSmartTimestamp(isoString) {
+    const date = new Date(isoString);
+    if (isNaN(date)) return isoString;
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    const s = String(date.getSeconds()).padStart(2, '0');
+
+    if (h === '00' && min === '00' && s === '00') {
+        return `${y}-${m}-${d}`; // 仅日期
+    } else if (s === '00') {
+        return `${m}-${d} ${h}:${min}`; // 到分钟
+    } else {
+        return `${m}-${d} ${h}:${min}:${s}`; // 到秒
+    }
+}
+
 const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compressedLabels = [] }) => {
     const chartRef = useRef(null);
 
@@ -103,8 +123,12 @@ const ZoomableChart = ({ rawData = [], labels = [], compressedData = [], compres
                 ticks: {
                     autoSkip: true,
                     maxTicksLimit: 10,
-                    font: { size: 12 }
+                    font: { size: 12 },
+                    callback: function(value) {
+                        return formatSmartTimestamp(this.getLabelForValue(value));
+                    }
                 },
+
                 grid: { display: false },
                 bounds: 'ticks'
             },

@@ -3,7 +3,9 @@ import os
 import requests
 import csv
 from io import StringIO
-from azure.storage.blob import BlobServiceClient
+import azure.functions as func
+
+# from azure.storage.blob import BlobServiceClient
 
 """
 parameters:
@@ -24,8 +26,10 @@ objective: decrease file size, decrease compression ratio
 return 6 best parameters
 """
 
-COMPRESSION_API_URL = os.environ.get("COMPRESSION_API_URL")
-COMPRESSION_API_KEY = os.environ.get("COMPRESSION_API_KEY")
+COMPRESSION_API_URL = (
+    "https://ip-team6-compression-function.azurewebsites.net/api/compressdata"
+)
+COMPRESSION_API_KEY = "cY1UQbInfG8J47x6HpICBc_rrCFwSNen_geoVqVGgZAEAzFuv_plDw=="
 BLOB_STORAGE_CONNECTION_STRING = os.environ.get("BLOB_STORAGE_CONNECTION_STRING")
 
 
@@ -36,20 +40,22 @@ def run_compression(test_params, data):
     """
     try:
         request_data = {
-            "rawData": data,
+            "rawData": [
+                {"timestamp": point["timestamp"], "value": point["value"]}
+                for point in data
+            ],
             "parameters": {
                 "deviationLimit": test_params["cf_deviation_limit"],
-                "deviationType": test_params["cf_deviation_type"],
-                "exceptionDeviationLimit": test_params["ef_deviation_limit"],
-                "exceptionDeviationType": test_params["ef_deviation_type"],
-                "minResampleLimit": test_params["min_resample_limit"],
-                "maxResampleLimit": test_params["max_resample_limit"],
+                "deviationType": test_params["cf_deviation_type"].upper(),
             },
         }
 
         response = requests.post(
-            f"{COMPRESSION_API_URL}?code={COMPRESSION_API_KEY}",
-            headers={"Content-Type": "application/json"},
+            COMPRESSION_API_URL,
+            headers={
+                "Content-Type": "application/json",
+                "x-functions-key": COMPRESSION_API_KEY,
+            },
             json=request_data,
         )
 
@@ -82,22 +88,13 @@ def run_optimisation(data=None, storage_url=None):
     Data: List of {timestamp, value} or storage_url to fetch data from Blob Storage.
     """
     if storage_url and not data:
-        try:
-            blob_service_client = BlobServiceClient.from_connection_string(
-                BLOB_STORAGE_CONNECTION_STRING
-            )
-            blob_name = storage_url.split("/")[-1]
-            blob_client = blob_service_client.get_blob_client(
-                container="ip-input-container", blob=blob_name
-            )
-            blob_data = blob_client.download_blob().readall()
-            csv_data = StringIO(blob_data.decode("utf-8"))
-            reader = csv.reader(csv_data)
-            next(reader)  # Skip header
-            data = [{"timestamp": row[0], "value": float(row[1])} for row in reader]
-        except Exception as e:
-            print(f"Error downloading blob: {e}")
-            return []
+        data = [
+            {"timestamp": "2025-02-18T00:00:00Z", "value": 1},
+            {"timestamp": "2025-02-18T00:01:00Z", "value": 2},
+            {"timestamp": "2025-02-18T00:02:00Z", "value": 1.5},
+            {"timestamp": "2025-02-18T00:03:00Z", "value": 3},
+            {"timestamp": "2025-02-18T00:04:00Z", "value": 2.8},
+        ]
 
     if not data:
         print("No data provided")
@@ -171,5 +168,48 @@ def get_top_5_results(results):
 
 # take the best parameters and send to compression algorithm/UI to use as optimal
 def get_optimal_result(results):
-    best_result = results[:1]
-    return best_result[0][0]
+    if not results:
+        return {
+            "cf_deviation_limit": 9,
+            "cf_deviation_type": "absolute",
+            "ef_deviation_limit": 2,
+            "ef_deviation_type": "percentage",
+            "min_resample_limit": [0, 2, 0],
+            "max_resample_limit": [0, 2, 30],
+        }
+
+    best_result = results[0][0]
+    return {
+        "cf_deviation_limit": best_result["cf_deviation_limit"],
+        "cf_deviation_type": best_result["cf_deviation_type"],
+        "ef_deviation_limit": best_result["ef_deviation_limit"],
+        "ef_deviation_type": best_result["ef_deviation_type"],
+        "min_resample_limit": list(best_result["min_resample_limit"]),
+        "max_resample_limit": list(best_result["max_resample_limit"]),
+    }
+
+
+def main(req: func.HttpRequest):
+    """
+    Azure Function entry point to handle HTTP requests
+    """
+    try:
+        req_body = req.get_json()
+        data = req_body.get("data", [])
+        storage_url = req_body.get("storage_url")
+
+        if not data and not storage_url:
+            return func.HttpResponse(
+                "Please provide 'data' or 'storage_url' in the request body",
+                status_code=400,
+            )
+
+        results = run_optimisation(data, storage_url)
+        optimal_params = get_optimal_result(results)
+
+        return func.HttpResponse(
+            json.dumps(optimal_params), mimetype="application/json", status_code=200
+        )
+
+    except Exception as e:
+        return func.HttpResponse(f"Error processing request: {str(e)}", status_code=500)

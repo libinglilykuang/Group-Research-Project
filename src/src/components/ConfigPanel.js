@@ -365,34 +365,62 @@ const ConfigPanel = forwardRef(({ setRawData, setLabels, setFile, onCompress,isC
     };
 
     // Handle parameter optimization
-    const handleOptimize = () => {
+    const handleOptimize = async () => {
         if (!fullLabels.length || !fullData.length) {
             setError('Please upload a file first');
             return;
         }
         setIsOptimizing(true);
         setError('');
-        setMessage(`Optimisation complete${file?.name ? ' for ' + file.name : ''}! Parameters updated.`);
-        setTimeout(() => {
-            setCompressionDeviationLimit('1.5');
-            setCompressionDeviationType('percentage');
-            setExceptionFilterDeviationLimit('0.8');
-            setExceptionFilterDeviationType('absolute');
-            setMinResampleLimit('1');
-            setMaxResampleLimit('8');
-            setIsOptimizing(false);
+
+        const requestData = {
+            data: fullLabels.map((timestamp, index) => ({
+                timestamp,
+                value: fullData[index]
+            }))
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/optimise', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // Map Flask response to frontend parameter names
+            setCompressionDeviationLimit(String(result.cf_deviation_limit));
+            setCompressionDeviationType(result.cf_deviation_type);
+            setExceptionFilterDeviationLimit(String(result.ef_deviation_limit));
+            setExceptionFilterDeviationType(result.ef_deviation_type);
+            setMinResampleLimit(String(result.min_resample_limit[0])); // Assuming single value
+            setMaxResampleLimit(String(result.max_resample_limit[0])); // Assuming single value
+
             setMessage(`Optimisation complete${file?.name ? ` for ${file.name}` : ''}! Parameters updated.`);
 
+            // Save optimized parameters to sessionStorage
             const optimizedParams = {
-                compressionDeviationLimit: '1.5',
-                compressionDeviationType: 'percentage',
-                exceptionFilterDeviationLimit: '0.8',
-                exceptionFilterDeviationType: 'absolute',
-                minResampleLimit: '1',
-                maxResampleLimit: '8'
+                compressionDeviationLimit: result.cf_deviation_limit,
+                compressionDeviationType: result.cf_deviation_type,
+                exceptionFilterDeviationLimit: result.ef_deviation_limit,
+                exceptionFilterDeviationType: result.ef_deviation_type,
+                minResampleLimit: result.min_resample_limit[0],
+                maxResampleLimit: result.max_resample_limit[0]
             };
             sessionStorage.setItem('lastOptimizedParams', JSON.stringify(optimizedParams));
-        }, 2000);
+        } catch (err) {
+            console.error('Error optimizing parameters:', err);
+            setError(`Failed to optimize parameters: ${err.message}`);
+        } finally {
+            setIsOptimizing(false);
+        }
     };
 
     // Time range modal component

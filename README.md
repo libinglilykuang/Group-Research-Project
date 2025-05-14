@@ -1,5 +1,7 @@
 # Team 6 Project: Compression Optimisation for Intelligent Plant!
 
+V1.0.1
+
 ![Intelligent Plant Logo](./assets/intelligentPlanticon.png)
 
 

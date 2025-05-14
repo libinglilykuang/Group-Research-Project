@@ -1,155 +1,205 @@
 from sklearn.model_selection import ParameterGrid
+import requests
+import json
+import logging
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from azure.storage.blob import BlobServiceClient
 
-"""
-parameters:
-- compression filter deviation type: absolute or percentage
-- compression filter deviation limit: integer
-- exception filter deviation type: absolute or percentage
-- exception filter deviation limit: integer
-- minimum resample limit: hours, minutes, seconds
-- maximum resample limit: hours, minutes, seconds
-"""
+app = Flask(__name__)
+CORS(
+    app,
+    resources={
+        r"/optimise": {
+            "origins": [
+                "https://delightful-dune-0bf943403-preview.westeurope.6.azurestaticapps.net",
+                "https://delightful-dune-0bf943403.6.azurestaticapps.net",
+                "http://localhost:3000",
+            ]
+        }
+    },
+)
+logging.basicConfig(level=logging.INFO)
 
-"""
-measures:
-- smallest file size
-- smallest compression ratio (minimum number of points lost)
-
-objective: decrease file size, decrease compression ratio
-return 6 best parameters
-"""
-
-global o_cf_dl
-global o_cf_dt
-global o_ef_dl
-global o_ef_dt
-global o_max
-global o_min
-
-
-def set_optimal_params(optimal_params):
-    global o_cf_dl
-    o_cf_dl = optimal_params["cf_deviation_limit"]
-    global o_cf_dt
-    o_cf_dt = optimal_params["cf_deviation_type"]
-    global o_ef_dl
-    o_ef_dl = optimal_params["ef_deviation_limit"]
-    global o_ef_dt
-    o_ef_dt = optimal_params["ef_deviation_type"]
-    global o_max
-    o_max = optimal_params["max_resample_limit"]
-    global o_min
-    o_min = optimal_params["min_resample_limit"]
+COMPRESSION_API_URL = (
+    "https://ip-team6-compression-function.azurewebsites.net/api/compressdata"
+)
+COMPRESSION_API_KEY = "cY1UQbInfG8J47x6HpICBc_rrCFwSNen_geoVqVGgZAEAzFuv_plDw=="
+BLOB_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=team6ipstorageaccount;AccountKey=Tt8rQKp/Vi6QAsxdTuSCJH1+s7HODqclwW4+/gZLUawwvDllOmKMRQq2wlOOFffQOmkdjHObgvMA+AStB3Sfog==;EndpointSuffix=core.windows.net"
 
 
-def get_optimal_params():
-    optimal_params = {
-        "cf_deviation_limit": o_cf_dl,
-        "cf_deviation_type": o_cf_dt,
-        "ef_deviation_limit": o_ef_dl,
-        "ef_deviation_type": o_ef_dt,
-        "max_resample_limit": o_max,
-        "min_resample_limit": o_min
-    }
+def fetch_blob_data(storage_url):
+    try:
+        blob_service_client = BlobServiceClient.from_connection_string(
+            BLOB_STORAGE_CONNECTION_STRING
+        )
+        blob_url_parts = storage_url.split("/")
+        container_name = blob_url_parts[3]
+        blob_name = "/".join(blob_url_parts[4:])
+        blob_client = blob_service_client.get_blob_client(
+            container=container_name, blob=blob_name
+        )
+        blob_data = blob_client.download_blob().readall().decode("utf-8")
+        import csv
+        from io import StringIO
 
-    return optimal_params
-
-
-# mock implementation of compression algorithm
-def run_mock_compression(test_params):
-    # acting as file size
-    error = 0
-
-    # compression filter deviation type
-    if test_params["cf_deviation_type"] != o_cf_dt:
-        error += 1
-
-    # compression filter deviation limit
-    error += (abs(test_params["cf_deviation_limit"] - o_cf_dl))
-
-    # exception filter deviation type
-    if test_params["ef_deviation_type"] != o_ef_dt:
-        error += 1
-
-    # exception filter deviation limit
-    error += (abs(test_params["ef_deviation_limit"] - o_ef_dl))
-
-    # maximum and minimum resample limits
-    error += (abs(test_params["min_resample_limit"][0] - o_min[0]) + abs(
-        test_params["min_resample_limit"][1] - o_min[1]) + abs(test_params["min_resample_limit"][2] - o_min[2]))
-    error += (abs(test_params["max_resample_limit"][0] - o_max[0]) + abs(
-        test_params["max_resample_limit"][1] - o_max[1]) + abs(test_params["max_resample_limit"][2] - o_max[2]))
-
-    cr = 0.95
-
-    return error, cr
+        reader = csv.DictReader(StringIO(blob_data))
+        data = [
+            {"timestamp": row["timestamp"], "value": float(row["value"])}
+            for row in reader
+        ]
+        return data
+    except Exception as e:
+        logging.error(f"Error fetching blob: {str(e)}")
+        return []
 
 
-# run parameter optimisation on compression algorithm with grid search
-def run_optimisation():
-    # pass in parameter values to parameter grid
+def run_compression(test_params, data):
+    try:
+        request_data = {
+            "rawData": [
+                {"timestamp": point["timestamp"], "value": point["value"]}
+                for point in data
+            ],
+            "parameters": {
+                "deviationLimit": test_params["cf_deviation_limit"],
+                "deviationType": test_params["cf_deviation_type"].upper(),
+                "exceptionFilterDeviationLimit": test_params["ef_deviation_limit"],
+                "exceptionFilterDeviationType": test_params[
+                    "ef_deviation_type"
+                ].upper(),
+                "minResampleLimit": test_params["min_resample_limit"],
+                "maxResampleLimit": test_params["max_resample_limit"],
+            },
+        }
+
+        logging.info(f"Calling compression API with params: {test_params}")
+        response = requests.post(
+            COMPRESSION_API_URL,
+            headers={
+                "Content-Type": "application/json",
+                "x-functions-key": COMPRESSION_API_KEY,
+            },
+            json=request_data,
+        )
+
+        if response.status_code != 200:
+            logging.error(f"Compression API error: {response.text}")
+            return float("inf"), 1.0, 0.0
+
+        result = response.json()
+        if not isinstance(result, list):
+            logging.error(f"Unexpected response format: {result}")
+            return float("inf"), 1.0, 0.0
+
+        raw_points = len(data)
+        compressed_points = len(result)
+        compression_ratio = compressed_points / raw_points if raw_points > 0 else 1.0
+        data_kept = (1 - compression_ratio) * 100
+        file_size = compressed_points  # Approximation based on number of points
+
+        logging.info(
+            f"Compression result: file_size={file_size}, ratio={compression_ratio}, data_kept={data_kept}"
+        )
+        return file_size, compression_ratio, data_kept
+
+    except Exception as e:
+        logging.error(f"Error calling compression API: {e}")
+        return float("inf"), 1.0, 0.0
+
+
+def run_optimisation(data):
+    logging.info("Starting optimisation")
+    if not data:
+        logging.error("No data provided")
+        return []
+
     param_grid = {
-        'cf_deviation_type': ['absolute', 'percentage'],
-        'cf_deviation_limit': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'ef_deviation_type': ['absolute', 'percentage'],
-        'ef_deviation_limit': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'min_resample_limit': [(0, 0, 0), (0, 0, 5), (0, 0, 10), (0, 0, 30), (0, 0, 60), (0, 1, 0), (0, 2, 30),
-                               (0, 5, 0)],
-        'max_resample_limit': [(0, 0, 0), (0, 0, 5), (0, 0, 10), (0, 0, 30), (0, 0, 60), (0, 1, 0), (0, 2, 30),
-                               (0, 5, 0)]
+        "cf_deviation_type": ["absolute", "percentage"],
+        "cf_deviation_limit": [2, 5],
+        "ef_deviation_type": ["percentage"],
+        "ef_deviation_limit": [2],
+        "min_resample_limit": [(0, 0, 0), (0, 1, 0)],
+        "max_resample_limit": [(0, 0, 0)],
     }
 
-    # generate parameter combinations
     param_combinations = list(ParameterGrid(param_grid))
-
-    # store results
+    logging.info(f"Testing {len(param_combinations)} parameter combinations")
     results = []
 
-    # test each parameter combination
     for params in param_combinations:
-        file_size, compression_ratio = run_mock_compression(params)
-        data_kept = (1 - compression_ratio) * 100  # Convert to percentage
-        file_size_reduction = round(100 - ((file_size / 5000) * 100), 2)  # File size reduction percentage
+        file_size, compression_ratio, data_kept = run_compression(params, data)
+        file_size_reduction = round(100 - ((file_size / 5000) * 100), 2)
         results.append((params, file_size, file_size_reduction, round(data_kept, 2)))
 
-    # sort results by smallest file size and highest data retention
     results.sort(key=lambda x: (x[1], -x[3]))
-
+    logging.info(f"Optimisation complete, found {len(results)} results")
     return results
 
 
 def get_top_5_results(results):
-    # get the best 5 parameter sets
     best_results = results[:5]
-
-    # print the best parameters and results
-    print("Top 5 Parameter Combinations:")
-    for i, (params, file_size, file_size_reduction, data_kept) in enumerate(best_results, 1):
-        print(
-            f"{i}. Parameters: {params}, File Size: {file_size} bytes, File Size Reduction: {file_size_reduction}%, "
-            f"Data Kept: {data_kept}%")
-
+    logging.info("Top 5 Parameter Combinations:")
+    for i, (params, file_size, file_size_reduction, data_kept) in enumerate(
+        best_results, 1
+    ):
+        logging.info(
+            f"{i}. Parameters: {params}, File Size: {file_size} bytes, "
+            f"File Size Reduction: {file_size_reduction}%, Data Kept: {data_kept}%"
+        )
     return best_results
 
 
-# take the best parameters and send to compression algorithm/UI to use as optimal
 def get_optimal_result(results):
-    best_result = results[:1]
-    return best_result[0][0]
+    if not results:
+        default = {
+            "cf_deviation_limit": 5,
+            "cf_deviation_type": "absolute",
+            "ef_deviation_limit": 2,
+            "ef_deviation_type": "percentage",
+            "min_resample_limit": [0, 0, 0],
+            "max_resample_limit": [0, 0, 0],
+        }
+        logging.warning(f"No results, returning default: {default}")
+        return default
+
+    best_result = results[0][0]
+    optimal = {
+        "cf_deviation_limit": best_result["cf_deviation_limit"],
+        "cf_deviation_type": best_result["cf_deviation_type"],
+        "ef_deviation_limit": best_result["ef_deviation_limit"],
+        "ef_deviation_type": best_result["ef_deviation_type"],
+        "min_resample_limit": list(best_result["min_resample_limit"]),
+        "max_resample_limit": list(best_result["max_resample_limit"]),
+    }
+    logging.info(f"Optimal parameters: {optimal}")
+    return optimal
 
 
-# configurable when running mock compression - TO BE REMOVED WHEN INTEGRATED
-mock_optimal_params = {
-    'cf_deviation_limit': 9,
-    'cf_deviation_type': 'absolute',
-    'ef_deviation_limit': 2,
-    'ef_deviation_type': 'percentage',
-    'max_resample_limit': (0, 2, 30),
-    'min_resample_limit': (0, 2, 0)
-}
+@app.route("/optimise", methods=["POST"])
+def optimise():
+    try:
+        data = request.json.get("data", [])
+        storage_url = request.json.get("storage_url", "")
 
-set_optimal_params(mock_optimal_params)
+        if not data and not storage_url:
+            logging.error("No data or storage_url provided")
+            return jsonify({"error": "No data or storage_url provided"}), 400
 
-top_results = run_optimisation()
-get_top_5_results(top_results)
-print(get_optimal_result(top_results))
+        if storage_url:
+            data = fetch_blob_data(storage_url)
+            if not data:
+                return jsonify({"error": "Failed to fetch data from storage_url"}), 400
+
+        results = run_optimisation(data)
+        get_top_5_results(results)  # Log top 5 for debugging
+        optimal_params = get_optimal_result(results)
+        return jsonify(optimal_params), 200
+
+    except Exception as e:
+        logging.error(f"Error processing request: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

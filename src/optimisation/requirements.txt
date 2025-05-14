@@ -1,4 +1,6 @@
-azure-functions
-requests
-azure-storage-blob
 scikit-learn
+requests
+flask
+flask-cors
+azure-storage-blob
+gunicorn
